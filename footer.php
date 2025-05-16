@@ -1,9 +1,8 @@
 <div class="footer-bg">
-    <img src="<?php echo get_template_directory_uri(); ?>/photos/bg.svg.png" alt="" style="width: 100%; height: 100%;">
+    <img src="<?php echo get_template_directory_uri(); ?>/photos/bg.svg" alt="" style="width: 100%; height: 100%;">
 </div>
 
 <footer class="footer">
-    <img src="<?php echo get_template_directory_uri(); ?>/photos/footer-wave.png" alt="Wave" class="footer-wave">
     <div class="container footer-home-page-section">
         <div class="footer-section-paragraph">
             <p class="text-start accept-credit">

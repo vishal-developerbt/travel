@@ -179,16 +179,6 @@ add_action('init', 'register_faq_category_taxonomy');
 
 require_once get_template_directory() . '/class-bootstrap-navwalker.php';
 
-
-function enqueue_ajax_login_script() {
-    wp_enqueue_script('ajax-login-script', get_template_directory_uri() . '/js/ajax-login.js', array('jquery'), null, true);
-    wp_localize_script('ajax-login-script', 'ajax_login_object', array(
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce'    => wp_create_nonce('ajax-login-nonce')
-    ));
-}
-add_action('wp_enqueue_scripts', 'enqueue_ajax_login_script');
-
 add_theme_support( 'menus' );
 function fetch_booking_listings() {
  
@@ -902,7 +892,8 @@ function save_hotel_guest_data_callback() {
 
     $data = array(
         'parent_user_id' => intval($_POST['user_id']),
-         'guest_type'     => sanitize_text_field($_POST['guest_type']),
+        'guest_type'     => sanitize_text_field($_POST['guest_type']),
+        'guest_title'     => sanitize_text_field($_POST['guest_title']),
         'first_name'     => sanitize_text_field($_POST['first_name']),
         'last_name'      => sanitize_text_field($_POST['last_name']),
       
@@ -1210,6 +1201,7 @@ foreach ($params['paxDetails'] as $room) {
         for ($i = 0; $i < $count; $i++) {
             $insertData[] = [
                 "customer_id" => $params['customer_id'],
+                "title" => $adult["title"][$i],
                 "firstName" => $adult["firstName"][$i],
                 "lastName" => $adult["lastName"][$i],
                 "guest_type" => "adult",
@@ -1217,7 +1209,7 @@ foreach ($params['paxDetails'] as $room) {
                 "location" => $params['location'],
                 "checkin" => $params['checkin'],
                 "checkout" => $params['checkout'],
-                "rooms" => '1-2-0',
+                "rooms" => $params['rooms'],
                 "productid" => $params['productId'],
                 "hottel_id" => $params['hottel_id'],
                 "price" => $params['price'],
@@ -1241,6 +1233,7 @@ foreach ($params['paxDetails'] as $room) {
         for ($i = 0; $i < $count; $i++) {
             $insertData[] = [
                 "customer_id" => $params['customer_id'],
+                "title" => $adult["title"][$i],
                 "firstName" => $child["firstName"][$i],
                 "lastName" => $child["lastName"][$i],
                 "guest_type" => "child",
@@ -1248,7 +1241,7 @@ foreach ($params['paxDetails'] as $room) {
                 "location" => $params['location'],
                 "checkin" => $params['checkin'],
                 "checkout" => $params['checkout'],
-                "rooms" => '1-2-0',
+                "rooms" => $params['rooms'],
                 "productid" => $params['productId'],
                 "hottel_id" => $params['hottel_id'],
                 "price" => $params['price'],
@@ -1345,7 +1338,7 @@ function saveMyBookings($data){
     }
 
     $query = "INSERT INTO hotel_booking_details (
-        customer_id, firstName, lastName, guest_type, customer_email,
+        customer_id, title, firstName, lastName, guest_type, customer_email,
         location, checkin, checkout, rooms, productid, hottel_id, price,
         booking_status, payment_status, transaction_id, hotel_session_id,
         hotel_token_id, rateBasisId, phone, specialRequests, referenceNum, supplierConfirmationNum

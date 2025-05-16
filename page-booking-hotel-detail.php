@@ -149,12 +149,6 @@ if (
                         </div>
                     </div>
                     <?php } ?>
-
-                    <?php if (count($room['facilities']) > 4): ?>
-                        <div class="toggle-btn-container">
-                            <button type="button" class="toggle-features-btn" onclick="toggleFeatures()">Show More</button>
-                        </div>
-                    <?php endif; ?>
                 </div>
 
                 <div class="mt-2 per-night-section">
@@ -280,10 +274,6 @@ if (!empty($rooms)) {
                                     </li>
                                     <?php endforeach; ?>
                                 </ul>
-
-                                <?php if (count($room['facilities']) > 4): ?>
-                                    <button class="toggle-features-btn" onclick="toggleFeaturesdesc(this)">Show more</button>
-                                <?php endif; ?>
                             </div>
                         </div>
                         
@@ -660,66 +650,6 @@ $(document).ready(function () {
     // Redirect to payment page with parameters
     window.location.href = paymentPageUrl + "?" + params.toString();
   }
-</script>
-<!-- for top room facilate script -->
-<script>
-    let visibleCount = 4;
-
-    function toggleFeatures() {
-        const hiddenItems = Array.from(document.querySelectorAll('.hidden-feature'));
-        const button = document.querySelector('.toggle-features-btn');
-
-        const currentlyVisible = hiddenItems.filter(item => item.style.display !== 'none');
-
-        if (currentlyVisible.length < hiddenItems.length) {
-            // Show next 4 hidden items
-            const nextBatch = hiddenItems.slice(currentlyVisible.length, currentlyVisible.length + 4);
-            nextBatch.forEach(item => {
-                item.style.display = 'flex';
-            });
-
-            // If all are now visible, change button to "Show Less"
-            if (currentlyVisible.length + 4 >= hiddenItems.length) {
-                button.textContent = 'Show Less';
-            }
-        } else {
-            // Hide all extra items
-            hiddenItems.forEach(item => {
-                item.style.display = 'none';
-            });
-            button.textContent = 'Show More';
-        }
-    }
-
-    // Optional: initialize hidden items as `display: none` on load
-    document.addEventListener('DOMContentLoaded', () => {
-        const hiddenItems = document.querySelectorAll('.hidden-feature');
-        hiddenItems.forEach(item => item.style.display = 'none');
-    });
-</script>
-<!-- for top rooms loop facilate script -->
-<script>
-function toggleFeaturesdesc(button) {
-const container = button.closest('.hotel-description');
-const extras = Array.from(container.querySelectorAll('.extra-feature'));
-const currentlyVisible = extras.filter(el => el.style.display !== 'none');
-
-if (currentlyVisible.length < extras.length) {
-    // Show 4 more items
-    const nextItems = extras.slice(currentlyVisible.length, currentlyVisible.length + 4);
-    nextItems.forEach(el => el.style.display = 'list-item');
-
-    // If all are now visible, change button to "Show less"
-    if (currentlyVisible.length + 4 >= extras.length) {
-        button.textContent = 'Show less';
-    }
-} else {
-    // Hide all extras
-    extras.forEach(el => el.style.display = 'none');
-    button.textContent = 'Show more';
-}
-}
-
 </script>
 
 <?php get_footer(); ?>

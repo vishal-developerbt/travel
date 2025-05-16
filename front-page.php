@@ -16,9 +16,9 @@ get_header(); ?>
    
    
 
-    <div class="footer-bg">
+    <<!-- div class="footer-bg">
         <img src="./photos/bg.svg.png" alt="">
-    </div>
+    </div> -->
     <?php get_footer(); ?>
 
     <script>
