@@ -10564,3 +10564,809 @@ section.hotel-detail-paragraph-section {
 
   /* end css 05-5-2025 */
 }
+/*For Car Rental css start*/
+.car-renatl-section.mt-4 .date-box input.form-control {
+    border: none;
+}
+.car-renatl-car-main-sections .car-list-page-section-end {
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    align-items: end;
+}
+.container.mt-4.car-reantal-section-container-section h5.select-filter-section.mt-3.mb-3 {
+    margin-bottom: 48px !important;
+}
+.car-renatl-section.mt-4 .col-md-3.pickup-drop-up-dates {
+    height: 60px;
+    background: white;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid transparent;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+section.car-renatal-listing-page .d-flex.gap-3.car-flex-section.align-items-center.mb-3 img {
+    height: 22px !important;
+}
+.car-renatl-section.mt-4 input#rental-dates {
+    border: none;
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 22px;
+    letter-spacing: 0%;
+    height: 60px;
+    padding: 0px;
+    margin: 0px;
+    border-radius: 8px;
+}
+.feature-item.d-flex.align-items-center.gap-1 {
+    font-family: inherit;
+    font-size: 14px;
+}
+section.car-renatal-listing-page .booking-features .feature-item i {
+    color: green;
+    font-size: 12px;
+    width: 7.5px !important;
+    height: 5px !important;
+    margin-right: 8px;
+    border-width: 1.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.car-card-section p.location-text-homepage {
+    margin-bottom: 5px;
+}
+.car-renatal-listing-page span.car-name-section {
+    font-family: Inter;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    color: #052c65;
+}
+section.car-renatal-listing-page .wishlist-icon {
+    position: absolute;
+    top: 6px;
+    right: 3px !important;
+    height: 29px;
+    font-size: 16px;
+    color: blue;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    width: 29px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.car-renatl-section.mt-4 {
+    margin-top: 0px !important;
+    display: flex;
+    height: 92px;
+    background: #05073c;
+    justify-content: center;
+    align-items: center;
+}
+.car-renatl-section.mt-4 .location-box {
+    height: 60px;
+    background: white;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border: 2px solid transparent;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.car-renatl-section.mt-4 .date-box {
+    height: 60px;
+    background: white;
+    border-radius: 8px;
+    padding: 5px 12px;
+    display: flex;
+    flex-direction: column;
+}
+.car-renatl-section.mt-4 button.btn.modify-search-btn.w-100 {
+    margin-left: 58px;
+    background: #ffffff;
+    width: 154px !important;
+    height: 60px;
+    margin-top: 18px !important;
+    border-radius: 8px;
+    color: #0047ab;
+}
+.car-renatl-section.mt-4 .location-label {
+    display: flex;
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 22px;
+    letter-spacing: 0%;
+    color: #717171;
+    align-items: center;
+    gap: 10px;
+}
+.car-renatl-section.mt-4 input.form-control.search-city-property.ui-autocomplete-input {
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 22px;
+    letter-spacing: 0%;
+    height: 60px;
+    padding: 0px;
+    margin: 0px;
+    border-radius: 8px;
+}
+.car-renatl-section .date-label {
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 22px;
+    letter-spacing: 0%;
+    color: #717171;
+}
+
+/* Car listing section CSS */
+.car-renatal-listing-page .car-card-section {
+    width: 100%;
+    max-width: 960px;
+    background: white;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+.car-image-wrapper-sections {
+    position: relative;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.car-image-wrapper-sections img {
+    object-fit: cover;
+    border-radius: 8px;
+}
+.car-buisness-flex-section.car-rental-buisness-section h6.proprty-buisness-pargraph {
+    font-family: Inter;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+}
+.car-renatal-listing-page .star-rating {
+    width: 82px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 6px;
+}
+.car-buisness-flex-section .star-rating i {
+    font-size: 14px;
+    color: #ffc107;
+}
+.car-buisness-flex-section .booking-features {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.car-renatl-car-main-sections .car-flex-section p.excellent-text {
+    display: flex;
+    flex-direction: column;
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 18px;
+    text-align: right;
+    width: 77px;
+    height: 37px;
+}
+.car-renatl-car-main-sections .bg-rating-section {
+    width: 34px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    border-radius: 4px;
+    padding: 6px;
+    color: #fff;
+    background: #0d6efd;
+}
+.car-rental-buisness-section {
+    width: 400px;
+    height: 207.5px;
+}
+.car-renatl-car-main-sections .view-button,
+.car-renatl-car-main-sections .price-section-final,
+.car-renatl-car-main-sections p.taxes-pay-fees-section,
+.car-renatl-car-main-sections .d-flex.gap-3.car-flex-section,
+.car-renatl-car-main-sections .d-flex.gap-3.section-price-home {
+    display: flex;
+    justify-content: end;
+}
+.car-renatl-car-main-sections span.excellent-text-paragraph {
+    color: #336aea;
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 18px;
+    text-align: right;
+}
+.car-renatl-car-main-sections span.price-section-text {
+    font-family: Inter;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 28px;
+    text-align: center;
+}
+.car-renatl-car-main-sections .bg-rating-section-count {
+    font-family: Inter;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: right;
+    color: #ffffff;
+}
+.car-renatl-section.mt-4 .d-flex.flex-wrap.w-100.align-items-center.gap-4 {
+    gap: 8px !important;
+}
+.car-renatl-section.mt-4 .col-md-2.text-start {
+    margin-bottom: 0px !important;
+}
+
+   /* Import Google Font - Poppins */
+.container.mt-4.car-reantal-section-container-section header h2 {
+    font-family: Inter;
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0%;
+    font-weight: 600;
+}
+.container.mt-4.car-reantal-section-container-section .price-input {
+    width: 100%;
+    padding: 5px;
+    text-align: center;
+    font-size: 14px;
+     border: none; 
+    border-radius: 6px;
+}
+
+
+.container.mt-4.car-reantal-section-container-section ::selection {
+  color: #fff;
+  background: #17a2b8;
+}
+.container.mt-4.car-reantal-section-container-section .wrapper {
+  width: 400px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px 9px 40px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+}
+
+
+.container.mt-4.car-reantal-section-container-section .price-input {
+  width: 100%;
+  display: flex;
+  margin: 30px 0 35px;
+}
+.price-input .field {
+  display: flex;
+  width: 100%;
+  height: 45px;
+  align-items: center;
+}
+.container.mt-4.car-reantal-section-container-section .field input {
+    width: 100%;
+    height: 100%;
+    outline: none;
+    font-size: 19px;
+    margin-left: 12px;
+    font-size: 14px;
+    border-radius: 5px;
+    text-align: center;
+    border: 1px solid #999;
+    -moz-appearance: textfield;
+}
+.container.mt-4.car-reantal-section-container-section input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+.container.mt-4.car-reantal-section-container-section .price-input .separator {
+  width: 130px;
+  display: flex;
+  font-size: 19px;
+  align-items: center;
+  justify-content: center;
+}
+.container.mt-4.car-reantal-section-container-section .slider {
+  height: 5px;
+  position: relative;
+  background: #ddd;
+  border-radius: 5px;
+}
+.container.mt-4.car-reantal-section-container-section .slider .progress {
+  height: 100%;
+  left: 25%;
+  right: 25%;
+  position: absolute;
+  border-radius: 5px;
+  background: #17a2b8;
+}
+ .container.mt-4.car-reantal-section-container-section .range-input {
+  position: relative;
+}
+.container.mt-4.car-reantal-section-container-section .range-input input {
+  position: absolute;
+  width: 100%;
+  height: 5px;
+  top: -5px;
+  background: none;
+  pointer-events: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.container.mt-4.car-reantal-section-container-section input[type="range"]::-webkit-slider-thumb {
+  height: 17px;
+  width: 17px;
+  border-radius: 50%;
+  background: #17a2b8;
+  pointer-events: auto;
+  -webkit-appearance: none;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+}
+.container.mt-4.car-reantal-section-container-section input[type="range"]::-moz-range-thumb {
+  height: 17px;
+  width: 17px;
+  border: none;
+  border-radius: 50%;
+  background: #17a2b8;
+  pointer-events: auto;
+  -moz-appearance: none;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Support */
+.container.mt-4.car-reantal-section-container-section .support-box {
+  top: 2rem;
+  position: relative;
+  bottom: 0;
+  text-align: center;
+  display: block;
+}
+.container.mt-4.car-reantal-section-container-section .b-btn {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+.container.mt-4.car-reantal-section-container-section .b-btn.paypal i {
+  color: blue;
+}
+.container.mt-4.car-reantal-section-container-section .b-btn:hover {
+  text-decoration: none;
+  font-weight: bold;
+}
+.container.mt-4.car-reantal-section-container-section .b-btn i {
+  font-size: 20px;
+  color: yellow;
+  margin-top: 2rem;
+}
+
+@media only screen and (max-width: 767px) {
+    .car-image-wrapper-sections img {
+        height: auto;
+    }
+    .car-renatl-section.mt-4 .date-box {
+        height: 139px;
+        background: white;
+    }
+    .car-renatl-section.mt-4 button.btn.modify-search-btn.w-100 {
+        width: 100% !important;
+        margin-left: 0px;
+    }
+    .car-renatl-section.mt-4 .col-md-1.modify-serach-button {
+        width: 100% !important;
+    }
+    .car-renatl-section.mt-4 {
+        padding: 281px 0px;
+    }
+    .car-renatl-car-main-sections {
+        flex-direction: column;
+    }
+    .car-rental-buisness-section {
+        width: 100%;
+        height: auto;
+    }
+    .car-renatl-car-main-sections .d-flex.gap-3.car-flex-section {
+        display: flex;
+        justify-content: start;
+    }
+    .car-renatl-car-main-sections .car-list-page-section-end {
+        display: flex;
+        flex-direction: row;
+        justify-content: end;
+        align-items: center;
+        gap: 20px;
+    }
+    .container.mt-4.car-reantal-section-container-section .filter-section h5.select-filter-section {
+        margin-bottom: 44px !important;
+    }
+    .container.mt-4.car-reantal-section-container-section div#custom-price-filter {
+        padding: 1px 20px;
+    }
+    section.car-renatal-listing-page .d-flex.gap-2.align-items-center.mb-1 {
+        gap: 3px !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .car-renatl-car-main-sections {
+        flex-direction: column;
+    }
+    .car-buisness-flex-section.car-rental-buisness-section {
+        height: auto;
+        width: 100%;
+        padding: 20px;
+    }
+    .car-renatl-section.mt-4 button.btn.modify-search-btn.w-100 {
+        margin-left: 27px;
+        width: 134px !important;
+    }
+    .car-renatl-section.mt-4 .d-flex.flex-wrap.w-100.align-items-center.gap-4 {
+        gap: 8px !important;
+    }
+    .car-renatl-section.mt-4 .date-box input.form-control {
+        border: none;
+        max-width: 50px;
+    }
+}
+/*for Car Rental css End*/
+/*For car detail css Start*/
+   section.car-detail-paragraph  ul.description-text.list-unstyled i {
+    color: green !important;
+}
+    .car-details-section-main-content {
+    border: 1px solid #e7e6e6;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+    section.car-detail-paragraph strong {
+    font-family: Inter, sans-serif;
+    /* font-weight: 400; */
+    font-size: 14px;
+    line-height: 24px;
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+/* General Styles */
+section.hotel-detail-paragraph-section li.car {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+.car-detail-paragraph h5.fw-bold.car-description-text {
+    font-family: Inter;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+}
+.car-detail-paragraph p.description-text {
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    margin-bottom: 0px !important;
+    vertical-align: middle;
+}
+.car-main-section {
+    width: 1281px;
+    margin-left: 79px;
+   
+}
+.car-detail-paragraph ul.description-text.list-unstyled {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+.car-detail-paragraph li.car.car-highlight-fuel {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+.car-main-section h3.marine-tour-text.car-tour-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.car-main-section span.efieel-tower-text.car-location-main {
+    font-family: Inter, sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 20px;
+    vertical-align: middle;
+}
+
+.car-main-section span.michale-station-text.car-location-sub {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 20px;
+    color: #717171;
+    vertical-align: middle;
+}
+
+.car-thumbnail-section.hotel-thumbnails {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-right: 15px;
+}
+
+.container.car-rental-container img.car-thumbnail {
+    width: 208px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.car-main-section .star-icons i {
+    color: #ffc107;
+    font-size: 14px;
+}
+
+.car-main-section .car-title-section {
+    font-family: Inter, sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.car-main-section p.guest-text-detail-page {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    margin-bottom: 5px;
+}
+
+.car-main-section span.free-cancellation-text.car-feature-text {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 26px;
+}
+
+.car-main-section .feature-items i.fa-solid.fa-check {
+    font-size: 11px;
+    color: #1ca54f;
+}
+
+.car-main-section span.storage-section-text.car-storage-item {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 24px;
+    background-color: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.car-main-section p.mb-1.per-night-text {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 20px;
+    vertical-align: middle;
+}
+
+.car-main-section span.price-section.car-price-section {
+    font-family: Inter, sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 28px;
+    color: #141823;
+}
+
+.car-main-section span.old-price.ms-2.car-old-price {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 100%;
+    text-decoration: line-through;
+}
+
+.car-main-section button.select-button-rooms.car-select-button {
+    width: 180px;
+    height: 44px;
+    border-radius: 8px;
+    padding: 7px 30px 12px;
+    border: 1px solid #336aea;
+}
+
+.car-main-section p.select-room-text.car-select-room-text {
+    font-family: Inter, sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: #336aea;
+    line-height: 30px;
+}
+
+.car-description-sections-grid {
+    display: grid;
+    grid-template-columns: 5fr 2fr 4fr;
+    column-gap: 15px;
+    align-items: center;
+}
+
+.car-card-header.car-header-section {
+    margin-top: 12px;
+    margin-bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.car-main-section button.book-now-button-detail-page.car-book-now-button {
+    width: 180px;
+    height: 44px;
+    border-radius: 8px;
+    padding: 6px 30px 12px;
+    background: #336aea;
+    color: #ffffff;
+    border: none;
+}
+
+.car-main-section p.book-now-button-text.car-book-now-text {
+    font-family: Inter, sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 30px;
+}
+
+.car-main-section span.rating-badge.car-rating-badge {
+    font-family: Inter, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    color: white;
+    background-color: #336aea;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.car-rental-container span.text-muted.excellent-text {
+    font-family: Inter, sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 18px;
+    color: #336aea !important;
+}
+
+.car-main-section span.review-car-review-count {
+    font-family: Inter, sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 18px;
+    color: #141823;
+}
+
+.car-card-header.car-header-section .d-flex.gap-4.align-items {
+    align-items: center;
+}
+
+.car-main-section .rating-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.container.car-rental-container h5.car-title.mb-0 {
+    font-family: Inter, sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.car-main-section h5.hotel-title {
+    font-family: Inter, sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+}
+.car-detail-paragraph {
+    margin-top: 19px;
+    border: 1px solid #e7e6e6;
+    padding: 6px 10px;
+    border-radius: 10px;
+}
+.car-detail-paragraph .car-detail-paragraph-page {
+    font-family: Inter;
+    display: flex;
+    gap: 20px;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    margin-bottom: 1px;
+}
+.car-detail-paragraph p.text-muted.location-text {
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 20px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+}
+@media (max-width: 768px) {
+    .car-rental-wrapper.car-main-section .car-thumbnail-section.mt-2.hotel-thumbnails {
+    position: absolute;
+}
+    .mt-4.car-rental-wrapper.car-main-section img.car-main-img {
+    position: relative;
+}
+.mt-4.car-rental-wrapper.car-main-section {
+    width: 100%;
+    margin: 0px;
+}
+.car-card-header.car-header-section {
+    flex-direction: column;
+align-items: start;
+}
+.container.car-rental-container .car-header-flex {
+    flex-direction: column;
+            align-items: start !important;
+            gap: 0px ! IMPORTANT;
+}
+.car-description-sections-grid {
+    grid-template-columns: 12fr;
+}
+.car-thumbnail-section.hotel-thumbnails {
+    flex-direction: row;
+}
+.car-detail-paragraph .car-detail-paragraph-page {
+        flex-direction: column;
+}
+.container.car-rental-container img.car-thumbnail {
+    width: 77px;
+    height: auto;}
+}
+/* Responsive Design */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .car-description-sections-grid {
+        grid-template-columns: 12fr;
+    }
+    .mt-4.car-rental-wrapper.car-main-section {
+    width: 100%;
+    margin: 0px;
+}
+
+
+}
+@media (min-width: 1024px) and (max-width: 1400px) {
+    .mt-4.car-rental-wrapper.car-main-section {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+}
+
+/*For Car detail css End*/

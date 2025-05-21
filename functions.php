@@ -251,7 +251,7 @@ function fetch_booking_listings() {
 
     // Decode JSON response
     $data = json_decode($body, true);
-
+die('test fetch_booking_listings');
     // Ensure both `status` and `itineraries` exist in response
     return [
         'status' => isset($data['status']) ? $data['status'] : [],
@@ -283,7 +283,34 @@ function fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms
     $location = !empty($location) ? sanitize_text_field($location) : '';
     $checkin = !empty($checkin) ? sanitize_text_field($checkin) : date('Y-m-d');
     $checkout = !empty($checkout) ? sanitize_text_field($checkout) : date('Y-m-d', strtotime('+1 day'));
-    $rooms = !empty($rooms) ? explode('-', $rooms) : ['1', '2'];
+    $rooms = !empty($rooms) ? explode('-', $rooms) :'';
+
+
+
+    $num_rooms = intval($rooms[0]);
+    $total_adults = intval($rooms[1]);
+    $total_children = intval($rooms[2]);
+
+    // Distribute adults and children as evenly as possible
+    $occupancy = [];
+    for ($i = 0; $i < $num_rooms; $i++) {
+        $remaining_rooms = $num_rooms - $i;
+        $adults_in_room = intdiv($total_adults, $remaining_rooms);
+        $children_in_room = intdiv($total_children, $remaining_rooms);
+
+        $occupancy[] = array(
+            "room_no" => $i + 1,
+            "adult" => $adults_in_room,
+            "child" => $children_in_room,
+            "child_age" => array_fill(0, $children_in_room, 2)
+
+        );
+
+        $total_adults -= $adults_in_room;
+        $total_children -= $children_in_room;
+    }
+
+
 
     // Check if the location exists in wp_cities table
     $city_data = $wpdb->get_row(
@@ -296,6 +323,7 @@ function fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms
         $city_name = $city_data['city_name'];
         $country_name = $city_data['country_name'];
     }
+   // echo "rooms----".print_r($rooms);
 
     // API request body
     $request_body = array(
@@ -311,16 +339,10 @@ function fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms
         "country_name" => $country_name, // Updated from DB
         "radius" => 20,
         "maxResult" => 20,
-        "occupancy" => array(
-            array(
-                "room_no" => intval($rooms[0]), // Convert to integer
-                "adult" => intval($rooms[1]),   // Convert to integer
-                "child" => 0,
-                "child_age" => array(0)
-            )
-        )
+        "occupancy" => $occupancy
     );
 
+//echo "<pre>+"; print_r($request_body); die;
     // API Request
     $response = wp_remote_post($api_url, array(
         'body'    => json_encode($request_body),
@@ -346,7 +368,6 @@ function fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms
 
     // Decode JSON response
     $data = json_decode($body, true);
-
     // Return both `status` and `itineraries`
     return [
         'status' => isset($data['status']) ? $data['status'] : [],
@@ -1647,7 +1668,7 @@ function saveMyBookings($data){
             }
         }
     }
- //echo "<pre>++++"; print_r(json_encode($insertData)); die;
+// echo "<pre>++++"; print_r(json_encode($insertData)); die;
 
 
     $logPath = $logDir . '/flight-logs.log';
@@ -1746,35 +1767,6 @@ function saveFlightBookingdata  ($data) {
     $wpdb->query($wpdb->prepare($query, ...$values));
 }
 
-/*
-    add_action('rest_api_init', function () {
-        register_rest_route('myplugin/v1', '/flight-booking', [
-            'methods'  => 'POST',
-            'callback' => 'my_custom_flight_booking',
-            'permission_callback' => '__return_true',
-        ]);
-    });
-
-     
-    function my_custom_flight_booking($request) {
-        $params = $request->get_json_params(); // Get POST data sent by client
-        $travelxFlightApi = get_option('travelx_flight_api');
-        $response = wp_remote_post($travelxFlightApi.'/booking', [
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
-            'body' => json_encode($params),
-        ]);
-     
-        if (is_wp_error($response)) {
-            return new WP_Error('api_error', 'Unable to reach travelnext API', ['status' => 500]);
-        }
-     
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-     
-        return rest_ensure_response($data);
-    }*/
 
     // Flight Trip Details Request
     // https://travel.nexdew.com/wp-json/myplugin/v1/trip-details
@@ -3394,57 +3386,52 @@ function send_custom_hotel_booking_email($user_email, $user_name, $bookingRefere
     wp_mail($to, $subject, $message, $headers);
 }
 
-
-function send_custom_flight_booking_email($user_email, $user_name) {
-     $to = $user_email;
+function send_custom_flight_booking_email($user_email, $user_name, $booking_id) {
+    $to = $user_email;
     $subject = 'Travel Flight Booking';
-    
+
     $message = '
     <html>
     <body>
         <div class="container registration-form" style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #ffffff; border: 1px solid #ddd;">
-<div class="registration-template">
-<div class="logo-register-section" style="text-align: center; margin-bottom: 20px;"><img style="max-width: 150px;" src="https://travel.nexdew.com/wp-content/uploads/2025/03/logo-e1743083450840-257x300.png" alt="Travel Logo" /></div>
-<p style="font-size: 16px; color: #555;">Hi <strong>{{username}}</strong>,</p>
-<p style="font-size: 16px; color: #555;">Welcome to <strong>Travel.NexDew</strong>! Your Flight has been Booked successfully. Below are  details for travel Flight booking:</p>
+        <div class="registration-template">
+        <div class="logo-register-section" style="text-align: center; margin-bottom: 20px;">
+            <img style="max-width: 150px;" src="https://travel.nexdew.com/wp-content/uploads/2025/03/logo-e1743083450840-257x300.png" alt="Travel Logo" />
+        </div>
+        <p style="font-size: 16px; color: #555;">Hi <strong>{{user_name}}</strong>,</p>
+        <p style="font-size: 16px; color: #555;">Welcome to <strong>Travel.NexDew</strong>! Your Flight has been Booked successfully. Below are details for travel Flight booking:</p>
 
-<table class="details-table" style="width: 100%; margin-top: 20px; border-collapse: collapse;">
-<tbody>
-<tr>
-<th style="text-align: left; padding: 8px; background: #f5f5f5; border: 1px solid #ddd;">Booking ID</th>
-<td style="padding: 8px; border: 1px solid #ddd;">TR93472025</td>
-</tr>
-<tr>
-<th style="text-align: left; padding: 8px; background: #f5f5f5; border: 1px solid #ddd;">Transaction ID</th>
-<td style="padding: 8px; border: 1px solid #ddd;">pi_3RCoPYANYZLvNVFB2WdlPFgY</td>
-</tr>
-<tr>
-<th style="text-align: left; padding: 8px; background: #f5f5f5; border: 1px solid #ddd;">Flight Number</th>
-<td style="padding: 8px; border: 1px solid #ddd;">BA 1475</td>
-</tr>
-<tr>
-<th style="text-align: left; padding: 8px; background: #f5f5f5; border: 1px solid #ddd;">Arrival:</th>
-<td style="padding: 8px; border: 1px solid #ddd;">LHR — 2025-04-18T08:35:00</td>
-</tr>
-</tbody>
-</table>
-<p style="font-size: 16px; color: #555; margin-top: 20px;">If you did not register or need help, please contact us at <strong>support@travel.com</strong>.</p>
+        <table class="details-table" style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+        <tbody>
+        <tr>
+        <th style="text-align: left; padding: 8px; background: #f5f5f5; border: 1px solid #ddd;">Booking ID</th>
+        <td style="padding: 8px; border: 1px solid #ddd;">{{booking_id}}</td>
+        </tr>
+        </tbody>
+        </table>
+        <p style="font-size: 16px; color: #555; margin-top: 20px;">If you did not register or need help, please contact us at <strong>support@travel.com</strong>.</p>
 
-<div class="footer" style="margin-top: 30px; text-align: center; font-size: 14px; color: #888;">
-
-support@travel.com | <a style="color: #1a73e8;" href="https://travel.nexdew.com/">https://travel.nexdew.com/</a>
-
-</div>
-</div>
-</div>
+        <div class="footer" style="margin-top: 30px; text-align: center; font-size: 14px; color: #888;">
+        support@travel.com | <a style="color: #1a73e8;" href="https://travel.nexdew.com/">https://travel.nexdew.com/</a>
+        </div>
+        </div>
+        </div>
     </body>
     </html>
     ';
-    
+
+    // Replace placeholders with actual values
+    $message = str_replace(
+        array('{{user_name}}', '{{booking_id}}'),
+        array(esc_html($user_name), esc_html($booking_id)),
+        $message
+    );
+
     $headers = array('Content-Type: text/html; charset=UTF-8');
 
     wp_mail($to, $subject, $message, $headers);
 }
+
 
 // add_action('rest_api_init', function () {
 //     register_rest_route('custom-api/v1', '/airport-suggestions', [
@@ -3638,4 +3625,146 @@ function register_my_menus() {
   );
 }
 add_action('init', 'register_my_menus');
+
+
+/*=================================For Car Rental Code Start==============================================*/
+// Handle car destination suggestion request
+add_action('wp_ajax_get_car_rental_suggestions', 'get_car_rental_suggestions');
+add_action('wp_ajax_nopriv_get_car_rental_suggestions', 'get_car_rental_suggestions');
+
+function get_car_rental_suggestions() {
+    global $wpdb;
+
+    $term = isset($_GET['term']) ? sanitize_text_field($_GET['term']) : '';
+
+    if (strlen($term) < 2) {
+        wp_send_json([]);
+        wp_die();
+    }
+
+    $like = '%' . $wpdb->esc_like($term) . '%';
+
+    $results = $wpdb->get_results(
+        $wpdb->prepare("
+            SELECT id, location_name, location_code, city, country_code
+            FROM car_destination
+            WHERE location_name LIKE %s OR city LIKE %s OR location_code LIKE %s
+            ORDER BY location_name
+            LIMIT 10
+        ", $like, $like, $like),
+        ARRAY_A
+    );
+
+    $suggestions = [];
+    foreach ($results as $row) {
+        $label = sprintf('%s, %s, %s', $row['location_name'], $row['city'], $row['country_code']);
+        $suggestions[] = [
+            'label' => $label,
+            'value' => $label,
+            'id' => $row['id'],
+        ];
+    }
+
+    wp_send_json($suggestions);
+    wp_die();
+}
+
+
+function enqueue_car_rental_autocomplete_script() {
+    wp_enqueue_script('jquery-ui-autocomplete');
+    wp_enqueue_script(
+        'car-rental-autocomplete',
+        get_template_directory_uri() . '/js/car-rental-autocomplete.js',
+        ['jquery', 'jquery-ui-autocomplete'],
+        null,
+        true
+    );
+
+    wp_localize_script('car-rental-autocomplete', 'airportSearch', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+    ]);
+}
+add_action('wp_enqueue_scripts', 'enqueue_car_rental_autocomplete_script');
+
+
+function getsearchCarRentalList($carPickupLocation, $carDropoffLocation, $pickupTime, $dropoffTime, $pickupDate, $dropoffDate) {
+    // Prepare API payload
+    $payload = [
+        "user_id"       => get_option('travelx_user_id'),
+        "user_password" => get_option('travelx_user_password'),
+        "access"        => get_option('travelx_access'),
+        "ip_address"    => get_option('travelx_user_ip_address'),
+        'pickup_id'     => $carPickupLocation,
+        'dropoff_id'    => $carDropoffLocation,
+        'pickup_date'   => $pickupDate,
+        'pickup_time'   => $pickupTime,
+        'dropoff_date'  => $dropoffDate,
+        'dropoff_time'  => $dropoffTime,
+        'driver_age'    => "25",
+        'country_res'   => "IN",
+        'currency'      => get_option('travelx_required_currency'),
+    ];
+
+    // Send API request
+    $response = wp_remote_post('https://travelnext.works/api/carsv3-test/search', [
+        'headers' => [
+            'Content-Type' => 'application/json',
+        ],
+        'body' => json_encode($payload),
+        'timeout' => 15,
+    ]);
+
+    // Handle request errors
+    if (is_wp_error($response)) {
+        error_log('TravelNext API Error: ' . $response->get_error_message());
+        return new WP_Error('api_error', 'Unable to reach TravelNext API', [
+            'status' => 500,
+            'details' => $response->get_error_message()
+        ]);
+    }
+
+    // Extract body and decode
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    // Validate decoded response
+    if (json_last_error() !== JSON_ERROR_NONE || empty($data) || !is_array($data)) {
+        error_log('TravelNext API returned invalid JSON or empty data.');
+        return new WP_Error('api_error', 'Invalid response from TravelNext API', ['status' => 502]);
+    }
+
+    // Return decoded response
+    return $data;
+}
+
+function getCarRentalDetail($session_id, $reference_id){
+
+    $payload = [
+   
+        'session_id' => $session_id,
+        'reference_id'=> $reference_id,
+    ];
+
+     $response = wp_remote_post('https://travelnext.works/api/carsv3-test/rental_condition_details', [
+        'headers' => [
+            'Content-Type' => 'application/json',
+        ],
+        'body' => json_encode($payload),
+    ]);
+
+     if (is_wp_error($response)) {
+        return new WP_Error('api_error', 'Unable to reach travelnext API', ['status' => 500]);
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+// echo "<pre>"; print_r($data); die;
+
+ return !empty($data) ? $data : ['error' => 'Invalid API response'];
+
+
+}
+
+/*==============================For Car Rental Code End=====================================*/
 ?>

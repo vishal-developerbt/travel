@@ -166,7 +166,7 @@ if (
                 <div class="d-flex gap-2 button-section-home mt-2">
                     <?php 
                     $roomproductId = $room['productId'] ?? '';
-                    $roomprice = number_format($room['netPrice'], 2);
+                    $roomprice = $room['netPrice'];
 
                     $rateBasisId = $room['rateBasisId'] ?? '';
                     $roomsessionId = $hotelRoomOptions['sessionId'] ?? '';
@@ -289,7 +289,7 @@ if (!empty($rooms)) {
                             <p class="text-muted">Fees Per Night</p> 
                                  <?php 
                                 $roomproductId = $room['productId'] ?? '';
-                                $roomprice = number_format($room['netPrice'], 2);
+                                $roomprice = $room['netPrice'];
 
                                 $rateBasisId = $room['rateBasisId'] ?? '';
                                 $roomsessionId = $hotelRoomOptions['sessionId'] ?? '';
