@@ -310,7 +310,10 @@ function fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms
         $total_children -= $children_in_room;
     }
 
+$occupancy_serialized = serialize($occupancy);
 
+// Set the cookie (expire in 1 hour)
+setcookie('hotel_occupancy_data', $occupancy_serialized, time() + 3600, "/");
 
     // Check if the location exists in wp_cities table
     $city_data = $wpdb->get_row(
@@ -2729,19 +2732,49 @@ add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
         $user_id = intval($request['user_id']);
 
 
-        $hotelResults = $wpdb->get_results(
-            $wpdb->prepare("
-                SELECT * FROM hotel_booking_details h
-                INNER JOIN (
-                    SELECT MAX(id) as latest_id
-                    FROM hotel_booking_details
-                    WHERE customer_id = %d
-                    GROUP BY transaction_id
-                ) latest ON h.id = latest.latest_id
-                ORDER BY h.id DESC
-            ", $user_id),
-            ARRAY_A
-        );
+          $hotelResults = $wpdb->get_results(
+    $wpdb->prepare("
+        SELECT 
+            h.id,
+            h.customer_id,
+            h.title,
+            h.firstName,
+            h.lastName,
+            h.guest_type,
+            h.customer_email,
+            h.location,
+            h.checkin,
+            h.checkout,
+            h.rooms,
+            h.productid,
+            h.hottel_id,
+            h.price,
+            CASE 
+                WHEN h.booking_status = 1 THEN 'confirmed'
+                ELSE 'cancelled'
+            END AS booking_status,
+            h.payment_status,
+            h.transaction_id,
+            h.hotel_session_id,
+            h.hotel_token_id,
+            h.rateBasisId,
+            h.phone,
+            h.specialRequests,
+            h.referenceNum,
+            h.supplierConfirmationNum,
+            h.created_at,
+            h.updated_at
+        FROM hotel_booking_details h
+        INNER JOIN (
+            SELECT MAX(id) as latest_id
+            FROM hotel_booking_details
+            WHERE customer_id = %d
+            GROUP BY transaction_id
+        ) latest ON h.id = latest.latest_id
+        ORDER BY h.id DESC
+    ", $user_id),
+    ARRAY_A
+);
 
         $flightResults = $wpdb->get_results(
             $wpdb->prepare("
