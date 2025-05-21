@@ -1777,12 +1777,6 @@ div#search-flights select.select-section-home-page {
   display: block;
 }
 
-.home-page-banner {
-  background-image: url(images/ecb9377d473fef35ca36344e33be4cd2.png);
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-}
 
 /* .search-container {
     background: rgba(255, 255, 255, 0.9);

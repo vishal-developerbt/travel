@@ -12,7 +12,7 @@ jQuery(document).ready(function ($) {
 
   // Validate form fields
   function hotelGuestValidateForm() {
-    const requiredFields = ['#guest_type', '#first_name', '#last_name'];
+    const requiredFields = ['#guest_type','#guest_title', '#first_name', '#last_name'];
     for (let selector of requiredFields) {
       const value = $(selector).val();
       if (!value || !value.trim()) {
@@ -39,6 +39,7 @@ jQuery(document).ready(function ($) {
       action: 'save_hotel_guest_data',
       nonce: hotelguestAjax.nonce,
       guest_type: $('#guest_type').val(),
+      guest_title: $('#guest_title').val(),
       first_name: $('#first_name').val(),
       last_name: $('#last_name').val(),
       user_id: $('#user_id').val(),
@@ -68,7 +69,7 @@ jQuery(document).ready(function ($) {
           <div>
             <input type="checkbox" name="selected_guest[]" value="${guest.guest_type}_${guest.id}" />
             <span>
-              <strong>${guest.first_name} ${guest.last_name} ${guest.guest_type}</strong>
+              <strong>${guest.guest_title} ${guest.first_name} ${guest.last_name} ${guest.guest_type}</strong>
             </span>
           </div>
           <div>
@@ -129,6 +130,7 @@ jQuery(document).ready(function ($) {
       if (response.success) {
         const g = response.data;
         $('#guest_type').val(g.guest_type);
+        $('#guest_title').val(g.guest_title);
         $('#first_name').val(g.first_name);
         $('#last_name').val(g.last_name);
         $('#g_id').val(g.id);

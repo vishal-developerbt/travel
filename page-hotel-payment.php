@@ -188,6 +188,13 @@ function formatRoomData($roomData) {
                 <h2 class="fs-5 fw-bold mb-3 details-fare-det-tra-offert">Your Details</h2>
                 <form id="travelerForm">
                   <div class="row mb-3">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                      <label class="form-label small form-name-email-detail-all-th">Gender</label>
+                      <select name="title" id="title" class="form-select hotel-payment-form-control">
+                          <option value="Mr">Mr</option>
+                          <option value="Mrs">Mrs</option>
+                      </select>
+                    </div>
                     <div class="col-md-6 mb-3 mb-md-0">
                       <label class="form-label small form-name-email-detail-all-th">First Name</label>
                       <input type="text" class="form-control" id="firstName" value="<?php echo $first_name; ?>"required>
@@ -261,6 +268,16 @@ function formatRoomData($roomData) {
                         <option value="" selected disabled>Select</option>
                         <option value="adult">Adult</option>
                         <option value="child">Child</option>
+                      </select>
+                    </div>
+                     <div class="hotel-payment-form-group">
+                      <label>Title (Mr, Mrs):</label>
+                      <select id="guest_title" class="hotel-payment-form-control">
+                          <option value="">Select</option> <!-- Default empty option -->
+                          <option value="Mr">Mr</option>
+                          <option value="Mrs">Mrs</option>
+                          <option value="Master">Boy (Master)</option>
+                          <option value="Miss">Girl (Mis)</option>
                       </select>
                     </div>
                     <div class="hotel-payment-form-group">
@@ -362,6 +379,7 @@ jQuery(document).ready(function ($) {
         $("input[name='netPrice']").val(visibleNetPrice);
 
         // Collect form inputs
+        let title = $("#title").val().trim();
         let firstName = $("#firstName").val().trim();
         let lastName = $("#lastName").val().trim();
         let phone = $("#phone").val().trim();
@@ -442,6 +460,7 @@ jQuery(document).ready(function ($) {
             dataType: "json",
             data: {
                 action: "hotel_book_now",
+                title,
                 firstName,
                 lastName,
                 phone,
@@ -475,7 +494,6 @@ jQuery(document).ready(function ($) {
     });
 });
 </script>
-<!--  -->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const showMoreBtn = document.querySelector('.show-more-facilities');
@@ -505,6 +523,38 @@ jQuery(document).ready(function ($) {
     }
   });
 </script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const guestTypeSelect = document.getElementById('guest_type');
+    const guestTitleSelect = document.getElementById('guest_title');
 
+    const allTitles = [
+      { value: '', text: 'Select' },
+      { value: 'Mr', text: 'Mr', types: ['adult'] },
+      { value: 'Mrs', text: 'Mrs', types: ['adult'] },
+      { value: 'Master', text: 'Boy (Master)', types: ['child'] },
+      { value: 'Miss', text: 'Girl (Miss)', types: ['child'] }
+    ];
+
+    function updateTitleOptions(guestType) {
+      // Clear current options
+      guestTitleSelect.innerHTML = '';
+
+      // Filter and append options
+      allTitles.forEach(option => {
+        if (!option.types || option.types.includes(guestType)) {
+          const opt = document.createElement('option');
+          opt.value = option.value;
+          opt.textContent = option.text;
+          guestTitleSelect.appendChild(opt);
+        }
+      });
+    }
+
+    guestTypeSelect.addEventListener('change', function () {
+      updateTitleOptions(this.value);
+    });
+  });
+</script>
 
 <?php get_footer(); ?>
