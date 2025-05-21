@@ -14,7 +14,36 @@ body {
   font-family: Arial, sans-serif;
   font-family: "Inter", sans-serif;
 }
-
+.container.mt-4.car-reantal-section-container-section .sort-by-price {
+    display: flex;
+    flex-direction: column;
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 16px;
+    flex-direction: column;
+        margin-top: 13px;
+    letter-spacing: 0%;
+    gap: 13px;
+}
+.text-center.mt-5 {
+    font-family: Inter;
+    margin-bottom: 33px;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 22px;
+    letter-spacing: 0%;
+    margin-top: 13px ! IMPORTANT;
+}
+.container.mt-4.car-reantal-section-container-section .sort-by-rating {
+    font-family: Inter;
+        margin-top: 13px;
+    font-weight: 400;
+    font-size: 16px;
+    flex-direction: column;
+    display: flex;
+    letter-spacing: 0%;
+    gap: 13px;
+}
 /* 13-05-2025 css :start */
 div#home-page-hotels-tab img.alignnone.wp-image-150, img.alignnone.wp-image-148, img.alignnone.wp-image-146 {
     transition: transform 0.5s ease, box-shadow 0.5s ease !important;
@@ -10842,7 +10871,6 @@ section.car-renatal-listing-page .wishlist-icon {
   background: #17a2b8;
 }
 .container.mt-4.car-reantal-section-container-section .wrapper {
-  width: 400px;
   background: #fff;
   border-radius: 10px;
   padding: 20px 9px 40px;

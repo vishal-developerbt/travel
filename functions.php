@@ -3766,5 +3766,57 @@ function getCarRentalDetail($session_id, $reference_id){
 
 }
 
+/*for car api*/
+add_action('rest_api_init', function () {
+    register_rest_route('custom/v1', '/car-rental-search', [
+        'methods'  => 'POST',
+        'callback' => 'custom_car_rental_search',
+        'permission_callback' => '__return_true', // Allow public access; secure this if needed
+    ]);
+});
+
+function custom_car_rental_search($request) {
+    $params = $request->get_json_params();
+
+    $payload = [
+        "user_id"       => "bookatravel_testAPI",
+        "user_password" => "bookatravelTest@2025",
+        "ip_address"    => "106.219.165.128",
+        "access"        => "Test",
+        "pickup_id"     => $params['pickup_id'] ?? '',
+        "dropoff_id"    => $params['dropoff_id'] ?? '',
+        "pickup_date"   => $params['pickup_date'] ?? '',
+        "pickup_time"   => $params['pickup_time'] ?? '',
+        "dropoff_date"  => $params['dropoff_date'] ?? '',
+        "dropoff_time"  => $params['dropoff_time'] ?? '',
+        "driver_age"    => $params['driver_age'] ?? '25',
+        "country_res"   => $params['country_res'] ?? 'IN',
+        "currency"      => $params['currency'] ?? 'USD',
+    ];
+
+    $response = wp_remote_post('https://travelnext.works/api/carsv3-test/search', [
+        'headers' => ['Content-Type' => 'application/json'],
+        'body'    => wp_json_encode($payload),
+        'timeout' => 20,
+    ]);
+
+    if (is_wp_error($response)) {
+        return new WP_Error('api_error', $response->get_error_message(), ['status' => 500]);
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $code = wp_remote_retrieve_response_code($response);
+    $data = json_decode($body, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE || empty($data)) {
+        return new WP_Error('invalid_response', 'Invalid response from TravelNext API', [
+            'status' => $code,
+            'raw' => $body,
+        ]);
+    }
+
+    return rest_ensure_response($data);
+}
+
 /*==============================For Car Rental Code End=====================================*/
 ?>

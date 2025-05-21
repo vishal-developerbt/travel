@@ -95,7 +95,7 @@ $dropoffDate = isset($_GET['dropoff_date']) ? sanitize_text_field($_GET['dropoff
                 <hr>
                 <form id="filterForm">
                   <strong>Sort by Rating</strong>
-                  <div>
+                  <div class="sort-by-rating">
                     <label><input type="checkbox" name="rating[]" value="1"> 1 Star</label>
                     <label><input type="checkbox" name="rating[]" value="2"> 2 Stars</label>
                     <label><input type="checkbox" name="rating[]" value="3"> 3 Stars</label>
@@ -105,7 +105,7 @@ $dropoffDate = isset($_GET['dropoff_date']) ? sanitize_text_field($_GET['dropoff
                   <hr>
 
                   <strong>Sort by</strong>
-                  <div>
+                  <div class="sort-by-price">
                     <label><input type="radio" name="sorting" value="price-low-high"> Price: Low to High</label>
                     <label><input type="radio" name="sorting" value="price-high-low"> Price: High to Low</label>
                     <label><input type="radio" name="sorting" value="rating-low-high"> Rating: Low to High</label>
@@ -126,6 +126,9 @@ $dropoffDate = isset($_GET['dropoff_date']) ? sanitize_text_field($_GET['dropoff
                         <span>Max</span>
                         <input type="number" class="input-max" value="7500">
                       </div>
+                    </div>
+                    <div class="slider">
+                        <div class="progress" style="left: 28%; right: 18%;"></div>
                     </div>
                     <div class="range-input">
                       <input type="range" class="range-min" min="0" max="10000" value="2500" step="100">
