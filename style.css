@@ -14,6 +14,7 @@ body {
   font-family: Arial, sans-serif;
   font-family: "Inter", sans-serif;
 }
+
 .container.mt-4.car-reantal-section-container-section .sort-by-price {
     display: flex;
     flex-direction: column;
@@ -11197,11 +11198,25 @@ section.hotel-detail-paragraph-section li.car {
     padding: 4px 8px;
     border-radius: 4px;
 }
-
+.row.mt-3.mt-2.car-details-sections-main h3 {
+    font-family: Inter;
+    display: flex;
+    gap: 20px;
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    margin-bottom: 34px;
+}
+.booking-rules-list.list-disc.pl-5.space-y-2.text-gray-700 {
+    line-height: 28px;
+}
 .car-main-section p.mb-1.per-night-text {
     font-family: Inter, sans-serif;
     font-weight: 400;
     font-size: 13px;
+        margin-bottom: 12px ! IMPORTANT;
     line-height: 20px;
     vertical-align: middle;
 }
@@ -11326,6 +11341,9 @@ section.hotel-detail-paragraph-section li.car {
     padding: 6px 10px;
     border-radius: 10px;
 }
+.car-rental-wrapper.car-main-section ul {
+    padding: 8px;
+}
 .car-detail-paragraph .car-detail-paragraph-page {
     font-family: Inter;
     display: flex;
@@ -11336,6 +11354,19 @@ section.hotel-detail-paragraph-section li.car {
     letter-spacing: 0%;
     vertical-align: middle;
     margin-bottom: 1px;
+}
+.car-rental-wrapper.car-main-section h4 {
+    padding-bottom: 16px;
+    font-family: Inter;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    gap: 20px;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    margin-bottom: 18px;
 }
 .car-detail-paragraph p.text-muted.location-text {
     font-family: Inter;

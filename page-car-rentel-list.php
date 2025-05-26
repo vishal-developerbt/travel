@@ -147,8 +147,9 @@ $dropoffDate = isset($_GET['dropoff_date']) ? sanitize_text_field($_GET['dropoff
             <h5 class="france-section-text mb-3">
                 <span id="totalProperties"><?php echo intval($results['count']);?>Cars in this location</span>
             </h5>
+            <section class="car-renatal-listing-page">
             <div id="car-results">
-                <section class="car-renatal-listing-page">
+                
                 <?php foreach ($results['data'] as $index => $car): 
                    // echo "<pre>++"; print_r($car); die;
                     ?>
@@ -243,10 +244,15 @@ $dropoffDate = isset($_GET['dropoff_date']) ? sanitize_text_field($_GET['dropoff
                                       <?php
                                             $sessionId = $results['sessionId'];
                                             $referenceId = $car['referenceId'];
+                                            $carImg = $car['carDetails']['carImage'];
+                                            $carModel = $car['carDetails']['carModel'];
+                                            $carRatting = round($car['vendor']['reviewsOverall']);
+                                            $carPrice = $car['fees']['rateTotalAmount'];
+                                            $reviewCount = $car['vendor']['reviewsTotal'];
                                         ?>
 
                                         <div class="view-button mb-3">
-                                            <a href="/car-rental-detail-page/?session_id=<?= urlencode($sessionId) ?>&reference_id=<?= urlencode($referenceId) ?>">
+                                            <a href="/car-rental-detail-page/?session_id=<?= urlencode($sessionId) ?>&reference_id=<?= urlencode($referenceId) ?>&car_name=<?= urlencode($carModel) ?>&car_img=<?= urlencode($carImg) ?>&ratting=<?= urlencode($carRatting) ?>&ratting_count=<?= urlencode($reviewCount) ?>&car_price=<?= urlencode($carPrice) ?>">
                                                 <button type="button" class="btn btn-primary hotel-view-link">View</button>
                                             </a>
                                         </div>
@@ -309,8 +315,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+</div>
 </section>              
-            </div>
+            
         <?php }else {
     // Optionally handle the error
     if (is_wp_error($results)) {
@@ -324,52 +331,77 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
 
 <script type="text/javascript">
-    const rangeInput = document.querySelectorAll(".range-input input"),
-  priceInput = document.querySelectorAll(".price-input input"),
-  range = document.querySelector(".slider .progress");
-let priceGap = 1000;
+   document.addEventListener("DOMContentLoaded", function () {
+  const rangeInput = document.querySelectorAll(".range-input input"),
+    priceInput = document.querySelectorAll(".price-input input"),
+    progress = document.querySelector(".slider .progress");
 
-priceInput.forEach((input) => {
-  input.addEventListener("input", (e) => {
-    let minPrice = parseInt(priceInput[0].value),
-      maxPrice = parseInt(priceInput[1].value);
+  let priceGap = 1000;
 
-    if (maxPrice - minPrice >= priceGap && maxPrice <= rangeInput[1].max) {
-      if (e.target.className === "input-min") {
-        rangeInput[0].value = minPrice;
-        range.style.left = (minPrice / rangeInput[0].max) * 100 + "%";
-      } else {
-        rangeInput[1].value = maxPrice;
-        range.style.right = 100 - (maxPrice / rangeInput[1].max) * 100 + "%";
+  // Sync price inputs and range sliders
+  priceInput.forEach((input) => {
+    input.addEventListener("input", (e) => {
+      let minPrice = parseInt(priceInput[0].value),
+        maxPrice = parseInt(priceInput[1].value);
+
+      if (maxPrice - minPrice >= priceGap && maxPrice <= parseInt(rangeInput[1].max)) {
+        if (e.target.classList.contains("input-min")) {
+          rangeInput[0].value = minPrice;
+          progress.style.left = (minPrice / rangeInput[0].max) * 100 + "%";
+        } else {
+          rangeInput[1].value = maxPrice;
+          progress.style.right = 100 - (maxPrice / rangeInput[1].max) * 100 + "%";
+        }
       }
-    }
+    });
   });
+
+  rangeInput.forEach((input) => {
+    input.addEventListener("input", (e) => {
+      let minVal = parseInt(rangeInput[0].value),
+        maxVal = parseInt(rangeInput[1].value);
+
+      if (maxVal - minVal < priceGap) {
+        if (e.target.classList.contains("range-min")) {
+          rangeInput[0].value = maxVal - priceGap;
+        } else {
+          rangeInput[1].value = minVal + priceGap;
+        }
+      } else {
+        priceInput[0].value = minVal;
+        priceInput[1].value = maxVal;
+        progress.style.left = (minVal / rangeInput[0].max) * 100 + "%";
+        progress.style.right = 100 - (maxVal / rangeInput[1].max) * 100 + "%";
+      }
+    });
+  });
+
+  // Show More Cars button logic
+  const showMoreBtn = document.getElementById("showMoreBtn");
+  const carCards = document.querySelectorAll(".car-card-wrapper");
+  let visibleCount = 20;
+  const increment = 20;
+
+  if (showMoreBtn) {
+    showMoreBtn.addEventListener("click", () => {
+      let shown = 0;
+      for (let i = visibleCount; i < carCards.length && shown < increment; i++) {
+        if (carCards[i].style.display === "none") {
+          carCards[i].style.display = "block";
+          shown++;
+        }
+      }
+      visibleCount += shown;
+
+      if (visibleCount >= carCards.length) {
+        showMoreBtn.style.display = "none";
+      }
+    });
+  }
 });
 
-rangeInput.forEach((input) => {
-  input.addEventListener("input", (e) => {
-    let minVal = parseInt(rangeInput[0].value),
-      maxVal = parseInt(rangeInput[1].value);
-
-    if (maxVal - minVal < priceGap) {
-      if (e.target.className === "range-min") {
-        rangeInput[0].value = maxVal - priceGap;
-      } else {
-        rangeInput[1].value = minVal + priceGap;
-      }
-    } else {
-      priceInput[0].value = minVal;
-      priceInput[1].value = maxVal;
-      range.style.left = (minVal / rangeInput[0].max) * 100 + "%";
-      range.style.right = 100 - (maxVal / rangeInput[1].max) * 100 + "%";
-    }
-  });
-});
 
 </script>
-<style type="text/css">
- 
-</style>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Flatpickr for date range picker
@@ -382,7 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
         defaultDate: [new Date()],
         disableMobile: true
     });
-
     // Initialize noUiSlider for price range filter
   }); 
 </script>
@@ -417,51 +448,51 @@ document.getElementById('car-search-form').addEventListener('submit', function (
     window.location.href = `/car-rental-list/?${params.toString()}`;
 });
 </script>
-
+<!-- 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const filterForm = document.getElementById('filterForm');
-  const carCards = document.querySelectorAll('.car-card-wrapper');
+  const carCards = Array.from(document.querySelectorAll('.car-card-wrapper'));
+  const container = document.getElementById('car-results');
 
-  // Helper function to apply the filters and sorting
+  const minPriceInput = document.querySelector('.input-min');
+  const maxPriceInput = document.querySelector('.input-max');
+  const minRange = document.querySelector('.range-min');
+  const maxRange = document.querySelector('.range-max');
+
   function applyFilters() {
     const formData = new FormData(filterForm);
-
-    // Get selected ratings
     const selectedRatings = formData.getAll('rating[]').map(Number);
-
-    // Get sorting option
     const sorting = formData.get('sorting');
 
-    // Get price range from input fields
-    const minPrice = parseFloat(document.querySelector('.input-min').value) || 0;
-    const maxPrice = parseFloat(document.querySelector('.input-max').value) || Infinity;
+    // Parse price inputs safely
+    const minPrice = parseFloat(minPriceInput.value);
+    const maxPriceRaw = parseFloat(maxPriceInput.value);
+    // If maxPrice is NaN or invalid, use a very large number
+    const maxPrice = isNaN(maxPriceRaw) ? Number.MAX_SAFE_INTEGER : maxPriceRaw;
+    const minPriceSafe = isNaN(minPrice) ? 0 : minPrice;
 
-    let cardsArray = Array.from(carCards);
+    // Filter cards based on rating and price
+    carCards.forEach(card => {
+      const price = parseFloat(card.dataset.price) || 0;
+      const rating = parseInt(card.dataset.rating) || 0;
 
-    // Filtering logic
-    cardsArray.forEach(card => {
-      const price = parseFloat(card.dataset.price);
-      const rating = parseInt(card.dataset.rating);
-
+      // If no rating checkbox checked, show all ratings
       const matchesRating = selectedRatings.length === 0 || selectedRatings.includes(rating);
-      const matchesPrice = price >= minPrice && price <= maxPrice;
+      const matchesPrice = price >= minPriceSafe && price <= maxPrice;
 
-      // Show/hide based on filters
-      if (matchesRating && matchesPrice) {
-        card.style.display = 'block';
-      } else {
-        card.style.display = 'none';
-      }
+      card.style.display = (matchesRating && matchesPrice) ? 'block' : 'none';
     });
 
-    // Sorting logic
+    // Sort visible cards
+    const visibleCards = carCards.filter(card => card.style.display !== 'none');
+
     if (sorting) {
-      cardsArray.sort((a, b) => {
-        const priceA = parseFloat(a.dataset.price);
-        const priceB = parseFloat(b.dataset.price);
-        const ratingA = parseFloat(a.dataset.rating);
-        const ratingB = parseFloat(b.dataset.rating);
+      visibleCards.sort((a, b) => {
+        const priceA = parseFloat(a.dataset.price) || 0;
+        const priceB = parseFloat(b.dataset.price) || 0;
+        const ratingA = parseInt(a.dataset.rating) || 0;
+        const ratingB = parseInt(b.dataset.rating) || 0;
 
         switch (sorting) {
           case 'price-low-high':
@@ -472,48 +503,50 @@ document.addEventListener('DOMContentLoaded', function () {
             return ratingA - ratingB;
           case 'rating-high-low':
             return ratingB - ratingA;
+          default:
+            return 0;
         }
       });
 
-      // Reorder the DOM based on sorted order
-      const container = document.getElementById('car-results');
-      cardsArray.forEach(card => container.appendChild(card)); // Move the sorted cards back to the container
+      visibleCards.forEach(card => container.appendChild(card));
     }
   }
 
-  // Bind the change event to filter form inputs (checkboxes, radio buttons, and range inputs)
+  // Debounce function to reduce calls
+  function debounce(fn, delay) {
+    let timeout;
+    return function (...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
+  const debouncedApplyFilters = debounce(applyFilters, 200);
+
   filterForm.addEventListener('change', applyFilters);
 
-  // Synchronize price input fields with sliders
-  const minPriceInput = document.querySelector('.input-min');
-  const maxPriceInput = document.querySelector('.input-max');
-  const minRange = document.querySelector('.range-min');
-  const maxRange = document.querySelector('.range-max');
-
+  // Sync sliders and inputs
   minPriceInput.addEventListener('input', () => {
     minRange.value = minPriceInput.value;
-    applyFilters(); // Re-apply filters when price inputs change
+    debouncedApplyFilters();
   });
 
   maxPriceInput.addEventListener('input', () => {
     maxRange.value = maxPriceInput.value;
-    applyFilters(); // Re-apply filters when price inputs change
+    debouncedApplyFilters();
   });
 
   minRange.addEventListener('input', () => {
     minPriceInput.value = minRange.value;
-    applyFilters(); // Re-apply filters when range sliders change
+    debouncedApplyFilters();
   });
 
   maxRange.addEventListener('input', () => {
     maxPriceInput.value = maxRange.value;
-    applyFilters(); // Re-apply filters when range sliders change
+    debouncedApplyFilters();
   });
 
-  // Optional: Apply filters on page load
-  applyFilters();
+  applyFilters(); // Initial filter on page load
 });
-</script>
-
-
+</script> -->
 <?php get_footer(); ?>

@@ -159,7 +159,7 @@ jQuery(document).ready(function ($) {
     if (!confirm("Are you sure you want to delete this guest?")) return;
 
     $.post(guestAjax.ajax_url, {
-      action: 'delete_guest',
+      action: 'flight_delete_guest',
       nonce: guestAjax.nonce,
       guest_id: guestId
     }, function (response) {

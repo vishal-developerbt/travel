@@ -12,7 +12,7 @@ jQuery(document).ready(function ($) {
 
   // Validate form fields
   function hotelGuestValidateForm() {
-    const requiredFields = ['#guest_type','#guest_title', '#first_name', '#last_name'];
+    const requiredFields = ['#guest_type', '#guest_title', '#first_name', '#last_name'];
     for (let selector of requiredFields) {
       const value = $(selector).val();
       if (!value || !value.trim()) {
@@ -23,17 +23,19 @@ jQuery(document).ready(function ($) {
     return true;
   }
 
-  // ✅ Reset form safely
- function resetGuestForm() {
+  // ✅ Reset form and re-enable submit button
+  function resetGuestForm() {
     $('#hotelGuestForm')[0].reset();
     $('#g_id').val('');
+    $('.hotel-payment-btn-submit').prop('disabled', false).text('Submit'); // ✅ ADDED
   }
-
 
   // Submit form
   $('#hotelGuestForm').on('submit', function (e) {
     e.preventDefault();
     if (!hotelGuestValidateForm()) return;
+
+    $('.hotel-payment-btn-submit').prop('disabled', true).text('Submitting...');
 
     let guestData = {
       action: 'save_hotel_guest_data',
@@ -47,12 +49,14 @@ jQuery(document).ready(function ($) {
     };
 
     $.post(hotelguestAjax.ajax_url, guestData, function (response) {
+      $('.hotel-payment-btn-submit').prop('disabled', false).text('Submit'); // ✅ ADDED
+
       if (response.success) {
         resetGuestForm();
         hotelPaymentCloseForm();
 
         const li = $(`li[data-id="${response.data.id}"]`);
-        if (li.length) li.remove(); // replace if editing
+        if (li.length) li.remove();
 
         appendGuest(response.data);
       } else {
@@ -74,7 +78,7 @@ jQuery(document).ready(function ($) {
           </div>
           <div>
             <button type="button" class="edithotelGuestBtn btn btn-sm btn-warning" data-id="${guest.id}">Edit</button>
-            <button type="button" class="removeGuestBtn btn btn-sm btn-danger" data-id="${guest.id}">Remove</button>
+            <button type="button" class="removeGuestHotelBtn btn btn-sm btn-danger" data-id="${guest.id}">Remove</button>
           </div>
         </label>
       </li>`;
@@ -99,7 +103,7 @@ jQuery(document).ready(function ($) {
   loadSavedGuests();
 
   // Delete guest
-  $(document).on('click', '.removeGuestBtn', function () {
+  $(document).on('click', '.removeGuestHotelBtn', function () {
     const guestId = $(this).data('id');
     if (!confirm("Are you sure you want to delete this guest?")) return;
 
@@ -116,9 +120,8 @@ jQuery(document).ready(function ($) {
     });
   });
 
-  // ✅ Edit guest - safely reset form and open popup
+  // Edit guest
   $(document).on('click', '.edithotelGuestBtn', function () {
- 
     const guestId = $(this).data('id');
     resetGuestForm();
 
@@ -141,7 +144,7 @@ jQuery(document).ready(function ($) {
     });
   });
 
-  // Optional: Expose globally if needed
+  // Expose open/close globally
   window.hotelPaymentOpenForm = hotelPaymentOpenForm;
   window.hotelPaymentCloseForm = hotelPaymentCloseForm;
 });

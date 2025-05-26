@@ -310,7 +310,10 @@ function fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms
         $total_children -= $children_in_room;
     }
 
+$occupancy_serialized = serialize($occupancy);
 
+// Set the cookie (expire in 1 hour)
+setcookie('hotel_occupancy_data', $occupancy_serialized, time() + 3600, "/");
 
     // Check if the location exists in wp_cities table
     $city_data = $wpdb->get_row(
@@ -840,6 +843,42 @@ function get_flight_booking_guests_callback() {
 add_action('wp_ajax_delete_guest', 'delete_guest_callback');
 
 function delete_guest_callback() {
+    check_ajax_referer('hotelguest_nonce', 'nonce');
+
+    if (!isset($_POST['guest_id']) || empty($_POST['guest_id'])) {
+        wp_send_json_error('Guest ID is required.');
+    }
+
+    $guest_id = intval($_POST['guest_id']);
+    $user_id = get_current_user_id();
+
+    if (!$user_id) {
+        wp_send_json_error('User not authenticated.');
+    }
+
+    global $wpdb;
+    $table = 'hotel_booking_guest_details';
+
+    // Ensure the guest belongs to the current user
+    $guest = $wpdb->get_row(
+        $wpdb->prepare("SELECT id FROM $table WHERE id = %d AND parent_user_id = %d", $guest_id, $user_id)
+    );
+    if (!$guest) {
+        wp_send_json_error('Guest not found or access denied.');
+    }
+
+    $deleted = $wpdb->delete($table, ['id' => $guest_id]);
+
+    if ($deleted) {
+        wp_send_json_success('Guest deleted successfully.');
+    } else {
+        wp_send_json_error('Failed to delete guest.');
+    }
+}
+
+add_action('wp_ajax_flight_delete_guest', 'flight_delete_guest_callback');
+
+function flight_delete_guest_callback() {
     check_ajax_referer('guest_nonce', 'nonce');
 
     if (!isset($_POST['guest_id']) || empty($_POST['guest_id'])) {
@@ -873,6 +912,8 @@ function delete_guest_callback() {
         wp_send_json_error('Failed to delete guest.');
     }
 }
+
+
 
 add_action('wp_ajax_get_guest_by_id', 'get_guest_by_id_callback');
 function get_guest_by_id_callback() {
@@ -2729,19 +2770,49 @@ add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
         $user_id = intval($request['user_id']);
 
 
-        $hotelResults = $wpdb->get_results(
-            $wpdb->prepare("
-                SELECT * FROM hotel_booking_details h
-                INNER JOIN (
-                    SELECT MAX(id) as latest_id
-                    FROM hotel_booking_details
-                    WHERE customer_id = %d
-                    GROUP BY transaction_id
-                ) latest ON h.id = latest.latest_id
-                ORDER BY h.id DESC
-            ", $user_id),
-            ARRAY_A
-        );
+          $hotelResults = $wpdb->get_results(
+    $wpdb->prepare("
+        SELECT 
+            h.id,
+            h.customer_id,
+            h.title,
+            h.firstName,
+            h.lastName,
+            h.guest_type,
+            h.customer_email,
+            h.location,
+            h.checkin,
+            h.checkout,
+            h.rooms,
+            h.productid,
+            h.hottel_id,
+            h.price,
+            CASE 
+                WHEN h.booking_status = 1 THEN 'confirmed'
+                ELSE 'cancelled'
+            END AS booking_status,
+            h.payment_status,
+            h.transaction_id,
+            h.hotel_session_id,
+            h.hotel_token_id,
+            h.rateBasisId,
+            h.phone,
+            h.specialRequests,
+            h.referenceNum,
+            h.supplierConfirmationNum,
+            h.created_at,
+            h.updated_at
+        FROM hotel_booking_details h
+        INNER JOIN (
+            SELECT MAX(id) as latest_id
+            FROM hotel_booking_details
+            WHERE customer_id = %d
+            GROUP BY transaction_id
+        ) latest ON h.id = latest.latest_id
+        ORDER BY h.id DESC
+    ", $user_id),
+    ARRAY_A
+);
 
         $flightResults = $wpdb->get_results(
             $wpdb->prepare("
@@ -3687,7 +3758,7 @@ function enqueue_car_rental_autocomplete_script() {
 add_action('wp_enqueue_scripts', 'enqueue_car_rental_autocomplete_script');
 
 
-function getsearchCarRentalList($carPickupLocation, $carDropoffLocation, $pickupTime, $dropoffTime, $pickupDate, $dropoffDate) {
+function getsearchCarRentalList($carPickupLocation, $carDropoffLocation, $pickupTime, $dropoffTime, $pickupDate, $dropoffDate, $selectedRatings = [], $sortBy = '') {
     // Prepare API payload
     $payload = [
         "user_id"       => get_option('travelx_user_id'),
@@ -3703,6 +3774,8 @@ function getsearchCarRentalList($carPickupLocation, $carDropoffLocation, $pickup
         'driver_age'    => "25",
         'country_res'   => "IN",
         'currency'      => get_option('travelx_required_currency'),
+        'ratings'       => $selectedRatings, // Send selected ratings as an array
+        'sort_by'       => $sortBy, // Sorting criteria (e.g., price-low-high, rating-high-low)
     ];
 
     // Send API request
@@ -3733,7 +3806,32 @@ function getsearchCarRentalList($carPickupLocation, $carDropoffLocation, $pickup
         return new WP_Error('api_error', 'Invalid response from TravelNext API', ['status' => 502]);
     }
 
-    // Return decoded response
+    // Optionally sort and filter the data if not handled by the API
+    if ($sortBy) {
+        usort($data['data'], function($a, $b) use ($sortBy) {
+            switch ($sortBy) {
+                case 'price-low-high':
+                    return $a['fees']['rateTotalAmount'] - $b['fees']['rateTotalAmount'];
+                case 'price-high-low':
+                    return $b['fees']['rateTotalAmount'] - $a['fees']['rateTotalAmount'];
+                case 'rating-low-high':
+                    return round($a['vendor']['reviewsOverall']) - round($b['vendor']['reviewsOverall']);
+                case 'rating-high-low':
+                    return round($b['vendor']['reviewsOverall']) - round($a['vendor']['reviewsOverall']);
+                default:
+                    return 0; // No sorting
+            }
+        });
+    }
+
+    if (!empty($selectedRatings)) {
+        $data['data'] = array_filter($data['data'], function($car) use ($selectedRatings) {
+            $rating = round($car['vendor']['reviewsOverall']);
+            return in_array($rating, $selectedRatings);
+        });
+    }
+
+    // Return the filtered and sorted response
     return $data;
 }
 
@@ -3819,4 +3917,24 @@ function custom_car_rental_search($request) {
 }
 
 /*==============================For Car Rental Code End=====================================*/
+function getCityNameByAirPortCode($airportCode) {
+    global $wpdb;
+
+    // Sanitize the input
+    $airportCode = strtoupper(trim($airportCode));
+
+    // Replace with your actual table name if it uses a prefix
+    $table_name = 'airport_list';
+
+    // Query the database
+    $city = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT city FROM {$table_name} WHERE airport_code = %s LIMIT 1",
+            $airportCode
+        )
+    );
+
+    return $city ?: 'Unknown City';
+}
+
 ?>

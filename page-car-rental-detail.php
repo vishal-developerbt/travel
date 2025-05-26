@@ -9,8 +9,21 @@ get_header(); ?>
 <?php
     $session_id = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
     $reference_id = isset($_GET['reference_id']) ? sanitize_text_field($_GET['reference_id']) : '';
+    $car_name = isset($_GET['car_name']) ? sanitize_text_field($_GET['car_name']) : '';
+    $car_img = isset($_GET['car_img']) ? sanitize_text_field($_GET['car_img']) : '';
+    $ratting = isset($_GET['ratting']) ? sanitize_text_field($_GET['ratting']) : '';
+    $rattingCount = isset($_GET['ratting_count']) ? sanitize_text_field($_GET['ratting_count']) : '';
+    $carPrice = isset($_GET['car_price']) ? sanitize_text_field($_GET['car_price']) : '';
+
+
 
    $carDetail = getCarRentalDetail($session_id, $reference_id);
+   if (is_wp_error($carDetail)) {
+    echo '<pre>';
+    echo 'Error fetching car details: ' . $carDetail->get_error_message();
+    echo '</pre>';
+    return; // Stop further execution to avoid fatal error
+}
     $vehicleCharge = $carDetail['data']['vehicleCharge'];
     $pricedCoverages = $carDetail['data']['pricedCoverages'];
     $pricedEquipments = $carDetail['data']['pricedEquipments'];
@@ -31,29 +44,35 @@ get_header(); ?>
             <div class="car-card-header car-header-section">
                 <div class="d-flex gap-4 align-items-center car-header-flex">
                     <div class="car-header-info">
-                        <h3 class="marine-tour-text car-tour-title">Kias Picanto</h3>
-                        <p class="location-text car-location-text">
+                        <h3 class="marine-tour-text car-tour-title"><?php echo $car_name;?></h3>
+                        <!-- <p class="location-text car-location-text">
                             <span class="efieel-tower-text car-location-main">15th arr. - Eiffel Tower</span>
                             <span class="michale-station-text car-location-sub">
                                 <i class="fa-solid fa-chevron-right car-icon-chevron"></i> 6 minutes walk to Charles Michels Station
                             </span>
-                        </p>
+                        </p> -->
                     </div>
-                    <div class="star-icons car-star-icons">
-                        <i class="fa-solid fa-star car-star-icon"></i>
-                        <i class="fa-solid fa-star car-star-icon"></i>
-                        <i class="fa-solid fa-star car-star-icon"></i>
-                        <i class="fa-solid fa-star car-star-icon"></i>
-                        <i class="fa-solid fa-star-half-alt car-star-half-icon"></i>
+
+                    <div class="star-icons car-star-icons" >
+                        <?php
+                       // $rating = round($car['vendor']['reviewsOverall'] ?? 0); // Default 4 if no rating
+                        for ($i = 1; $i <= 5; $i++) {
+                            if ($i <= $ratting) {
+                                echo '<i class="fa-solid fa-star car-star-icon"></i>';
+                            } else {
+                                echo '<i class="fa-regular fa-star"></i>';
+                            }
+                        }
+                        ?>
                     </div>
                 </div>
                 <div class="rating-section car-rating-section">
                     <span class="text-muted excellent-text car-rating-text">
                         Excellent <br>
-                        <span class="review-car-review-count">2920 reviews</span>
+                        <span class="review-car-review-count"><?php echo $rattingCount; ?> reviews</span>
                     </span>
                     <div class="rating-section-container car-rating-badge-wrapper">
-                        <span class="rating-badge car-rating-badge">4.5</span>
+                        <span class="rating-badge car-rating-badge"><?php echo $ratting; ?></span>
                     </div>
                 </div>
             </div>
@@ -64,14 +83,14 @@ get_header(); ?>
                 <div class="swiper-container main-slider car-swiper-main-slider">
                     <div class="swiper-wrapper car-swiper-wrapper">
                         <div class="swiper-slide car-swiper-slide">
-                            <img src="https://mda.spinny.com/sp-file-system/public/2024-08-29/aee34525c9ca4676bdec4489e3924520/raw/file.JPG?q=85" class="car-main-img" alt="Car Image">
+                            <img src="<?php echo $car_img;?>" class="car-main-img" alt="Car Image">
                         </div>
-                        <div class="swiper-slide car-swiper-slide">
+                        <!-- <div class="swiper-slide car-swiper-slide">
                             <img src="https://mda.spinny.com/sp-file-system/public/2024-08-29/2a7d0c48c8d447db951b815eadcad482/raw/file.JPG?q=85&w=900&dpr=1.3" class="car-main-img" alt="Car Image">
                         </div>
                         <div class="swiper-slide car-swiper-slide">
                             <img src="https://mda.spinny.com/sp-file-system/public/2024-08-29/3ec4f896f8c845158a443ffec64581b7/raw/file.JPG?q=85&w=900&dpr=1.3" class="car-main-img" alt="Car Image">
-                        </div>
+                        </div> -->
                     </div>
                     <!-- Navigation Buttons -->
                     <div class="swiper-button-prev car-swiper-prev"></div>
@@ -80,9 +99,9 @@ get_header(); ?>
 
                 <!-- Thumbnails -->
                 <div class="car-thumbnail-section mt-2 hotel-thumbnails">
-                    <img src="https://mda.spinny.com/sp-file-system/public/2024-08-29/aee34525c9ca4676bdec4489e3924520/raw/file.JPG?q=85" class="car-thumbnail" data-slide="0" alt="Thumbnail">
-                    <img src="https://mda.spinny.com/sp-file-system/public/2024-08-29/2a7d0c48c8d447db951b815eadcad482/raw/file.JPG?q=85&w=900&dpr=1.3" class="car-thumbnail" data-slide="1" alt="Thumbnail">
-                    <img src="https://mda.spinny.com/sp-file-system/public/2024-08-29/3ec4f896f8c845158a443ffec64581b7/raw/file.JPG?q=85&w=900&dpr=1.3" class="car-thumbnail" data-slide="2" alt="Thumbnail">
+                    <img src="<?php echo $car_img;?>" class="car-thumbnail" data-slide="0" alt="Thumbnail">
+                   <!--  <img src="https://mda.spinny.com/sp-file-system/public/2024-08-29/2a7d0c48c8d447db951b815eadcad482/raw/file.JPG?q=85&w=900&dpr=1.3" class="car-thumbnail" data-slide="1" alt="Thumbnail">
+                    <img src="https://mda.spinny.com/sp-file-system/public/2024-08-29/3ec4f896f8c845158a443ffec64581b7/raw/file.JPG?q=85&w=900&dpr=1.3" class="car-thumbnail" data-slide="2" alt="Thumbnail"> -->
                 </div>
 
                 <!-- Hotel Info (Pricing) -->
@@ -93,11 +112,15 @@ get_header(); ?>
                         <div>
                             <p class="mb-1 per-night-text">Per Day</p>
                         </div>
-                        <span class="price-section">$114</span>
-                        <span class="old-price ms-2">$200</span>
-                        <p class="text-muted taxes-fees-text">+ $200 taxes & fees</p>
+                        <span class="price-section"> <?php
+                                            $currency = get_option('travelx_required_currency');
+                                            $symbol = ($currency === 'USD') ? '$' : esc_html($currency);
+                                            echo $symbol . number_format($carPrice ?? 0, 2);
+                                            ?>  </span>
+                       <!--  <span class="old-price ms-2">$200</span>
+                        <p class="text-muted taxes-fees-text">+ $200 taxes & fees</p> -->
                     </div>
-                    <div class="d-flex gap-2 button-section-home">
+                    <div class="d-flex gap-2 button-section-home mt-2">
                         <button class="book-now-button-detail-page car-book-now-button">
                             <p class="book-now-button-text car-book-now-text">Book Now</p>
                         </button>
@@ -106,62 +129,64 @@ get_header(); ?>
             </div>
       </div>
 
-<div class="car-details">
-        <div class="car-section">
-            <h4>vehicle Charge</h4>
-            <ul>
+<div class="row mt-3 mt-2 car-details-sections-main">
+    <h3>Car Details</h3>
+    <div class=" col-md-6 col-lg-4">
+        <h4>Vehicle Charge</h4>
+        <div class="car-vehichle-charge">
                   <?php foreach ($vehicleCharge as $sectionTitle => $item): ?>
-                    <li>
+                    <div>
                         <strong>Description:</strong> <?php echo htmlspecialchars($item['description']); ?><br>
                         <strong>Type:</strong> <?php echo htmlspecialchars($item['type']); ?><br>
                         <strong>Amount:</strong> <?php echo htmlspecialchars($item['amount']); ?> <?php echo htmlspecialchars($item['currencyCode']); ?><br>
                         <strong>Included In Rate:</strong> <?php echo $item['includedInRate'] ? 'Yes' : 'No'; ?><br>
                         <strong>Tax Inclusive:</strong> <?php echo $item['taxInclusive'] ? 'Yes' : 'No'; ?>
-                    </li>
+                    </div>
                     <hr>
                 <?php endforeach; ?>
-            </ul>
-<!-- pricedCoverages -->
-              <h4>pricedCoverages</h4>
-            <ul>
+            </div>
+    </div>
+     <div class=" col-md-6 col-lg-4">
+        <h4>Priced Coverages</h4>
+            <div>
                   <?php foreach ($pricedCoverages as $item): ?>
-                    <li>
+                    <div>
                         <strong>Description:</strong> <?php echo htmlspecialchars($item['description']); ?><br>
                         <strong>Type:</strong> <?php echo htmlspecialchars($item['type']); ?><br>
                         <strong>Amount:</strong> <?php echo htmlspecialchars($item['amount']); ?> <?php echo htmlspecialchars($item['currencyCode']); ?><br>
                         <strong>Included In Rate:</strong> <?php echo $item['includedInRate'] ? 'Yes' : 'No'; ?><br>
                         <strong>Tax Inclusive:</strong> <?php echo $item['taxInclusive'] ? 'Yes' : 'No'; ?>
-                    </li>
+                    </div>
                     <hr>
                 <?php endforeach; ?>
-            </ul>
-
-            <!-- pricedEquipments -->
-              <h4>pricedEquipments</h4>
-            <ul>
+            </div>
+    </div>
+     <div class=" col-md-6 col-lg-4">
+        <h4>Priced Equipments</h4>
+            <div>
                   <?php foreach ($pricedEquipments as $item): ?>
-                    <li>
+                    <div>
                         <strong>Description:</strong> <?php echo htmlspecialchars($item['description']); ?><br>
                         <strong>Type:</strong> <?php echo htmlspecialchars($item['type']); ?><br>
                         <strong>Amount:</strong> <?php echo htmlspecialchars($item['amount']); ?> <?php echo htmlspecialchars($item['currencyCode']); ?><br>
                         <strong>Included In Rate:</strong> <?php echo $item['includedInRate'] ? 'Yes' : 'No'; ?><br>
                         <strong>Tax Inclusive:</strong> <?php echo $item['taxInclusive'] ? 'Yes' : 'No'; ?>
-                    </li>
+                    </div>
                     <hr>
                 <?php endforeach; ?>
-            </ul>
-        </div>
+            </div>
+    </div>
 </div>
+
             <!-- Car Details Section -->
        <section class=" car-detail-paragraph">
                 <h4 class="fw-bold car-detail-paragraph-page">
-                    Toyota Yaris Sedan (or Similar)
-                    
+                   <?php echo $car_name;?>
                 </h4>
-                <p class="text-muted location-text">Dubai International Airport Terminal 1</p>
+                <!-- <p class="text-muted location-text">Dubai International Airport Terminal 1</p> -->
 
                 <!-- Car Description -->
-                <div class="mt-3">
+                <!-- <div class="mt-3">
                     <h5 class="fw-bold  car-description-text">Car Description</h5>
                     <p class="description-text">
                         The Toyota Yaris Sedan is a compact and fuel-efficient vehicle, perfect for city driving and short trips.
@@ -174,7 +199,7 @@ get_header(); ?>
                     <p class="description-text">
                         With ample trunk space and seating for up to five passengers, the Toyota Yaris Sedan delivers practicality without compromising on performance.
                     </p>
-                </div>
+                </div> -->
 
                 <!-- Car Included in rate-->
                 <h5 class="fw-bold car-detail-paragraph-page mt-4 mb-2">Included in rate</h5>
@@ -349,13 +374,13 @@ get_header(); ?>
             <section class="rental-conditions-section mt-4">
                 <div class="booking-rules-container bg-white p-4 md:p-6 rounded-xl shadow-md">
                     <h4 class="booking-rules-title text-xl font-semibold mb-4 text-gray-800">Rental Conditions</h4>
-                    <ul class="booking-rules-list list-disc pl-5 space-y-2 text-gray-700">
+                    <div class="booking-rules-list list-disc pl-5 space-y-2 text-gray-700">
                     <?php foreach($rentalConditions['Cancellation and no-show policy'] as $Cancellation ){ 
 
                          ?>
-                        <li class="booking-rule-item"><?php echo $Cancellation ;?></li>
+                        <div class="booking-rule-item"><?php echo $Cancellation ;?></div>
                        <?php }?>
-                    </ul>
+                    </div>
                 </div>
             </section>
         </div>
