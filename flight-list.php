@@ -27,6 +27,8 @@ get_header(); ?>
     $session_id='';
 
     $flights = get_flight_availability($args);
+
+   // echo "<pre>"; print_r($flights); die;
     if (!empty($flights['AirSearchResponse']['session_id'])) {
         $session_id = $flights['AirSearchResponse']['session_id'];
        
@@ -48,7 +50,7 @@ get_header(); ?>
         <div class="search-form" id="search-flights">
             <div class="form-group">
                 <label class="date-label">From</label>
-                <input type="text" value="<?php echo $origin; ?>" class="form-control" id="departure_airport" name="departure_airport" placeholder="Departure Airport">
+                <input type="text" value="<?php echo esc_html(getCityNameByAirPortCode($origin)); ?>" class="form-control" id="departure_airport" name="departure_airport" placeholder="Departure Airport">
             </div>
 
             <div class="swipper-toggle-dustination">
@@ -59,7 +61,7 @@ get_header(); ?>
 
             <div class="form-group">
                 <label for="to">To</label>
-                <input type="text" value="<?php echo $destination; ?>" class="form-control search-flight-location"  id="flight_location" name="flight_location" placeholder="Search Location">
+                <input type="text" value="<?php echo esc_html(getCityNameByAirPortCode($destination)); ?>" class="form-control search-flight-location"  id="flight_location" name="flight_location" placeholder="Search Location">
             </div>
 
             <div class="form-group">

@@ -162,7 +162,7 @@
     
                 <div class="col-12 col-md-6 col-lg-2 text-start location-flight-section">
                     <label class="fw-bold loaction-text-homepage">
-                        <i class="fa-solid fa-location-dot"></i> Locations
+                        <i class="fa-solid fa-location-dot"></i> To
                     </label>
                     <input type="text" class="form-control search-flight-location"  id="flight_location" name="flight_location" placeholder="Search Location">
                  </div>

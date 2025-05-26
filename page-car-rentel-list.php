@@ -30,7 +30,7 @@ $dropoffDate = isset($_GET['dropoff_date']) ? sanitize_text_field($_GET['dropoff
                             <input type="text" id="pickup-location" name="car-pickup-location"
                                    class="form-control search-city-property"
                                    placeholder="Enter a city or location">
-                            <input type="hidden" id="pickup-location-id" name="car-pickup-location-id">
+                            <input type="hidden" id="pickup-location-id" value="<?php echo $carPickupLocation ;?>" name="car-pickup-location-id">
                         </div>
                     </div>
                     <!-- Drop-off location -->
@@ -42,16 +42,29 @@ $dropoffDate = isset($_GET['dropoff_date']) ? sanitize_text_field($_GET['dropoff
                             <input type="text" id="dropoff-location" name="car-dropoff-location"
                                    class="form-control search-city-property"
                                    placeholder="Enter a city or location">
-                            <input type="hidden" id="dropoff-location-id" name="car-dropoff-location-id">
+                            <input type="hidden" id="dropoff-location-id" value="<?php echo $carDropoffLocation ;?>" name="car-dropoff-location-id">
                         </div>
                     </div>
                     <!-- Date Range Picker for Pick-up and Drop-off -->
-                    <div class="col-md-3 col-12 pickup-drop-up-dates">
+                   <!--  <div class="col-md-3 col-12 pickup-drop-up-dates">
+                        <label for="rental-dates" class="date-label">Pick-up & Drop-off Date</label>
+                        <input type="text" id="rental-dates" class="form-control" placeholder="Select pick-up and drop-off dates" />
+                    </div> -->
+                      <div class="col-md-3 col-12 pickup-drop-up-dates">
                         <label for="rental-dates" class="date-label">Pick-up & Drop-off Date</label>
                         <input type="text" id="rental-dates" class="form-control" placeholder="Select pick-up and drop-off dates" />
                     </div>
                     <!-- Time Inputs -->
-                    <div class="col-md-2 col-12">
+                    <!-- <div class="col-md-2 col-12">
+                        <div class="date-box">
+                            <label class="date-label">Pick-up & Drop-off Time</label>
+                            <div class="d-flex gap-2 flex-column flex-md-row">
+                                <input type="time" name="pickup_time" class="form-control" placeholder="10:00" />
+                                <input type="time" name="dropoff_time" class="form-control" placeholder="10:30" />
+                            </div>
+                        </div>
+                    </div> -->
+                     <div class="col-md-2 col-12">
                         <div class="date-box">
                             <label class="date-label">Pick-up & Drop-off Time</label>
                             <div class="d-flex gap-2 flex-column flex-md-row">
@@ -93,48 +106,25 @@ $dropoffDate = isset($_GET['dropoff_date']) ? sanitize_text_field($_GET['dropoff
                     <p><a href="#" class="clear-all-text">Clear All</a></p>
                 </div>
                 <hr>
-                <form id="filterForm">
+                <form id="car-filter-form">
                   <strong>Sort by Rating</strong>
-                  <div class="sort-by-rating">
-                    <label><input type="checkbox" name="rating[]" value="1"> 1 Star</label>
-                    <label><input type="checkbox" name="rating[]" value="2"> 2 Stars</label>
-                    <label><input type="checkbox" name="rating[]" value="3"> 3 Stars</label>
-                    <label><input type="checkbox" name="rating[]" value="4"> 4 Stars</label>
-                    <label><input type="checkbox" name="rating[]" value="5"> 5 Stars</label>
-                  </div>
-                  <hr>
+                    <div class="sort-by-rating">
+                        <label><input type="checkbox" name="rating[]" value="1"> 1 Star</label>
+                        <label><input type="checkbox" name="rating[]" value="2"> 2 Stars</label>
+                        <label><input type="checkbox" name="rating[]" value="3"> 3 Stars</label>
+                        <label><input type="checkbox" name="rating[]" value="4"> 4 Stars</label>
+                        <label><input type="checkbox" name="rating[]" value="5"> 5 Stars</label>
+                    </div>
+                    <hr>
 
                   <strong>Sort by</strong>
-                  <div class="sort-by-price">
-                    <label><input type="radio" name="sorting" value="price-low-high"> Price: Low to High</label>
-                    <label><input type="radio" name="sorting" value="price-high-low"> Price: High to Low</label>
-                    <label><input type="radio" name="sorting" value="rating-low-high"> Rating: Low to High</label>
-                    <label><input type="radio" name="sorting" value="rating-high-low"> Rating: High to Low</label>
-                  </div>
-                  <hr>
-
-                  <!-- Price Filter -->
-                  <div class="wrapper">
-                    <header><h2>Sort by Price</h2></header>
-                    <div class="price-input">
-                      <div class="field">
-                        <span>Min</span>
-                        <input type="number" class="input-min" value="2500">
-                      </div>
-                      <div class="separator">-</div>
-                      <div class="field">
-                        <span>Max</span>
-                        <input type="number" class="input-max" value="7500">
-                      </div>
+                    <div class="sort-by-price">
+                        <label><input type="radio" name="sorting" value="price-low-high"> Price: Low to High</label>
+                        <label><input type="radio" name="sorting" value="price-high-low"> Price: High to Low</label>
+                        <label><input type="radio" name="sorting" value="rating-low-high"> Rating: Low to High</label>
+                        <label><input type="radio" name="sorting" value="rating-high-low"> Rating: High to Low</label>
                     </div>
-                    <div class="slider">
-                        <div class="progress" style="left: 28%; right: 18%;"></div>
-                    </div>
-                    <div class="range-input">
-                      <input type="range" class="range-min" min="0" max="10000" value="2500" step="100">
-                      <input type="range" class="range-max" min="0" max="10000" value="7500" step="100">
-                    </div>
-                  </div>
+                    <hr>
                 </form>
 
             </div>
@@ -329,79 +319,6 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
     </div>
 </div>
-
-<script type="text/javascript">
-   document.addEventListener("DOMContentLoaded", function () {
-  const rangeInput = document.querySelectorAll(".range-input input"),
-    priceInput = document.querySelectorAll(".price-input input"),
-    progress = document.querySelector(".slider .progress");
-
-  let priceGap = 1000;
-
-  // Sync price inputs and range sliders
-  priceInput.forEach((input) => {
-    input.addEventListener("input", (e) => {
-      let minPrice = parseInt(priceInput[0].value),
-        maxPrice = parseInt(priceInput[1].value);
-
-      if (maxPrice - minPrice >= priceGap && maxPrice <= parseInt(rangeInput[1].max)) {
-        if (e.target.classList.contains("input-min")) {
-          rangeInput[0].value = minPrice;
-          progress.style.left = (minPrice / rangeInput[0].max) * 100 + "%";
-        } else {
-          rangeInput[1].value = maxPrice;
-          progress.style.right = 100 - (maxPrice / rangeInput[1].max) * 100 + "%";
-        }
-      }
-    });
-  });
-
-  rangeInput.forEach((input) => {
-    input.addEventListener("input", (e) => {
-      let minVal = parseInt(rangeInput[0].value),
-        maxVal = parseInt(rangeInput[1].value);
-
-      if (maxVal - minVal < priceGap) {
-        if (e.target.classList.contains("range-min")) {
-          rangeInput[0].value = maxVal - priceGap;
-        } else {
-          rangeInput[1].value = minVal + priceGap;
-        }
-      } else {
-        priceInput[0].value = minVal;
-        priceInput[1].value = maxVal;
-        progress.style.left = (minVal / rangeInput[0].max) * 100 + "%";
-        progress.style.right = 100 - (maxVal / rangeInput[1].max) * 100 + "%";
-      }
-    });
-  });
-
-  // Show More Cars button logic
-  const showMoreBtn = document.getElementById("showMoreBtn");
-  const carCards = document.querySelectorAll(".car-card-wrapper");
-  let visibleCount = 20;
-  const increment = 20;
-
-  if (showMoreBtn) {
-    showMoreBtn.addEventListener("click", () => {
-      let shown = 0;
-      for (let i = visibleCount; i < carCards.length && shown < increment; i++) {
-        if (carCards[i].style.display === "none") {
-          carCards[i].style.display = "block";
-          shown++;
-        }
-      }
-      visibleCount += shown;
-
-      if (visibleCount >= carCards.length) {
-        showMoreBtn.style.display = "none";
-      }
-    });
-  }
-});
-
-
-</script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Flatpickr for date range picker
@@ -448,105 +365,92 @@ document.getElementById('car-search-form').addEventListener('submit', function (
     window.location.href = `/car-rental-list/?${params.toString()}`;
 });
 </script>
-<!-- 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const filterForm = document.getElementById('filterForm');
-  const carCards = Array.from(document.querySelectorAll('.car-card-wrapper'));
-  const container = document.getElementById('car-results');
+<script type="text/javascript">
+    // Function to handle form submission dynamically
+    function handleFormSubmit() {
+        const pickupLocationId = document.getElementById('pickup-location-id').value;
+        const dropoffLocationId = document.getElementById('dropoff-location-id').value;
+        const pickupTime = document.querySelector('input[name="pickup_time"]').value;
+        const dropoffTime = document.querySelector('input[name="dropoff_time"]').value;
 
-  const minPriceInput = document.querySelector('.input-min');
-  const maxPriceInput = document.querySelector('.input-max');
-  const minRange = document.querySelector('.range-min');
-  const maxRange = document.querySelector('.range-max');
+        const dateRange = document.getElementById('rental-dates').value.trim();
+        let pickupDate = '';
+        let dropoffDate = '';
+        if (dateRange.includes(' to ')) {
+            [pickupDate, dropoffDate] = dateRange.split(' to ');
+        } else if (dateRange.includes(' - ')) {
+            [pickupDate, dropoffDate] = dateRange.split(' - ');
+        }
 
-  function applyFilters() {
-    const formData = new FormData(filterForm);
-    const selectedRatings = formData.getAll('rating[]').map(Number);
-    const sorting = formData.get('sorting');
+        // Collect rating filters
+        const ratings = [];
+        document.querySelectorAll('input[name="rating[]"]:checked').forEach(input => {
+            ratings.push(input.value);
+        });
 
-    // Parse price inputs safely
-    const minPrice = parseFloat(minPriceInput.value);
-    const maxPriceRaw = parseFloat(maxPriceInput.value);
-    // If maxPrice is NaN or invalid, use a very large number
-    const maxPrice = isNaN(maxPriceRaw) ? Number.MAX_SAFE_INTEGER : maxPriceRaw;
-    const minPriceSafe = isNaN(minPrice) ? 0 : minPrice;
+        // Collect sorting preference
+        const sorting = document.querySelector('input[name="sorting"]:checked')?.value || '';
 
-    // Filter cards based on rating and price
-    carCards.forEach(card => {
-      const price = parseFloat(card.dataset.price) || 0;
-      const rating = parseInt(card.dataset.rating) || 0;
+        // Prepare query parameters
+        const params = new URLSearchParams();
+        params.append('car-pickup-location-id', carPickupLocation);
+        params.append('car-dropoff-location-id', carDropoffLocation);
+        params.append('pickup_time', pickupTime);
+        params.append('dropoff_time', dropoffTime);
+        params.append('pickup_date', pickupDate);
+        params.append('dropoff_date', dropoffDate);
 
-      // If no rating checkbox checked, show all ratings
-      const matchesRating = selectedRatings.length === 0 || selectedRatings.includes(rating);
-      const matchesPrice = price >= minPriceSafe && price <= maxPrice;
+        if (ratings.length > 0) {
+            params.append('rating', ratings);
+        }
 
-      card.style.display = (matchesRating && matchesPrice) ? 'block' : 'none';
+        if (sorting) {
+            params.append('sorting', sorting);
+        }
+
+        // Redirect to the new URL with query parameters
+        window.location.href = `/car-rental-list/?${params.toString()}`;
+    }
+
+    // Listen for changes on checkboxes and radio buttons
+    document.querySelectorAll('input[name="rating[]"]').forEach(checkbox => {
+        checkbox.addEventListener('change', handleFormSubmit);
     });
 
-    // Sort visible cards
-    const visibleCards = carCards.filter(card => card.style.display !== 'none');
+    document.querySelectorAll('input[name="sorting"]').forEach(radio => {
+        radio.addEventListener('change', handleFormSubmit);
+    });
 
-    if (sorting) {
-      visibleCards.sort((a, b) => {
-        const priceA = parseFloat(a.dataset.price) || 0;
-        const priceB = parseFloat(b.dataset.price) || 0;
-        const ratingA = parseInt(a.dataset.rating) || 0;
-        const ratingB = parseInt(b.dataset.rating) || 0;
+    // Optional: You can also listen for form submission manually if needed (if you have a submit button)
+    document.getElementById('car-filter-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        handleFormSubmit();
+    });
+</script>
+<!-- Pass PHP values to JavaScript -->
+<script type="text/javascript">
+    var carPickupLocation = "<?php echo esc_js($carPickupLocation); ?>";
+    var carDropoffLocation = "<?php echo esc_js($carDropoffLocation); ?>";
+    var pickupTime = "<?php echo esc_js($pickupTime); ?>";
+    var dropoffTime = "<?php echo esc_js($dropoffTime); ?>";
+    var pickupDate = "<?php echo esc_js($pickupDate); ?>";
+    var dropoffDate = "<?php echo esc_js($dropoffDate); ?>";
 
-        switch (sorting) {
-          case 'price-low-high':
-            return priceA - priceB;
-          case 'price-high-low':
-            return priceB - priceA;
-          case 'rating-low-high':
-            return ratingA - ratingB;
-          case 'rating-high-low':
-            return ratingB - ratingA;
-          default:
-            return 0;
-        }
-      });
-
-      visibleCards.forEach(card => container.appendChild(card));
+    document.addEventListener('DOMContentLoaded', function () {
+    // Populate the date range input field
+    if (pickupDate && dropoffDate) {
+        var dateRange = pickupDate + ' to ' + dropoffDate;
+        document.getElementById('rental-dates').value = dateRange;
     }
-  }
 
-  // Debounce function to reduce calls
-  function debounce(fn, delay) {
-    let timeout;
-    return function (...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => fn.apply(this, args), delay);
-    };
-  }
-
-  const debouncedApplyFilters = debounce(applyFilters, 200);
-
-  filterForm.addEventListener('change', applyFilters);
-
-  // Sync sliders and inputs
-  minPriceInput.addEventListener('input', () => {
-    minRange.value = minPriceInput.value;
-    debouncedApplyFilters();
-  });
-
-  maxPriceInput.addEventListener('input', () => {
-    maxRange.value = maxPriceInput.value;
-    debouncedApplyFilters();
-  });
-
-  minRange.addEventListener('input', () => {
-    minPriceInput.value = minRange.value;
-    debouncedApplyFilters();
-  });
-
-  maxRange.addEventListener('input', () => {
-    maxPriceInput.value = maxRange.value;
-    debouncedApplyFilters();
-  });
-
-  applyFilters(); // Initial filter on page load
+    // Populate the time input fields
+    if (pickupTime) {
+        document.querySelector('input[name="pickup_time"]').value = pickupTime;
+    }
+    if (dropoffTime) {
+        document.querySelector('input[name="dropoff_time"]').value = dropoffTime;
+    }
 });
-</script> -->
+
+</script>
 <?php get_footer(); ?>
