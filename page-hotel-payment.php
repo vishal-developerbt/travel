@@ -230,7 +230,7 @@ function formatRoomData($roomData) {
                   <input type="hidden" name="pid" value="<?php echo $productId ; ?>">
                   <input type="hidden" name="rateBasisId" value="<?php echo $rateBasisId; ?>">
                   <input type="hidden" name="netPrice" value="<?php echo $price; ?>">
-                
+               
                   <div class="d-flex justify-content-center mt-4">
                     <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
                       style="max-width: 500px;" name="payment_method" value="stripe" id="confirmBtn">
@@ -242,7 +242,8 @@ function formatRoomData($roomData) {
                     </button>
                   </div>
               </form>
-            <div class="add-guest-only-sec">
+         <!-- Guest Form start -->
+                        <div class="add-guest-only-sec">
               <!-- Trigger Button -->
               <button class="hotel-btn-submit add-guest-main-btn-1" onclick="hotelPaymentOpenForm()">
                 Add Guest <span style="margin-right: 8px; font-size: 14px;">➕</span>
@@ -295,6 +296,7 @@ function formatRoomData($roomData) {
                 </div>
               </div>
             </div>
+                  <!-- Guest Form End -->
         </div>
       </div>
     </div>

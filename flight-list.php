@@ -242,8 +242,8 @@ get_header(); ?>
                                     <span id="price-max-display">$0</span>
                                 </div>
                                 <div class="multi-range-slider mb-2">
-                                    <input type="range" id="price-slider-min" class="noUi-connect" min="0" max="10000" step="1" value="0">
-                                    <input type="range" id="price-slider-max" class="noUi-connect" min="0" max="10000" step="1" value="10000">
+                                    <input type="range" id="price-slider-min" class="noUi-connect" min="0" max="0" step="1" value="0">
+                                    <input type="range" id="price-slider-max" class="noUi-connect" min="0" max="0" step="1" value="0">
                                 </div>
                             </div>
                         </div>
@@ -270,8 +270,29 @@ get_header(); ?>
                                 $fare = $fareItem['FareItinerary'];
                                 $segment = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'];
 
-                                $airlineName = $segment['MarketingAirlineName'] ?? 'Airline';
-                                $flightNumber = $segment['FlightNumber'] ?? 'N/A';
+                               // $airlineName = $segment['MarketingAirlineName'] ?? 'Airline';
+                                //$flightNumber = $segment['FlightNumber'] ?? 'N/A';
+
+                                $originOptions = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'];
+
+                                $airlineName = '';
+                                $flightCodes = [];
+
+                                foreach ($originOptions as $option) {
+                                    $segment = $option['FlightSegment'];
+                                    if (empty($airlineName) && !empty($segment['MarketingAirlineName'])) {
+                                        $airlineName = $segment['MarketingAirlineName'];
+                                    }
+
+                                    $airlineCode = $segment['MarketingAirlineCode'] ?? 'XX';
+                                    $flightNumber = $segment['FlightNumber'] ?? '000';
+
+                                    $flightCodes[] = $airlineCode . ' ' . $flightNumber;
+                                }
+
+                                $flightNumberString = implode(', ', $flightCodes);
+
+
                                 $origin = $segment['DepartureAirportLocationCode'] ?? 'XXX';
                                 $destination = $segment['ArrivalAirportLocationCode'] ?? 'YYY';
                                 $departureTime = date("H:i", strtotime($segment['DepartureDateTime']));
@@ -294,6 +315,8 @@ get_header(); ?>
                                 // Unique ID and flight data JSON
                                 $flightCardId = 'flight-' . uniqid();
                                 $flightDataJson = htmlspecialchars(json_encode(['FareItinerary' => $fare]), ENT_QUOTES, 'UTF-8');
+                                 $totalStops = $fare['OriginDestinationOptions'][0]['TotalStops'];
+                              
                     ?>
                         <div class="flight-card mb-3"
                              id="<?php echo esc_attr($flightCardId); ?>"
@@ -311,30 +334,71 @@ get_header(); ?>
                                         </div>
                                         <div class="flight-details-1">
                                             <div class="airline-name"><?php echo esc_html($airlineName); ?></div>
-                                            <div class="flight-number"><?php echo esc_html($flightNumber); ?></div>
+                                            <div class="flight-number"><?php echo esc_html($flightNumberString); ?></div>
                                         </div>
                                     </div>
                                 </div>
+                                <?php 
+                                if($totalStops){
+                                $data = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'];
+                                   
+                                $firstDepartureAirportLocationCode = $data[0]['FlightSegment']['DepartureAirportLocationCode'];
+                                $firstDepartureDateTime = date("H:i", strtotime($data[0]['FlightSegment']['DepartureDateTime']));
 
-                                <div class="col-md-1 d-flex flex-column justify-content-center time-place-flight">
+                                $secondArrivalAirportLocationCode = $data[0]['FlightSegment']['ArrivalAirportLocationCode'];
+                                $secondArrivalDateTime = date("H:i", strtotime($data[0]['FlightSegment']['ArrivalDateTime']));
+
+                                $secondDepartureDateTime = date("H:i", strtotime($data[1]['FlightSegment']['DepartureDateTime']));
+
+                                    ?>
+                                    <div class="col-md-1 d-flex flex-column justify-content-center time-place-flight">
                                     <div class="place-time-flight-th">
-                                        <div class="departure-time"><?php echo esc_html($departureTime); ?></div>
-                                        <div class="departure-city"><?php echo esc_html($origin); ?></div>
-                                    </div>
+                                        <div class="departure-time"><?php echo esc_html($firstDepartureDateTime); ?></div>
+                                        <div class="departure-city"><?php echo esc_html(getCityNameByAirPortCode($firstDepartureAirportLocationCode)); ?></div>
+                                    </div>  
                                 </div>
-
                                 <div class="col-md-3 flight-dustination-duration">
-                                    <div class="duration"><?php echo esc_html($durationFormatted); ?></div>
+                                    <div class="duration">
+                                        <?php echo esc_html($durationFormatted); ?>
+                                    </div>
                                     <div>--------------------</div>
-                                    <div class="flight-type">Nonstop</div>
+                                    
+                                     <div class="flight-type"><?php echo $totalStops;?> stop via <?php echo esc_html(getCityNameByAirPortCode($secondArrivalAirportLocationCode)); ?></div>
+                                   
                                 </div>
 
                                 <div class="col-md-1 d-flex flex-column justify-content-center">
                                     <div class="delhi-flight-time">
                                         <div class="arrival-time"><?php echo esc_html($arrivalTime); ?></div>
-                                        <div class="arrival-city"><?php echo esc_html($destination); ?></div>
+                                        <div class="arrival-city"><?php echo esc_html(getCityNameByAirPortCode($destination)); ?></div>
                                     </div>
                                 </div>
+                                    <?php 
+
+                                }else{
+                                    ?>
+                                <div class="col-md-1 d-flex flex-column justify-content-center time-place-flight">
+                                    <div class="place-time-flight-th">
+                                        <div class="departure-time"><?php echo esc_html($departureTime); ?></div>
+                                        <div class="departure-city"><?php echo esc_html(getCityNameByAirPortCode($origin)); ?></div>
+                                    </div>  
+                                </div>
+
+                                 <div class="col-md-3 flight-dustination-duration">
+                                    <div class="duration"><?php echo esc_html($durationFormatted); ?></div>
+                                    <div>--------------------</div>
+                    
+                                    <div class="flight-type">Non stop</div>
+                                </div>
+
+                                <div class="col-md-1 d-flex flex-column justify-content-center">
+                                    <div class="delhi-flight-time">
+                                        <div class="arrival-time"><?php echo esc_html($arrivalTime); ?></div>
+                                        <div class="arrival-city"><?php echo esc_html(getCityNameByAirPortCode($destination)); ?></div>
+                                    </div>
+                                </div>
+                            <?php }?>
+                               
 
                                 <div class="col-md-2 d-flex flex-column justify-content-center">
                                     <div class="make-fare-and-fair">
@@ -815,7 +879,7 @@ function setupFilters() {
     
     // Handle edge case if no prices found
     if (minPrice === Infinity) minPrice = 0;
-    if (maxPrice === 0) maxPrice = 10000;
+    if (maxPrice === 0) maxPrice = 0;
     
     // Set up price range filter
     setupPriceRangeFilter(minPrice, maxPrice);
