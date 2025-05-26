@@ -14,38 +14,60 @@ body {
   font-family: Arial, sans-serif;
   font-family: "Inter", sans-serif;
 }
-
-.container.mt-4.car-reantal-section-container-section .sort-by-price {
-    display: flex;
-    flex-direction: column;
-    font-family: Inter;
-    font-weight: 400;
-    font-size: 16px;
-    flex-direction: column;
-        margin-top: 13px;
-    letter-spacing: 0%;
-    gap: 13px;
+.flight-select-section.mt-4 .location-box.mt-2 {
+    margin-top: 15px ! IMPORTANT;
 }
-.text-center.mt-5 {
-    font-family: Inter;
+div#user-registration input#username {
+    border-bottom: 1px solid #dddd ! IMPORTANT;
+    border: none;
+}
+div#user-registration input#password {
+    border-bottom: 1px solid #dddd ! IMPORTANT;
+    border: none;
+}
+.flight-select-section.mt-4 div#roomsToggleBtn {
+    font-size: 14px !important;
+}
+.container.mt-4.car-reantal-section-container-section .car-card-section {
     margin-bottom: 33px;
-    font-weight: 600;
-    font-size: 20px;
-    line-height: 22px;
-    letter-spacing: 0%;
-    margin-top: 13px ! IMPORTANT;
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 8px;
 }
-.container.mt-4.car-reantal-section-container-section .sort-by-rating {
+form.user-registration-EditProfileForm.edit-profile select#user_registration_country_code {
     font-family: Inter;
-        margin-top: 13px;
     font-weight: 400;
-    font-size: 16px;
-    flex-direction: column;
-    display: flex;
+    font-size: 14px;
+    line-height: 28px;
     letter-spacing: 0%;
-    gap: 13px;
+    /* width: 597.13px; */
+    border-width: 1px;
+    border-radius: 4px;
+    border: 1px solid #e7e6e6;
+}
+section.car-renatal-listing-page .text-center.mt-4 {
+    display: flex;
+margin-top: 2px ! IMPORTANT;
+    justify-content: end;
+    margin-bottom: 17px;
+}
+.user-registration-profile-fields select#user_registration_country_code {
+    border: 1px solid #ddd;
+}
+.container.mt-4.car-reantal-section-container-section form#filterForm div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.container.mt-4.car-reantal-section-container-section form#filterForm div .price-input {
+    display: flex;
+    flex-direction: row ! IMPORTANT;
 }
 /* 13-05-2025 css :start */
+h2.text-center.mt-5 {
+    font-size: 16px;
+    margin-top: 10px ! IMPORTANT;
+}
 div#home-page-hotels-tab img.alignnone.wp-image-150, img.alignnone.wp-image-148, img.alignnone.wp-image-146 {
     transition: transform 0.5s ease, box-shadow 0.5s ease !important;
     border-radius: 10px !important;
@@ -211,7 +233,6 @@ form#filterForm .d-flex.flex-column.gap-2 {
         appearance: none;
         height: 5px;
         border-radius: 5px;
-        background: #e9ecef;
         outline: none;
     }
     .multi-range-slider input[type="range"]::-webkit-slider-thumb {
@@ -220,7 +241,6 @@ form#filterForm .d-flex.flex-column.gap-2 {
         width: 15px;
         height: 15px;
         border-radius: 50%;
-        background: #0d6efd;
         cursor: pointer;
     }
     .airlines-checkbox-list {
@@ -249,8 +269,8 @@ form#filterForm .d-flex.flex-column.gap-2 {
 }
 .main-content.container h3.tour-title.title-about-hotel-booking-hotels {
     font-family: inter;
-    font-size: 24px;
-    /* margin-top: 20px; */
+    font-size: 20px;
+    font-weight: bold;
 }
 .page-template-page-hotel-payment h2.booking-title-of-hotel-uh.mb-4 {
      font-family: inter;
@@ -2567,6 +2587,7 @@ div#customNavbarNav a.nav-link {
   font-size: 16px;
   line-height: 27.2px;
   letter-spacing: 0%;
+    height: unset ! IMPORTANT;
 }
 
 .col-md-2.d-flex.flex-column.justify-content-center.align-items-center {
@@ -2598,7 +2619,6 @@ div#customNavbarNav a.nav-link {
   border-radius: 5px;
   background: #e9ecef;
   outline: none;
-  background: #3fb8af !important;
 }
 
 .price-range-slider {
@@ -2862,7 +2882,7 @@ input#user_pass {
 }
 
 button.btn.button.ur-submit-button {
-  background: #2d2ddd !important;
+    background: #336aea !important;
 }
 
 /* sanjeet css 05-04-2025 */
@@ -3427,7 +3447,7 @@ form.user-registration-EditAccountForm.edit-password input.user-registration-But
   margin-bottom: 0;
   text-align: left;
   color: #222222;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 500;
   line-height: 36px;
 }
@@ -3499,6 +3519,7 @@ div#user-registration {
   width: 100%;
   padding: 0px !important;
   border: 0;
+    height: unset  !important;
 }
 
 #user-registration.vertical input.user-registration-Button.button {
@@ -4184,12 +4205,24 @@ div#search-flights select.select-section-home-page {
 }
 
 @media (max-width: 768px) {
+form#filterForm #price-range {
+    width: 100%;
+}
+.flatpickr-innerContainer {
+    overflow-x: scroll;
+}
+div#loginFormContainer div#ur-frontend-form {
+    padding: 8px 23px;
+}
+    section.car-renatal-listing-page .d-flex.gap-2.align-items-center.mb-1 {
+        gap: 3px !important;
+        flex-direction: column;
+        align-items: start ! IMPORTANT;
+    }
 .hotel-description {
     min-width: auto ! IMPORTANT;
 }
-  .mt-4.hotels-detial-page .booking-features-section {
-    overflow: hidden;
-}
+
   .hotel-wrapper {    padding-bottom: 12px;}
   section.hotel-wrapper .hotel-pricing {
     position: relative;
@@ -5888,6 +5921,7 @@ h5.me-3.sort-by-text-main {
 
 .hotel-section-card-main .d-flex.gap-3.hotel-flex-section-page {
   justify-content: end;
+        margin-top: 13px;
 }
 
 .hotels-booking-section-main-page .star-rating {
@@ -6209,6 +6243,7 @@ width: 100%;
 
 .flight-select-section button.btn.modify-search-btn.w-100 {
   margin-left: 58px;
+margin-top: 11px;
   background: #ffffff;
   width: 154px !important;
   height: 60px;
@@ -6315,6 +6350,7 @@ width: 100%;
   display: flex;
   flex-direction: column;
   gap: 3px;
+ margin-bottom: 8px;
   border: 2px solid transparent;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
@@ -6414,51 +6450,6 @@ width: 100%;
   color: #717171;
 }
 
-/* @media (max-width: 991px) {
-    .hotel-card {
-        width: 100%;
-        height: auto;
-        padding: 10px;
-    }
-
-    .hotel-card .row {
-        flex-direction: column;
-    }
-
-    .hotel-card .col-md-4 {
-        width: 100%;
-        text-align: center;
-    }
-
-    .hotel-card .col-md-4 img {
-        width: 100%;
-        height: auto;
-        border-radius: 8px;
-    }
-
-    .hotel-card .col-md-8 {
-        width: 100%;
-    }
-
-    .hotel-section-card-main {
-        flex-direction: column;
-    }
-
-    .hotel-buisness-flex {
-        width: 100%;
-    }
-
-    .hotel-section-card-main .d-flex.gap-3.hotel-flex-section-page,
-    .hotel-section-card-main .section-price-home {
-        justify-content: center;
-        padding-top: 20px;
-    }
-
-    .tax-section {
-        text-align: center;
-    }
-} */
-
 @media (max-width: 768px) {
   /* 9-05-2025 */
   
@@ -6526,44 +6517,6 @@ width: 100%;
   .modal-dialog.travel-login-user-form-section .ur-frontend-form .ur-form-row .ur-form-grid .ur-field-item {
     margin-bottom: 20px;
   }
-
-  .modal-dialog.travel-login-user-form-section div#user_pass_field {
-    width: 50%;
-    position: absolute;
-    top: 207px;
-    padding-left: 10px;
-    /* padding: 12px; */
-    right: 0px;
-  }
-
-  .modal-dialog.travel-login-user-form-section div#phone_field {
-    width: 50%;
-    position: absolute;
-    top: 90px;
-    right: 0;
-    padding-left: 10px;
-  }
-
-  .modal-dialog.travel-login-user-form-section div#user_login_field {
-    width: 50%;
-  }
-
-  .modal-dialog.travel-login-user-form-section div#user-registration-form-214 div#first_name_field {
-    width: 50%;
-  }
-
-  .modal-dialog.travel-login-user-form-section div#user-registration-form-214 div#user_email_field {
-    width: 50%;
-  }
-
-  .modal-dialog.travel-login-user-form-section div#last_name_field {
-    width: 50%;
-    position: absolute;
-    top: 3px;
-    right: 0;
-    padding-left: 10px;
-  }
-
   .modal-dialog.travel-login-user-form-section div#user-registration-form-214 {
     padding: 0px !important;
   }
@@ -6599,6 +6552,8 @@ end css 09-05-2025 */
 
   div#roomsDropdownContainer div#roomsToggleBtn {
     font-size: 14px;
+            display: flex;
+        align-items: center;
   }
 
   .flatpickr-months .flatpickr-month {
@@ -6691,6 +6646,7 @@ end css 09-05-2025 */
     max-width: 800px;
     padding: 0px 9px;
     height: auto;
+   margin-bottom: 9px ! IMPORTANT;
   }
 
   .make-fare-and-fair {
@@ -6704,6 +6660,7 @@ end css 09-05-2025 */
     flex-direction: column;
     align-items: start ! IMPORTANT;
     margin-top: 10px;
+margin-bottom: 20px;
   }
 
   .container.sort-section-1 {
@@ -6712,12 +6669,10 @@ end css 09-05-2025 */
   }
 
   .sort-section.mb-3 button.btn.btn-primary.btn-sm.active.lowest-fares {
-    width: 100%;
+        width: auto;
+   padding: revert-layer ! IMPORTANT;
   }
 
-  .container.sort-section-1 .btn-group {
-    flex-direction: column;
-  }
 
   div#flights-container .delhi-flight-time {
     display: flex;
@@ -6932,12 +6887,23 @@ end css 09-05-2025 */
 }
 
 @media screen and (min-width: 768px) and (max-width: 1023px) {
+.container.mt-4.properties-in-france-section section.hotels-booking-section-main-page .col-md-4 {
+    width: 100%;
+}
+.container.mt-4.properties-in-france-section .col-md-8 {
+    width: 100%;
+    margin-top: 19px;
+    padding: 0px 22px;
+}
+.container.mt-4.properties-in-france-section .hotel-card .hotel-image {
+    width: 100%;
+    height: auto;}
   div#roomsDropdownContainer div#roomsToggleBtn {
     font-size: 14px;
   }
-  .hotel-description {
-    min-width: auto;
-}
+    .hotel-description {
+        min-width: min-content !important;
+    }
   .location-box {
     margin-bottom: 2px !important;}
   .rooms-popup {
@@ -6953,8 +6919,8 @@ end css 09-05-2025 */
 
   .hotels-detial-page .d-flex.gap-2.button-section-home.mt-2 {
     position: absolute;
- top: 53px;
-    right: 0;
+          right: 0;
+        bottom: 0px;
   }
 
   section.hero {
@@ -7229,13 +7195,14 @@ end css 09-05-2025 */
   }
 
   .flight-select-section button.btn.modify-search-btn.w-100 {
-    margin-left: 0px;
-    max-width: 220px;
-    width: 220px !important;
+           margin-top: 15px;
+        margin-left: 0px;
+        max-width: 171px;
+        width: 152px !important;
   }
 
   .row.g-2.align-items-center .date-box {
-    min-width: 220px !important;
+  min-width: 106px !important;
     width: 100% !important;
   }
 
@@ -7245,14 +7212,15 @@ end css 09-05-2025 */
   }
 
   .flight-select-section.mt-4 .location-box.mt-2 {
-min-width: 272px ;
+        min-width: 136px;
     width: 100% !important;
   }
 
   .flight-select-section.mt-4 .row.g-2.align-items-center {
-    display: grid;
-    grid-template-columns: 2fr 2fr 2fr;
-    transform: translateX(42px);
+          display: grid;
+        grid-template-columns: 0fr 0fr 0fr 0fr 0fr;
+        transform: translateX(42px);
+        justify-content: space-evenly;
   }
 
   .flight-select-section.mt-4 form {
@@ -7260,9 +7228,10 @@ min-width: 272px ;
   }
 
   .flight-select-section.mt-4 div#roomsDropdownContainer {
-    height: auto;
-    padding: 6px;
-    min-width: 279px;
+           height: 60px;
+        padding: 6px;
+        min-width: 229px;
+       
   }
 
   .flight-select-section.mt-4 {
@@ -7303,7 +7272,6 @@ min-width: 272px ;
   }
 
   .flight-list-page .trip-type {
-    flex-direction: column;
     align-items: start;
   }
 
@@ -7407,7 +7375,7 @@ min-width: 272px ;
 }
 
 /* Mobile (320px - 767px) */
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 768px) {
   .container {
     max-width: 100%;
   }
@@ -7422,12 +7390,15 @@ min-width: 272px ;
   }
 
   .row.g-3.search-container-booking {
-    transform: translateX(6px);
-    padding-top: 15px;
+ flex-direction: column;
+        transform: translateX(6px);
+        padding-top: 15px;
+        align-items: start;
   }
 
   .hotels-section-booking {
     background: none;
+    margin-bottom: 0px;
   }
 
   section.hero .search-container.mt-3 {
@@ -7436,13 +7407,14 @@ min-width: 272px ;
 
   .shape-text-image {
     bottom: 0px;
+        display: none;
   }
 
-  .hero {
-    padding: 42px 0px !important;
-
-    padding-bottom: 445px !important;
-  }
+    .hero {
+      height: auto !important;
+        padding: 42px 0px !important;
+        padding-bottom: 472px !important;
+    }
 
   .special-offer-flex-section {
     flex-direction: column;
@@ -7517,7 +7489,7 @@ min-width: 272px ;
   }
 
   .search-container-booking {
-    flex-direction: column;
+
     width: 100%;
     height: auto;
     padding: 10px;
@@ -7543,10 +7515,7 @@ min-width: 272px ;
     padding: 8px 12px;
   }
 
-  .row.g-3 {
-    flex-direction: column;
-    gap: 10px;
-  }
+ 
 
   .col-md-4,
   .col-md-2 {
@@ -8105,10 +8074,9 @@ min-width: 272px ;
   }
 
   /* flight-section css */
-  .flight-select-section.mt-4 {
-          padding: 221px 0px;
-        padding-bottom: 200px;
-  }
+ .flight-select-section.mt-4 {
+  height: auto !important;
+ }
 
   .flight-select-section button.btn.btn-warning.w-100.modify-button-main-page {
     width: 154px;
@@ -8186,10 +8154,10 @@ min-width: 272px ;
   }
 
   .flight-select-section button.btn.modify-search-btn.w-100 {
+            width: 100% ! IMPORTANT;
     margin-left: 0px;
-    margin-top: 8px;
+        margin-top: 24px;
     background: #ffffff;
-    width: 100% !important;
     background: #ffffff;
     height: 60px;
     top: 92px;
@@ -8918,6 +8886,7 @@ h6.filter-label {
   border-color: #0d6efd;
   color: #0d6efd;
   border-radius: 25px !important;
+z-index: unset !important;
 }
 
 .btn-group .btn.shortest-duration {
@@ -9071,8 +9040,7 @@ div#flightDetailTabsContent {
 }
 
 .airline-logo img {
-  width: 100% !important;
-  height: 100% !important;
+    object-fit: contain;
 }
 
 .airline-logo {
@@ -10007,7 +9975,6 @@ section.hotel-detail-paragraph-section {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 32px;
   height: 32px;
   top: 17px;
   left: 1230px;
@@ -10185,6 +10152,16 @@ section.hotel-detail-paragraph-section {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .search-button-home-page-banner {
+    margin-top: 17px;
+    width: 100%;
+}
+div#flights-container .alert.alert-warning {
+    margin-top: 20px;
+}
+.flatpickr-innerContainer {
+    overflow-x: scroll;
+}
   .flatpickr-current-month input.cur-year {
     font-size: 14px !important;}
   .flatpickr-current-month span.cur-month {
@@ -10307,11 +10284,7 @@ section.hotel-detail-paragraph-section {
     margin-top: 107px !important;
   }
 
-  .hero {
-    padding-top: 212px !important;
-    background-size: cover !important;
-    padding-bottom: 677px !important;
-  }
+ 
 
   .flight-list-page {
     padding: 18px 1px !important;
@@ -10583,7 +10556,7 @@ section.hotel-detail-paragraph-section {
 
   .hotels-detial-page .d-flex.gap-2.button-section-home.mt-2 {
     position: absolute;
-    top: 65px;
+bottom: 0;
     right: 0;
   }
 
@@ -10899,7 +10872,7 @@ section.car-renatal-listing-page .wishlist-icon {
     font-size: 14px;
     border-radius: 5px;
     text-align: center;
-    border: 1px solid #999;
+        border: none ! IMPORTANT;
     -moz-appearance: textfield;
 }
 .container.mt-4.car-reantal-section-container-section input[type="number"]::-webkit-outer-spin-button,
@@ -11004,39 +10977,28 @@ input[type="number"]::-webkit-inner-spin-button {
     .car-renatl-section.mt-4 {
         padding: 281px 0px;
     }
-    .car-renatl-car-main-sections {
-        flex-direction: column;
-    }
     .car-rental-buisness-section {
         width: 100%;
         height: auto;
     }
-    .car-renatl-car-main-sections .d-flex.gap-3.car-flex-section {
-        display: flex;
-        justify-content: start;
-    }
-    .car-renatl-car-main-sections .car-list-page-section-end {
-        display: flex;
-        flex-direction: row;
-        justify-content: end;
-        align-items: center;
-        gap: 20px;
-    }
+  
+  
     .container.mt-4.car-reantal-section-container-section .filter-section h5.select-filter-section {
         margin-bottom: 44px !important;
     }
     .container.mt-4.car-reantal-section-container-section div#custom-price-filter {
         padding: 1px 20px;
     }
-    section.car-renatal-listing-page .d-flex.gap-2.align-items-center.mb-1 {
-        gap: 3px !important;
-    }
+  
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
-    .car-renatl-car-main-sections {
-        flex-direction: column;
-    }
+.flight-select-section button.btn.modify-search-btn.w-100{
+margin-left:0px !important;
+        min-width: 147px;}
+   .container.mt-4.car-reantal-section-container-section .d-flex.gap-3.car-flex-section.align-items-center.mb-3 {
+    margin-top: 23px;
+}
     .car-buisness-flex-section.car-rental-buisness-section {
         height: auto;
         width: 100%;
@@ -11198,25 +11160,11 @@ section.hotel-detail-paragraph-section li.car {
     padding: 4px 8px;
     border-radius: 4px;
 }
-.row.mt-3.mt-2.car-details-sections-main h3 {
-    font-family: Inter;
-    display: flex;
-    gap: 20px;
-    font-weight: 600;
-    font-size: 26px;
-    line-height: 24px;
-    letter-spacing: 0%;
-    vertical-align: middle;
-    margin-bottom: 34px;
-}
-.booking-rules-list.list-disc.pl-5.space-y-2.text-gray-700 {
-    line-height: 28px;
-}
+
 .car-main-section p.mb-1.per-night-text {
     font-family: Inter, sans-serif;
     font-weight: 400;
     font-size: 13px;
-        margin-bottom: 12px ! IMPORTANT;
     line-height: 20px;
     vertical-align: middle;
 }
@@ -11341,9 +11289,6 @@ section.hotel-detail-paragraph-section li.car {
     padding: 6px 10px;
     border-radius: 10px;
 }
-.car-rental-wrapper.car-main-section ul {
-    padding: 8px;
-}
 .car-detail-paragraph .car-detail-paragraph-page {
     font-family: Inter;
     display: flex;
@@ -11355,19 +11300,6 @@ section.hotel-detail-paragraph-section li.car {
     vertical-align: middle;
     margin-bottom: 1px;
 }
-.car-rental-wrapper.car-main-section h4 {
-    padding-bottom: 16px;
-    font-family: Inter;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    gap: 20px;
-    font-weight: 600;
-    font-size: 20px;
-    line-height: 24px;
-    letter-spacing: 0%;
-    vertical-align: middle;
-    margin-bottom: 18px;
-}
 .car-detail-paragraph p.text-muted.location-text {
     font-family: Inter;
     font-weight: 500;
@@ -11377,6 +11309,9 @@ section.hotel-detail-paragraph-section li.car {
     vertical-align: middle;
 }
 @media (max-width: 768px) {
+ 
+    .car-renatl-car-main-sections .d-flex.gap-3.car-flex-section {
+        gap: 0px ! IMPORTANT;}
     .car-rental-wrapper.car-main-section .car-thumbnail-section.mt-2.hotel-thumbnails {
     position: absolute;
 }
