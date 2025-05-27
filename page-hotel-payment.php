@@ -47,7 +47,6 @@ $tokenId = isset($_GET['token_id']) ? sanitize_text_field($_GET['token_id']) : '
 $rateBasisId = isset($_GET['rate_basis_id']) ? sanitize_text_field($_GET['rate_basis_id']) : '';
 $roomPrice = isset($_GET['price']) ? sanitize_text_field($_GET['price']) : '';
 $hotelDetails = fetch_hotel_details_by_id($hotelId,$productId,$tokenId,$sessionId);
-//echo "<pre>"; print_r($hotelDetails);die;
 // Calculate number of nights
 $day_checkIn = new DateTime($checkin);
 $day_checkOut = new DateTime($checkout);
@@ -68,7 +67,6 @@ function formatRoomData($roomData) {
     if ($children > 0) {
         $output .= $children == 1 ? ", 1 Child" : ", $children Children";
     }
-
     return $output;
 }
  ?>
@@ -302,32 +300,19 @@ function formatRoomData($roomData) {
                   <div class="total-amount-be-paid">Total Amount</div>
                   <div class="amount-money-count-only-items">
                       <?php
-
                       $currency = get_option('travelx_required_currency');
                       $symbol = ($currency === 'USD') ? '$' : esc_html($currency);
                      
-                      // Dummy values – dynamically replace these as needed
                       $roomCount = 1;
                       $nightCount = 1;
 
-                      // Optional: You can calculate nights based on check-in/check-out dates passed via URL
                       if (isset($_GET['checkin']) && isset($_GET['checkout'])) {
                           $checkinDate = new DateTime($_GET['checkin']);
                           $checkoutDate = new DateTime($_GET['checkout']);
                           $nightCount = $checkoutDate->diff($checkinDate)->days;
                       }
-
-                      // Total base price
                       $basePrice = $roomPrice * $roomCount * $nightCount;
-
-                      // Optional discount logic
-                      //$discount = 20; // You can make this dynamic too
-                      //$priceAfterDiscount = $basePrice - $discount;
-
-                      // Tax & fees (example)
                       $tax = get_option('travel_tax_and_service_fees');
-
-                      // Final total
                       $totalAmount = $basePrice + $tax;
                       echo $symbol .number_format($totalAmount, 2);
                       ?>
@@ -340,14 +325,10 @@ function formatRoomData($roomData) {
     <!-- Right Column -->
     <div class="col-md-4">
         <?php
-              //  $roomData = json_decode(base64_decode($_GET['roomData']), true);
-        //$roomPrice = isset($roomData['netPrice']) ? floatval($roomData['netPrice']) : 0;
-
-        // Dummy values – dynamically replace these as needed
+        
         $roomCount = 1;
         $nightCount = 1;
 
-        // Optional: You can calculate nights based on check-in/check-out dates passed via URL
         if (isset($_GET['checkin']) && isset($_GET['checkout'])) {
             $checkinDate = new DateTime($_GET['checkin']);
             $checkoutDate = new DateTime($_GET['checkout']);
@@ -356,10 +337,6 @@ function formatRoomData($roomData) {
 
         // Total base price
         $basePrice = $roomPrice * $roomCount * $nightCount;
-
-        // Optional discount logic
-        //$discount = 20; // You can make this dynamic too
-        //$priceAfterDiscount = $basePrice - $discount;
 
         // Tax & fees (example)
         $tax = get_option('travel_tax_and_service_fees');

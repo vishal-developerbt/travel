@@ -32,7 +32,6 @@ $sort_option = isset($_GET['sort']) ? $_GET['sort'] : 'most-popular';
 if (!empty($location) && !empty($checkin) && !empty($checkout) && !empty($rooms)) {
     // If search parameters exist, fetch filtered hotels
     $booking_data = fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms);
-    echo "<pre/>"; print_r($booking_data);
     if($booking_data['status']['errors']){
         header("Location: /error.php");
         exit;
@@ -41,9 +40,7 @@ if (!empty($location) && !empty($checkin) && !empty($checkout) && !empty($rooms)
     $hotels = $booking_data['itineraries'];
     
     foreach($hotels as $hotelval){
-        
-        $prices['price'][] = $hotelval['total'];
-
+            $prices['price'][] = $hotelval['total'];
     }
     
     $prices = $prices['price'];
@@ -53,12 +50,8 @@ if (!empty($location) && !empty($checkin) && !empty($checkout) && !empty($rooms)
 } else {
     // Otherwise, fetch all listings
     $booking_data = fetch_booking_listings();
-
     $status = isset($booking_data['status']) ? $booking_data['status'] : 0;
     $hotels = isset($booking_data['itineraries']) ? $booking_data['itineraries'] : 0;
-
-
-    // echo "<pre>"; print_r($status); die();
 }
 $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
 ?>
@@ -170,27 +163,6 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
     </div>
 </div>
 
-<!-- Sorting Options -->
-<!-- <div class="container mt-3 sort-by-section">
-    <div class="d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center">
-            <h5 class="me-3 sort-by-text-main">Sort By:</h5>
-
-            <a href="?sort=most-popular" class="btn btn-sort most-popular-select <?php //echo ($sort_option === 'most-popular') ? 'active' : ''; ?>">
-                <span class="most-popular-select-text">Most Popular</span>
-            </a>
-
-            <a href="?sort=low-to-high" class="btn btn-sort price-low-to-high <?php //echo ($sort_option === 'low-to-high') ? 'active' : ''; ?>">
-                <span class="price-section-bottom-popular price-low-to-high-sections">Price - Low to High</span>
-            </a>
-
-            <a href="?sort=high-to-low" class="btn btn-sort price-high-to-low <?php //echo ($sort_option === 'high-to-low') ? 'active' : ''; ?>">
-                <span class="price-section-bottom-popular price-low-to-high-sections">Price - High to Low</span>
-            </a>
-        </div>
-    </div>
-</div> -->
-
 <div class="container mt-4  properties-in-france-section">
     <div class="row">
         <!-- Filters Section -->
@@ -232,10 +204,8 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
 
                     <div id="price-range"></div>
                     <?php 
-                        //Kalpesh Code//
                         $currency = get_option('travelx_required_currency');
                         $symbol = ($currency === 'USD') ? '$' : esc_html($currency);
-                        ;
                     ?>
                     <div id="price-values"></div>
                     <input type="hidden" name="price_min" id="price_min">
@@ -291,13 +261,6 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                         priceDisplay.textContent = `${formatter.format(min)} – ${formatter.format(max)}`;
                     });
 
-                  // slider.noUiSlider.on('update', function(values) {
-                  //   console.log(values);
-                  //   priceMin.value = values[0];
-                  //   priceMax.value = values[1];
-                  //   priceDisplay.textContent = `₹${values[0]} – ₹${values[1]}`;
-                  // });
-
                   slider.noUiSlider.on('change', fetchHotels);
 
                   // Fetch hotels via AJAX
@@ -339,7 +302,6 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                 <?php echo esc_html(isset($location) && !empty($location) ? $location : 'this location'); ?>
             </h5>
 
-
             <?php if (!$hotels) {
                 $hotels_paginated = [];
                 $current_page = '';
@@ -347,8 +309,7 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
 
                 echo "<div class='alert alert-warning text-center' role='alert'>No hotels found for this location.        </div>";
             } else {
-                // Pagination settings
-           
+                
                 $per_page = 5;
                 $total_hotels = count($hotels);
                 $total_pages = ceil($total_hotels / $per_page);
