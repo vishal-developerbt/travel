@@ -6,6 +6,23 @@
  */
 
 get_header(); ?>
+<style>
+  .hotel-card {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+  }
+
+  #show-more {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 25px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+</style>
 <?php
 $location = isset($_GET['location']) ? sanitize_text_field($_GET['location']) : '';
 $checkin = isset($_GET['checkin']) ? sanitize_text_field($_GET['checkin']) : '';
@@ -15,8 +32,24 @@ $sort_option = isset($_GET['sort']) ? $_GET['sort'] : 'most-popular';
 if (!empty($location) && !empty($checkin) && !empty($checkout) && !empty($rooms)) {
     // If search parameters exist, fetch filtered hotels
     $booking_data = fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms);
+    echo "<pre/>"; print_r($booking_data);
+    if($booking_data['status']['errors']){
+        header("Location: /error.php");
+        exit;
+    }
     $status = $booking_data['status'];
     $hotels = $booking_data['itineraries'];
+    
+    foreach($hotels as $hotelval){
+        
+        $prices['price'][] = $hotelval['total'];
+
+    }
+    
+    $prices = $prices['price'];
+    $min_price = min($prices);
+    $max_price = max($prices);
+
 } else {
     // Otherwise, fetch all listings
     $booking_data = fetch_booking_listings();
@@ -198,7 +231,13 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                     <h5 class="select-filter-section mt-3 mb-3">Sort BY Price</h5>
 
                     <div id="price-range"></div>
-                    <div id="price-values">₹100 – ₹500000</div>
+                    <?php 
+                        //Kalpesh Code//
+                        $currency = get_option('travelx_required_currency');
+                        $symbol = ($currency === 'USD') ? '$' : esc_html($currency);
+                        ;
+                    ?>
+                    <div id="price-values"></div>
                     <input type="hidden" name="price_min" id="price_min">
                     <input type="hidden" name="price_max" id="price_max">
                     <input type="hidden" name="location" value="<?php echo $location ?>" id="location">
@@ -218,13 +257,16 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                   const priceMax = document.getElementById('price_max');
                   const sorting = document.getElementById('sorting');
 
+                  //calculate minimum and maximum price//
+                  const minPrice = parseFloat(<?php echo json_encode($min_price); ?>);
+                  const maxPrice = parseFloat(<?php echo json_encode($max_price); ?>);
+                  
                   noUiSlider.create(slider, {
-                    start: [100, 500000],
+                    start: [minPrice, maxPrice],
                     connect: true,
-                    step: 100,
                     range: {
-                      'min': 100,
-                      'max': 500000
+                      'min': minPrice,
+                      'max': maxPrice
                     },
                     tooltips: [true, true],
                     format: {
@@ -233,11 +275,28 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                     }
                   });
 
-                  slider.noUiSlider.on('update', function(values) {
-                    priceMin.value = values[0];
-                    priceMax.value = values[1];
-                    priceDisplay.textContent = `₹${values[0]} – ₹${values[1]}`;
+                  const formatter = new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2
                   });
+
+                    slider.noUiSlider.on('update', function(values) {
+                        const min = parseFloat(values[0]);
+                        const max = parseFloat(values[1]);
+
+                        priceMin.value = min.toFixed(2);
+                        priceMax.value = max.toFixed(2);
+
+                        priceDisplay.textContent = `${formatter.format(min)} – ${formatter.format(max)}`;
+                    });
+
+                  // slider.noUiSlider.on('update', function(values) {
+                  //   console.log(values);
+                  //   priceMin.value = values[0];
+                  //   priceMax.value = values[1];
+                  //   priceDisplay.textContent = `₹${values[0]} – ₹${values[1]}`;
+                  // });
 
                   slider.noUiSlider.on('change', fetchHotels);
 
@@ -309,6 +368,7 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     // ✅ Populate Room/Guest values from URL
@@ -423,31 +483,6 @@ flatpickr("#check-in, #check-out", {
             document.getElementById("check-out").value = flatpickr.formatDate(selectedDates[1], "Y-m-d");
         }
     }
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-   // alert('nugjkjb');
-    const cards = document.querySelectorAll('.hotel-card');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    const batchSize = 5;
-    let currentVisible = 10;
-
-    loadMoreBtn.addEventListener('click', () => {
-        let revealed = 0;
-
-        for (let i = currentVisible; i < cards.length && revealed < batchSize; i++) {
-            cards[i].style.display = 'block';
-            revealed++;
-        }
-
-        currentVisible += revealed;
-
-        // Hide button if all are visible
-        if (currentVisible >= cards.length) {
-            loadMoreBtn.style.display = 'none';
-        }
-    });
 });
 </script>
 <?php get_footer(); ?>

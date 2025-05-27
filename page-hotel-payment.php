@@ -230,19 +230,9 @@ function formatRoomData($roomData) {
                   <input type="hidden" name="pid" value="<?php echo $productId ; ?>">
                   <input type="hidden" name="rateBasisId" value="<?php echo $rateBasisId; ?>">
                   <input type="hidden" name="netPrice" value="<?php echo $price; ?>">
-               
-                  <div class="d-flex justify-content-center mt-4">
-                    <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
-                      style="max-width: 500px;" name="payment_method" value="stripe" id="confirmBtn">
-                      Pay with Stripe
-                    </button>
-                     <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
-                      style="max-width: 500px;" name="payment_method" value="crypto" id="confirmBtn">
-                     Pay with Crypto
-                    </button>
-                  </div>
-              </form>
-         <!-- Guest Form start -->
+               </form>
+
+               <!-- Guest Form start -->
                         <div class="add-guest-only-sec">
               <!-- Trigger Button -->
               <button class="hotel-btn-submit add-guest-main-btn-1" onclick="hotelPaymentOpenForm()">
@@ -297,6 +287,52 @@ function formatRoomData($roomData) {
               </div>
             </div>
                   <!-- Guest Form End -->
+                  <div class="d-flex justify-content-center mt-4">
+                    <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
+                      style="max-width: 500px;" name="payment_method" value="stripe" id="confirmBtn">
+                      Pay with Stripe
+                    </button>
+                     <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
+                      style="max-width: 500px;" name="payment_method" value="crypto" id="confirmBtn">
+                     Pay with Crypto
+                    </button>
+                  </div> 
+
+                  <div class="d-flex justify-content-between">
+                  <div class="total-amount-be-paid">Total Amount</div>
+                  <div class="amount-money-count-only-items">
+                      <?php
+
+                      $currency = get_option('travelx_required_currency');
+                      $symbol = ($currency === 'USD') ? '$' : esc_html($currency);
+                     
+                      // Dummy values – dynamically replace these as needed
+                      $roomCount = 1;
+                      $nightCount = 1;
+
+                      // Optional: You can calculate nights based on check-in/check-out dates passed via URL
+                      if (isset($_GET['checkin']) && isset($_GET['checkout'])) {
+                          $checkinDate = new DateTime($_GET['checkin']);
+                          $checkoutDate = new DateTime($_GET['checkout']);
+                          $nightCount = $checkoutDate->diff($checkinDate)->days;
+                      }
+
+                      // Total base price
+                      $basePrice = $roomPrice * $roomCount * $nightCount;
+
+                      // Optional discount logic
+                      //$discount = 20; // You can make this dynamic too
+                      //$priceAfterDiscount = $basePrice - $discount;
+
+                      // Tax & fees (example)
+                      $tax = get_option('travel_tax_and_service_fees');
+
+                      // Final total
+                      $totalAmount = $basePrice + $tax;
+                      echo $symbol .number_format($totalAmount, 2);
+                      ?>
+                  </div>
+            </div>
         </div>
       </div>
     </div>
