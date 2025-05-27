@@ -180,8 +180,11 @@ $results = $wpdb->get_results(
                         <div class="d-flex flex-column align-items-start">
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Booking ID:</span>
-                                <div> <a href="<?php echo esc_url( home_url( '/travel/order-view/?flight_id=' . $booking['session_id'] ) ); ?>">
-                                <span class="booking serial-number text-primary fw-bold"><?php echo esc_html($booking['booking_id']); ?></span></a></div>
+                                <div> 
+                              <a href="<?php echo esc_url( home_url( '/travel/order-view/?flight_id=' . $booking['session_id'] ) ); ?>">
+                                   <span class="booking serial-number text-primary fw-bold">
+                                    <?php echo esc_html(!empty($booking['booking_id']) ? $booking['booking_id'] : 'N/A'); ?>
+                                    </span></a></div>
                             </div>
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Total amount:</span>
@@ -304,6 +307,11 @@ $results = $wpdb->get_results(
 });
 
 </script>
+<style >
+    .page-template-page-my-orders-php .user-registration-MyAccount-content {
+    display: none;
+}
+</style>
 <?php get_footer(); ?>
 
    

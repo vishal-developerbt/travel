@@ -28,7 +28,7 @@ get_header(); ?>
 
     $flights = get_flight_availability($args);
 
-   // echo "<pre>"; print_r($flights); die;
+    //echo "<pre>"; print_r($flights); die;
     if (!empty($flights['AirSearchResponse']['session_id'])) {
         $session_id = $flights['AirSearchResponse']['session_id'];
        
@@ -50,18 +50,27 @@ get_header(); ?>
         <div class="search-form" id="search-flights">
             <div class="form-group">
                 <label class="date-label">From</label>
-                <input type="text" value="<?php echo esc_html(getCityNameByAirPortCode($origin)); ?>" class="form-control" id="departure_airport" name="departure_airport" placeholder="Departure Airport">
+                <!-- Visible city name for UI -->
+                <input type="text" value="<?php echo esc_html(getCityNameByAirPortCode($origin)); ?>"       class="form-control" id="departure_airport_display" 
+                       name="departure_airport_display" placeholder="Departure Airport">
+                <!-- Hidden airport code for form submission -->
+                <input type="hidden" value="<?php echo esc_attr($origin);?>" name="departure_airport"       id="departure_airport">
             </div>
 
             <div class="swipper-toggle-dustination">
-                <div class="swap-icon" onclick="swapLocations()">
-                    ⇄
-                </div>
+                <div class="swap-icon" onclick="swapLocations()">⇄</div>
             </div>
 
             <div class="form-group">
                 <label for="to">To</label>
-                <input type="text" value="<?php echo esc_html(getCityNameByAirPortCode($destination)); ?>" class="form-control search-flight-location"  id="flight_location" name="flight_location" placeholder="Search Location">
+                <!-- Visible city name for UI -->
+                <input type="text" 
+                       value="<?php echo esc_html(getCityNameByAirPortCode($destination)); ?>" 
+                       class="form-control search-flight-location"  id="flight_location_display" 
+                       name="flight_location_display"  placeholder="Search Location">
+                <!-- Hidden airport code for form submission -->
+                <input type="hidden" value="<?php echo esc_attr($destination); ?>" 
+                       name="flight_location" id="flight_location">
             </div>
 
             <div class="form-group">
@@ -364,8 +373,11 @@ get_header(); ?>
                                         <?php echo esc_html($durationFormatted); ?>
                                     </div>
                                     <div>--------------------</div>
-                                    
-                                     <div class="flight-type"><?php echo $totalStops;?> stop via <?php echo esc_html(getCityNameByAirPortCode($secondArrivalAirportLocationCode)); ?></div>
+                              <div class="tooltip">Hover over me
+  <span class="tooltiptext">Tooltip text</span>
+</div>
+                                     <div class="flight-type" ><?php echo $totalStops;?> stop via <?php echo esc_html(getCityNameByAirPortCode($secondArrivalAirportLocationCode)); ?>
+                                     </div>
                                    
                                 </div>
 
@@ -1090,3 +1102,72 @@ function resetFilters() {
     }
 }
 </script>
+<script>
+function swapLocations() {
+    // Get display values
+    let fromDisplay = document.getElementById("departure_airport_display");
+    let toDisplay = document.getElementById("flight_location_display");
+
+    // Get hidden values (airport codes)
+    let fromHidden = document.getElementById("departure_airport");
+    let toHidden = document.getElementById("flight_location");
+
+    // Swap display (city names)
+    let tempDisplay = fromDisplay.value;
+    fromDisplay.value = toDisplay.value;
+    toDisplay.value = tempDisplay;
+
+    // Swap hidden (airport codes)
+    let tempHidden = fromHidden.value;
+    fromHidden.value = toHidden.value;
+    toHidden.value = tempHidden;
+}
+</script>
+<style type="text/css">
+    /* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+</style>
