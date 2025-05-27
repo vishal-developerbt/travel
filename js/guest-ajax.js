@@ -93,6 +93,9 @@ jQuery(document).ready(function ($) {
       guest_type: guestType,
       dob: dob,
       nationality: $('#guestNationality').val(),
+      guest_passport_number: $('#guest_passport_number').val(),
+      guest_issue_country: $('#guest_issue_country').val(),
+      guest_passport_expiry: $('#guest_passport_expiry').val(),
       user_id: $('#user_id').val(),
       g_id: $('#g_id').val() || ''
     };
@@ -189,6 +192,9 @@ jQuery(document).ready(function ($) {
         $('#guest_type').val(g.guest_type);
         $('#guestDob').val(g.dob);
         $('#guestNationality').val(g.nationality);
+         $('#guest_passport_number').val(g.guest_passport_number);
+         $('#guest_issue_country').val(g.guest_issue_country);
+         $('#guest_passport_expiry').val(g.guest_passport_expiry);
         $('#g_id').val(g.id);
         hotelPaymentOpenForm();
       } else {

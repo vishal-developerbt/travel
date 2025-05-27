@@ -20,15 +20,25 @@ get_header();
     ];
 
     $selectedFlightEncoded = $_GET['flightData'] ?? '';
+    $sessionId = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
 
+
+   
     // Decode the flight data
     $flightData = [];
     if (!empty($selectedFlightEncoded)) {
         $decoded = base64_decode($selectedFlightEncoded);
         $flightData = json_decode($decoded, true);
+        $fareSourceCode = $flightData['FareItinerary']['AirItineraryFareInfo']['FareSourceCode'];
+         
     }
+     $validateFlightData = validateFlightFareMethod($sessionId, $fareSourceCode);
+     $IsRefundable = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries']['FareItinerary']['AirItineraryFareInfo']['IsRefundable'];
+   // echo "<pre>"; print_r($validateFlightData);
+   $flightDetailData = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries'];
+    $isPassportMandatory = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries']['FareItinerary']['IsPassportMandatory'];
 
-    $fare = $flightData['FareItinerary'] ?? [];
+    $fare = $flightDetailData['FareItinerary'] ?? [];
 
     // STEP 1: Segment details
     $segment = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'] ?? [];
@@ -271,13 +281,32 @@ get_header();
                             <label class="form-label small form-name-email-detail-all-th">Nationality</label>
                             <input type="text" class="form-control" id="nationality" placeholder="e.g., Indian" required>
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Email Address</label>
                             <input type="email" class="form-control" id="email" value="<?php echo $email; ?>" required>
                         </div>
                     </div>
+                    <?php if($isPassportMandatory){ ?>
+
+                 
+                     <div class="row mb-3">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label small form-name-email-detail-all-th">Passport Number</label>
+                            <input type="text" class="form-control" id="passport_number" placeholder="Enter passport number" required>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label small form-name-email-detail-all-th">Passport Issue Country</label>
+                            <input type="text" class="form-control" id="passport_issue_country" placeholder="Enter issue country (e.g., IN" required>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label small form-name-email-detail-all-th">Passport Expiry Date</label>
+                           <input type="date" class="form-control" id="passport_expiry_date" required>
+                        </div>
+                    </div>
+                     <?php   } ?>
+                     <input type="hidden" name="isPassportRequired" id="isPassportRequired" value="<?php echo esc_attr($isPassportMandatory); ?>">
+                     <input type="hidden" name="isRefundable" id="isRefundable" value="<?php echo esc_attr($IsRefundable); ?>">
+                     
                 <!-- Hidden inputs to pass selected flight & trip args -->
                     <input type="hidden" name="selectedFlightEncoded" id="selectedFlightEncoded" value="<?php echo esc_attr($selectedFlightEncoded); ?>">
                     <input type="hidden" name="tripArgsEncoded" id="tripArgsEncoded" value="<?php echo esc_attr(base64_encode(json_encode($tripArgs))); ?>">
@@ -339,6 +368,21 @@ get_header();
                                     <label>Nationality:</label>
                                     <input type="text" id="guestNationality" class="hotel-payment-form-control" required />
                                 </div>
+                                 <?php if($isPassportMandatory){ ?>
+                                 <div class="hotel-payment-form-group">
+                                    <label>Passport Number:</label>
+                                    <input type="text" id="guest_passport_number" class="hotel-payment-form-control" required />
+                                </div>
+                                <div class="hotel-payment-form-group">
+                                    <label>Passport Issue Country:</label>
+                                    <input type="text" id="guest_issue_country" class="hotel-payment-form-control" required />
+                                </div>
+                                 <div class="hotel-payment-form-group">
+                                    <label> Passport Expiry Date:</label>
+                                    <input type="date" id="guest_passport_expiry" class="hotel-payment-form-control" required />
+                                </div>
+                            <?php }?>
+                               
                             <?php 
                               if ( is_user_logged_in() ) {  $current_user_id= get_current_user_id(); ?>
                                 <input type="hidden" id="user_id" value="<?php echo esc_attr($current_user_id); ?>" 
@@ -446,13 +490,26 @@ jQuery(document).ready(function ($) {
         let email = $("#email").val().trim();
         let dob = $("#dob").val().trim();
         let nationality = $("#nationality").val().trim();
+        let isPassportRequired = $("#isPassportRequired").val().trim();
+        let isRefundable = $("#isRefundable").val().trim();
+        
+        if (isPassportRequired === "1") {
 
-        // Validate required fields
-        if (!title || !firstName || !lastName || !dob || !nationality) {
+            let passportNumber = $("#passport_number").val().trim();
+            let passportIssueCountry = $("#passport_issue_country").val().trim();
+            let passportExpiryDate = $("#passport_expiry_date").val().trim();
+
+            if (!title || !firstName || !lastName || !dob || !nationality ||
+            !passportNumber || !passportIssueCountry || !passportExpiryDate) {
             alert("Please fill in all required fields.");
             return;
+            }
+        }else {
+            if(!title || !firstName || !lastName || !dob || !nationality) {
+                    alert("Please fill in all required fields.");
+                    return;
+            }
         }
-
         // Validate DOB: must be more than 12 years ago (including month and day)
         let enteredDOB = new Date(dob);
         let today = new Date();
@@ -517,25 +574,36 @@ jQuery(document).ready(function ($) {
         let tripArgs = $("#tripArgsEncoded").val();
         let netPrice = $("#netPrice").val();
 
+        let requestData = {
+            action: "confirm_flight_booking",
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            title: title,
+            dob: dob,
+            nationality: nationality,
+            selectedFlightEncoded: selectedFlight,
+            tripArgsEncoded: tripArgs,
+            netPrice: netPrice,
+            guests: selectedGuests,
+            paymentMethod: paymentMethod,
+            isRefundable: isRefundable
+        };
+
+        // If passport is required, add passport fields
+        if (isPassportRequired === "1") {
+            requestData.passport_number = $("#passport_number").val().trim();
+            requestData.passport_issue_country = $("#passport_issue_country").val().trim();
+            requestData.passport_expiry_date = $("#passport_expiry_date").val().trim();
+        }
+
+
         // Send data to PHP
         $.ajax({
             url: checkoutUrl,
             type: "POST",
             dataType: "json",
-            data: {
-                action: "confirm_flight_booking",
-                first_name: firstName,
-                last_name: lastName,
-                email: email,
-                title: title,
-                dob: dob,
-                nationality: nationality,
-                selectedFlightEncoded: selectedFlight,
-                tripArgsEncoded: tripArgs,
-                netPrice: netPrice,
-                guests: selectedGuests,
-                paymentMethod: paymentMethod
-            },
+              data: requestData,
             success: function (response) {
                 console.log(response);
                 if (response.status === "success") {

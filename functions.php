@@ -763,6 +763,9 @@ function save_guest_data_callback() {
         'last_name'      => sanitize_text_field($_POST['last_name']),
         'dob'            => sanitize_text_field($_POST['dob']),
         'nationality'    => sanitize_text_field($_POST['nationality']),
+        'guest_passport_number'    => sanitize_text_field($_POST['guest_passport_number']),
+        'guest_issue_country'    => sanitize_text_field($_POST['guest_issue_country']),
+        'guest_passport_expiry'    => sanitize_text_field($_POST['guest_passport_expiry']),
     );
 
     if ($g_id > 0) {
@@ -1050,7 +1053,7 @@ add_action('rest_api_init', function () {
     $params['user_password'] = get_option('travelx_user_password');
     $params['access'] = get_option('travelx_access');
     $params['ip_address'] = get_option('travelx_user_ip_address');
-    $params['requiredCurrency'] = get_option('travelx_required_currency');
+    //$params['requiredCurrency'] = get_option('travelx_required_currency');
     $travelxHotelApi = get_option('travelx_hotel_api');
     $cityName = isset($params['city_name']) ? sanitize_text_field($params['city_name']) : '';
     $countryName = isset($params['country_name']) ? sanitize_text_field($params['country_name']) : '';
@@ -1283,6 +1286,7 @@ foreach ($params['paxDetails'] as $room) {
                 "rateBasisId" => $params['rateBasisId'],
                 "phone" => $params['customerPhone'],
                 "specialRequests" => $params['specialRequests'],
+                "fare_type" => $params['fare_type'],
                 "referenceNum" => NULL,
                 "supplierConfirmationNum" =>  NULL,
             ];
@@ -1315,6 +1319,7 @@ foreach ($params['paxDetails'] as $room) {
                 "rateBasisId" => $params['rateBasisId'],
                 "phone" => $params['customerPhone'],
                 "specialRequests" => $params['specialRequests'],
+                "fare_type" => $params['fare_type'],
                 "referenceNum" => NULL,
                 "supplierConfirmationNum" =>  NULL,
 
@@ -1403,7 +1408,7 @@ function saveMyBookings($data){
         customer_id, title, firstName, lastName, guest_type, customer_email,
         location, checkin, checkout, rooms, productid, hottel_id, price,
         booking_status, payment_status, transaction_id, hotel_session_id,
-        hotel_token_id, rateBasisId, phone, specialRequests, referenceNum, supplierConfirmationNum
+        hotel_token_id, rateBasisId, phone, specialRequests,fare_type, referenceNum, supplierConfirmationNum
     ) VALUES " . implode(', ', $placeholders);
 
     $wpdb->query( $wpdb->prepare( $query, ...$values ) );
@@ -1543,7 +1548,7 @@ function saveMyBookings($data){
         $params['user_password'] = get_option('travelx_user_password');
         $params['access'] = get_option('travelx_access');
         $params['ip_address'] = get_option('travelx_user_ip_address');
-        $params['requiredCurrency'] = get_option('travelx_required_currency');
+       // $params['requiredCurrency'] = get_option('travelx_required_currency');
         $travelxFlightApi = get_option('travelx_flight_api');
         $response = wp_remote_post($travelxFlightApi.'/availability', [
             'headers' => [
@@ -1700,6 +1705,7 @@ function saveMyBookings($data){
                         'booking_status'=>'pending',
                         'transaction_id'=>$params['transaction_id'] ?? '',
                         'booking_id'=>null,
+                        'fare_type' => $params['fare_type'],
                         "created_at"=>current_time('mysql'),
                         "updated_at "=>current_time('mysql'),
                     ];
@@ -1801,7 +1807,7 @@ function saveFlightBookingdata  ($data) {
     $query = "INSERT INTO flight_booking_details (
         customer_id, trip_type, title, first_name, last_name, phone, email, dob, nationality, passenger_type,
         destination_from, destination_to, departure_date, return_date, travel_class, adults_qty, children_qty, infants_qty,
-        session_id, fare_source_code, amount, payment_status, booking_status, transaction_id, booking_id, created_at, updated_at
+        session_id, fare_source_code, amount, payment_status, booking_status, transaction_id, booking_id,fare_type, created_at, updated_at
     ) VALUES " . implode(', ', $placeholders);
 
     // Execute the query with the prepared values
@@ -2800,6 +2806,7 @@ add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
             h.specialRequests,
             h.referenceNum,
             h.supplierConfirmationNum,
+            h.fare_type,
             h.created_at,
             h.updated_at
         FROM hotel_booking_details h
@@ -3555,7 +3562,7 @@ function rest_get_airport_suggestions(WP_REST_Request $request) {
     // Query DB
     $results = $wpdb->get_results(
         $wpdb->prepare("
-            SELECT airport_name, airport_code, city, country
+            SELECT airport_name, airport_code, city, country, latitude, longitude
             FROM airport_list
             WHERE airport_name LIKE %s OR city LIKE %s OR airport_code LIKE %s
             LIMIT 10
@@ -3576,7 +3583,11 @@ function rest_get_airport_suggestions(WP_REST_Request $request) {
                 $airport['city'],
                 $airport['country']
             ),
-            'value' => $airport['airport_code']
+            'value' => $airport['airport_code'],
+            'city' => $airport['city'],
+            'country' => $airport['country'],
+            'latitude' => $airport['latitude'],
+            'longitude' => $airport['longitude']
         ];
     }, $results);
 
@@ -3935,6 +3946,36 @@ function getCityNameByAirPortCode($airportCode) {
     );
 
     return $city ?: 'Unknown City';
+}
+
+function validateFlightFareMethod($sessionId, $fareSourceCode) {
+    $url = 'https://travelnext.works/api/aeroVE5/revalidate';
+
+    $body = [
+        'session_id' => $sessionId,
+        'fare_source_code' => $fareSourceCode,
+    ];
+
+    $response = wp_remote_post($url, [
+        'headers' => [
+            'Content-Type' => 'application/json',
+        ],
+        'body' => wp_json_encode($body),
+        'timeout' => 15,
+    ]);
+
+    if (is_wp_error($response)) {
+        return ['error' => $response->get_error_message()];
+    }
+
+    $code = wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    return [
+        'status' => $code,
+        'response' => $data,
+    ];
 }
 
 ?>
