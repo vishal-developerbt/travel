@@ -22,8 +22,6 @@ get_header();
     $selectedFlightEncoded = $_GET['flightData'] ?? '';
     $sessionId = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
 
-
-   
     // Decode the flight data
     $flightData = [];
     if (!empty($selectedFlightEncoded)) {
@@ -32,23 +30,29 @@ get_header();
         $fareSourceCode = $flightData['FareItinerary']['AirItineraryFareInfo']['FareSourceCode'];
          
     }
-     $validateFlightData = validateFlightFareMethod($sessionId, $fareSourceCode);
-     $IsRefundable = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries']['FareItinerary']['AirItineraryFareInfo']['IsRefundable'];
-   // echo "<pre>"; print_r($validateFlightData);
-   $flightDetailData = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries'];
-    $isPassportMandatory = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries']['FareItinerary']['IsPassportMandatory'];
-
-    $fare = $flightDetailData['FareItinerary'] ?? [];
-
+    $validateFlightData = validateFlightFareMethod($sessionId, $fareSourceCode);
+    $IsValid =$validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['IsValid'];
+    if($IsValid){
+        $flightData = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries'];
+        $fare = $flightData['FareItinerary'] ?? [];
+    }else{
+        $fare = $flightData['FareItinerary'] ?? [];
+    }   
+    
+    $IsRefundable = $fare['AirItineraryFareInfo']['IsRefundable'];
+    $isPassportMandatory = $fare['IsPassportMandatory'];
+   
     // STEP 1: Segment details
     $segment = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'] ?? [];
+    $segment1 = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'] ?? [];
 
     // STEP 2: Baggage & Penalty (use first FareBreakdown for reference)
     $fareBreakdown = $fare['AirItineraryFareInfo']['FareBreakdown'][0] ?? [];
     $baggage = $fareBreakdown['Baggage'][0] ?? '0PC';
     $cabinBaggage = $fareBreakdown['CabinBaggage'][0] ?? 'SB';
     $penalty = $fareBreakdown['PenaltyDetails'] ?? [];
-    $refundAllowed = !empty($penalty['RefundAllowed']) ? 'Yes' : 'No';
+    //$refundAllowed = !empty($penalty['RefundAllowed']) ? 'Yes' : 'No';
+    $refundAllowed = $fare['AirItineraryFareInfo']['IsRefundable'];
     $refundFee = $penalty['RefundPenaltyAmount'] ?? '0.00';
     $changeAllowed = !empty($penalty['ChangeAllowed']) ? 'Yes' : 'No';
     $changeFee = $penalty['ChangePenaltyAmount'] ?? '0.00';
@@ -84,16 +88,17 @@ get_header();
     }
 
     // STEP 5: Flight meta info
-    $airlineLogo = get_airline_logo_url($segment['MarketingAirlineCode'] ?? '');
-    $airlineName = $segment['MarketingAirlineName'] ?? 'Airline';
-    $flightNumber = $segment['FlightNumber'] ?? 'N/A';
-    $departureTime = date("H:i", strtotime($segment['DepartureDateTime']));
-    $arrivalTime = date("H:i", strtotime($segment['ArrivalDateTime']));
-    $departureDate = date("D, d M Y", strtotime($segment['DepartureDateTime']));
-    $origin = $segment['DepartureAirportLocationCode'] ?? '';
-    $destination = $segment['ArrivalAirportLocationCode'] ?? '';
-    $duration = $segment['JourneyDuration'] ?? 0;
-    $durationFormatted = sprintf("%02dh %02dm", floor($duration / 60), $duration % 60);
+   $totalStops   = $fare['OriginDestinationOptions'][0]['TotalStops'];
+    if($totalStops ==1){ 
+        $origin = $segment1[0]['FlightSegment']['DepartureAirportLocationCode'] ?? '';
+        $destination = $segment1[1]['FlightSegment']['ArrivalAirportLocationCode'] ?? '';
+    }elseif($totalStops ==2){
+        $origin = $segment1[0]['FlightSegment']['DepartureAirportLocationCode'] ?? '';
+        $destination = $segment1[2]['FlightSegment']['ArrivalAirportLocationCode'] ?? '';
+    }else{
+        $origin = $segment['DepartureAirportLocationCode'] ?? '';
+        $destination = $segment['ArrivalAirportLocationCode'] ?? '';
+    }
 ?>
 
 <div class="container-fluid heading-blue-booking-things"></div>
@@ -107,16 +112,50 @@ get_header();
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <img src="<?php echo get_template_directory_uri(); ?>/photos/flight.png" alt="flight">
                     <div class="flight-dustination-into-travelling-fl">
-                        <?php echo esc_html("{$origin} → {$destination} | {$departureDate}"); ?>
+                        <?php 
+                            $originCity = getCityNameByAirPortCode($origin);
+                            $destinationCity = getCityNameByAirPortCode($destination);
+                        echo esc_html("{$originCity} → {$destinationCity} | {$departureDate}"); ?>
                     </div>
                 </div>
                 <div class="no-stop-text-secondary mb-3">
-                    Non Stop | All departure/arrival times are in local time
+                    <?php
+                        $stopsText = !empty($totalStops) ? "{$totalStops} Stop(s)" : "Non Stop";
+                        echo esc_html($stopsText);?> | All departure/arrival times are in local time
                 </div>
-                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+
+                <?php
+                $previousArrival = null;
+
+                 foreach($segment1 as $flightrow){
+                    $airlineName =$flightrow['FlightSegment']['MarketingAirlineName'];
+                    $flightNumber =$flightrow['FlightSegment']['FlightNumber'];
+
+                     $departureTime = date("H:i", strtotime($flightrow['FlightSegment']['DepartureDateTime']));
+                    $arrivalTime = date("H:i", strtotime($flightrow['FlightSegment']['ArrivalDateTime']));
+                    $departureDateTime = date("D, d M Y h:i A", strtotime($flightrow['FlightSegment']['DepartureDateTime']));
+                    $ArrivalDateTime = date("D, d M Y h:i A", strtotime($flightrow['FlightSegment']['ArrivalDateTime']));
+
+                    $duration = $flightrow['FlightSegment']['JourneyDuration'] ?? 0;
+                    $durationFormatted = sprintf("%02dh %02dm", floor($duration / 60), $duration % 60);
+                    $origin1 =$flightrow['FlightSegment']['DepartureAirportLocationCode'];
+                    $destination1 =$flightrow['FlightSegment']['ArrivalAirportLocationCode'];
+                    if ($previousArrival !== null) {
+                        $layoverSeconds = strtotime($flightrow['FlightSegment']['DepartureDateTime']) - strtotime($previousArrival);
+                        $layoverFormatted = sprintf("%02dh %02dm", floor($layoverSeconds / 3600), ($layoverSeconds % 3600) / 60);
+                    }
+                    
+                    $previousArrival = $flightrow['FlightSegment']['ArrivalDateTime']; 
+                ?>
+                <?php if ($layoverFormatted !== null) { ?>
+                    <div>
+                        Layover Time : <?php echo $layoverFormatted;?>
+                    </div>
+                <?php }?>
+                 <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
                     <div class="airline-logo">
                         <div class="airline-inner">
-                            <img src="<?php echo esc_url($airlineLogo); ?>" alt="">
+                            <img src="<?php echo esc_url(get_airline_logo_url($flightrow['FlightSegment']['MarketingAirlineCode'])); ?>" alt="">
                         </div>
                     </div>
                     <div>
@@ -124,7 +163,7 @@ get_header();
                             <?php echo esc_html("{$airlineName} | {$flightNumber}"); ?>
                         </div>
                         <div class="text-secondary-boding">
-                            Aircraft: <?php echo esc_html($segment['OperatingAirline']['Equipment'] ?? ''); ?>
+                            Aircraft: <?php echo esc_html($flightrow['FlightSegment']['OperatingAirline']['Equipment'] ?? ''); ?>
                         </div>
                     </div>
                     <div class="ms-auto text-end">
@@ -136,10 +175,10 @@ get_header();
                     <div class="row mb-2 airport-detail-weight-detail-time-det">
                         <div class="col-3 depart-day-time-flight-1">
                             <div class="text-secondary-day-date-mon">
-                                Depart on - <?php echo esc_html($departureDate); ?>
+                                Depart on - <?php echo esc_html($departureDateTime); ?>
                             </div>
                             <div class="hours-flight-1-1"><?php echo esc_html($departureTime); ?></div>
-                            <div class="location-del-flight"><?php echo esc_html($origin); ?></div>
+                            <div class="location-del-flight"><?php echo esc_html(getCityNameByAirPortCode($origin1)); ?></div>
                         </div>
 
                         <div class="col-6 d-flex flex-column align-items-center justify-content-center">
@@ -151,27 +190,25 @@ get_header();
 
                         <div class="col-3 depart-day-time-flight-1">
                             <div class="text-secondary-day-date-mon">
-                                Arrives - <?php echo esc_html($departureDate); ?>
+                                Arrives - <?php echo esc_html($ArrivalDateTime); ?>
                             </div>
                             <div class="hours-flight-1-1">
                                 <?php echo esc_html($arrivalTime); ?>
                             </div>
-                            <div class="location-del-flight"><?php echo esc_html($destination); ?></div>
+                            <div class="location-del-flight"><?php echo esc_html(getCityNameByAirPortCode($destination1)); ?></div>
                         </div>
                     </div>
-
-                    <div class="d-flex flex-wrap gap-3 small baggages-weight--check-bagger">
+                </div>
+                <div class="d-flex flex-wrap gap-3 small baggages-weight--check-bagger">
                         <div class="d-flex align-items-center gap-2">
                             <img src="<?php echo get_template_directory_uri(); ?>/photos/items.png" alt="items" id="bag-of-items">
                                 <span class="cabin-bags-kg">Cabin Baggage: <span class="weight-only-sp"><?php echo esc_html("Cabin: {$cabinBaggage}, Checked: {$baggage}"); ?></span>   </span>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="<?php echo get_template_directory_uri(); ?>/photos/bag.png" alt="bag" id="bag-of-weight">
-                            <span class="cabin-bags-kg">Check-in Baggage: <span class="weight-only-sp">
-                            15 Kg (01 Piece only)</span></span>
-                        </div>
                     </div>
-                </div>
+               <?php
+               
+                } ?>
+               
             </div>
             <!-- Flight Details End-->
 
@@ -189,16 +226,6 @@ get_header();
                             <div class="text-secondary-passanger-count-on-page">
                                 <?php echo esc_html($refundAllowed); ?>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row py-2 time-date-flight-cencillation-items">
-                        <div class="col-md-8  price-fare-flight-sec-thi-item">Refund Fee</div>
-                        <div class="col-md-4 px-3 price-fare-flight-sec-thi-item">
-                            <?php
-                            $currency = get_option('travelx_required_currency');
-                            $symbol = ($currency === 'USD') ? '$' : esc_html($currency);
-                            echo $symbol . number_format((float)$refundFee, 2);
-                            ?>  
                         </div>
                     </div>
                 </div>
