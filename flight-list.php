@@ -1,3 +1,4 @@
+
 <?php 
 /**
  * Template Name: Flight Booking list
@@ -27,8 +28,6 @@ get_header(); ?>
     $session_id='';
 
     $flights = get_flight_availability($args);
-
-    //echo "<pre>"; print_r($flights); die;
     if (!empty($flights['AirSearchResponse']['session_id'])) {
         $session_id = $flights['AirSearchResponse']['session_id'];
        
@@ -254,7 +253,7 @@ get_header(); ?>
                                 </div>
                                 <div class="multi-range-slider mb-2">
                                     <input type="range" id="price-slider-min" class="noUi-connect" min="0" max="0" step="1" value="0">
-                                    <input type="range" id="price-slider-max" class="noUi-connect" min="0" max="0" step="1" value="0">
+                                    <input type="range" id="price-slider-max" class="" min="0" max="0" step="1" value="0">
                                 </div>
                             </div>
                         </div>
@@ -277,13 +276,17 @@ get_header(); ?>
                         $fareList = $flights['AirSearchResponse']['AirSearchResult']['FareItineraries'] ?? [];
                         if (!empty($fareList)) {
                             foreach ($fareList as $fareItem):
-                               //echo "<pre>"; print_r($fareItem); die;
+                               
                                 $fare = $fareItem['FareItinerary'];
                                 $segment = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'];
 
-                               // $airlineName = $segment['MarketingAirlineName'] ?? 'Airline';
-                                //$flightNumber = $segment['FlightNumber'] ?? 'N/A';
+                                $segment_one = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'];
+                                $segment_two = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][1]['FlightSegment'];
 
+                                $total_minutes = $segment_one['JourneyDuration'] + $segment_two['JourneyDuration'];
+                                $hours = floor($total_minutes / 60);
+                                $minutes = $total_minutes % 60;
+                                $totalTime = sprintf("%02dh %02dm", $hours, $minutes);
                                 $originOptions = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'];
 
                                 $airlineName = '';
@@ -369,14 +372,16 @@ get_header(); ?>
                                     </div>  
                                 </div>
                                 <div class="col-md-3 flight-dustination-duration">
-                                    <div class="duration">
-                                        <?php echo esc_html($durationFormatted); ?>
+                                    <div class="duration mb-1">
+                                        <?php echo esc_html($totalTime); ?>
                                     </div>
-                                    <div>--------------------</div>
-                              <div class="tooltip">Hover over me
-  <span class="tooltiptext">Tooltip text</span>
-</div>
-                                     <div class="flight-type" ><?php echo $totalStops;?> stop via <?php echo esc_html(getCityNameByAirPortCode($secondArrivalAirportLocationCode)); ?>
+                                     <div class="tooltip-container">
+                                 <div class="relative fliStopsSep"><p class="fliStopsSepLine" style="border-top: 3px solid rgb(13 110 253);"></p><span class="fliStopsDisc"></span></div>
+                                    <button class="tooltip">------------</button>
+                                    <span class="tooltip-text">Plane change  
+                            <?php echo esc_html(getCityNameByAirPortCode($secondArrivalAirportLocationCode)); ?> (<?php echo esc_html($secondArrivalAirportLocationCode); ?>) | 3 hrs 20 mins Layover</span>
+                                </div>
+                                     <div class="flight-type mt-2" ><?php echo $totalStops;?> stop via <?php echo esc_html(getCityNameByAirPortCode($secondArrivalAirportLocationCode)); ?>
                                      </div>
                                    
                                 </div>
@@ -496,6 +501,49 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!detailsSection) {
                     // Build dynamic content
                     const segment = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[0]?.FlightSegment || {};
+
+                    const duration = segment.JourneyDuration;
+                    function formatDuration(durationInMinutes) {
+                      const hours = Math.floor(durationInMinutes / 60);
+                      const minutes = durationInMinutes % 60;
+                      return `${hours}hr${hours !== 1 ? 's' : ''} ${minutes}${minutes !== 1 ? 'm' : ''}`;
+                    }
+                    const formattedDuration = formatDuration(duration);
+                    //Getting city code to city name//
+                    const fromcode = segment.DepartureAirportLocationCode;
+                    const tocode = segment.ArrivalAirportLocationCode;
+                    function getCityNameByAirPortCode(code) {
+                      const airportCityMap = {
+                        JFK: "New York City",
+                        KWI :"Kuwait",
+                        AMM: "Amman",
+                        RUH: "Riyadh",
+                        FCO: "Rome",
+                        DXB: "Dubai",
+                        CAI: "Cairo",
+                        HND: "Tokyo",
+                        SIN: "Singapore",
+                        SYD: "Sydney",
+                        FRA: "Frankfurt",
+                      };
+
+                      return airportCityMap[code] || `Unknown (${code})`;
+                    }
+                    const citynamebycode = getCityNameByAirPortCode(fromcode);
+                    const citynamebyTocode = getCityNameByAirPortCode(tocode);
+
+                    //Convert DepartureTime to proper formate//
+                    const departureDateTime = segment.DepartureDateTime;
+                    const date = new Date(departureDateTime);
+                    const pad = (n) => n.toString().padStart(2, '0');
+                    const formattedDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+                    //Convert ArrivalTime to proper formate//
+                    const arrivalDateTime = segment.ArrivalDateTime;
+                    const dateArrival = new Date(arrivalDateTime);
+                    const padArrival = (n) => n.toString().padStart(2, '0');
+                    const formattedDateArrival = `${dateArrival.getFullYear()}-${padArrival(dateArrival.getMonth() + 1)}-${padArrival(dateArrival.getDate())} ${padArrival(dateArrival.getHours())}:${padArrival(dateArrival.getMinutes())}`;
+                    
                     const fare = flightData.FareItinerary?.AirItineraryFareInfo?.ItinTotalFares || {};
                     const baggage = flightData.FareItinerary?.AirItineraryFareInfo?.FareBreakdown?.[0]?.Baggage?.[0] || '';
                     const cabinBaggage = flightData.FareItinerary?.AirItineraryFareInfo?.FareBreakdown?.[0]?.CabinBaggage?.[0] || '';
@@ -524,10 +572,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         <div class="tab-content p-3 border border-top-0 rounded-bottom">
                             <div class="tab-pane fade show active" id="flight-info-${tabIdSuffix}" role="tabpanel">
-                                <p><strong>From:</strong> ${segment.DepartureAirportLocationCode} at ${segment.DepartureDateTime}</p>
-                                <p><strong>To:</strong> ${segment.ArrivalAirportLocationCode} at ${segment.ArrivalDateTime}</p>
+                                <p><strong>From:</strong> ${citynamebycode} at ${formattedDate}</p>
+                                <p><strong>To:</strong> ${citynamebyTocode} at ${formattedDateArrival}</p>
                                 <p><strong>Flight:</strong> ${segment.MarketingAirlineName} ${segment.FlightNumber}</p>
-                                <p><strong>Duration:</strong> ${segment.JourneyDuration} mins</p>
+                                <p><strong>Duration:</strong> ${formattedDuration}</p>
                             </div>
                             <div class="tab-pane fade" id="fare-details-${tabIdSuffix}" role="tabpanel">
                                 <p><strong>Total Fare:</strong> $${fare.TotalFare?.Amount || 'N/A'} (${fare.TotalFare?.CurrencyCode || 'USD'})</p>
@@ -1102,72 +1150,89 @@ function resetFilters() {
     }
 }
 </script>
-<script>
-function swapLocations() {
-    // Get display values
-    let fromDisplay = document.getElementById("departure_airport_display");
-    let toDisplay = document.getElementById("flight_location_display");
-
-    // Get hidden values (airport codes)
-    let fromHidden = document.getElementById("departure_airport");
-    let toHidden = document.getElementById("flight_location");
-
-    // Swap display (city names)
-    let tempDisplay = fromDisplay.value;
-    fromDisplay.value = toDisplay.value;
-    toDisplay.value = tempDisplay;
-
-    // Swap hidden (airport codes)
-    let tempHidden = fromHidden.value;
-    fromHidden.value = toHidden.value;
-    toHidden.value = tempHidden;
+ <style>
+     /* Basic Styling */
+span.fliStopsDisc {
+    width: 8px;
+    position: absolute ! IMPORTANT;
+    height: 8px;
+    border: 2px solid #e7e7e7;
+    display: inline-block;
+    background-color: #959595;
+    position: relative;
+    z-index: 2;
+    top: -4px ! IMPORTANT;
+    margin: 0 2px;
+    border-radius: 20px;
 }
-</script>
-<style type="text/css">
-    /* Tooltip container */
+.fliStopsSepLine {
+    border-top: 3px solid #979797;
+    width: 50px;
+    height: 2px;
+    position: absolute;
+    left: -25px;
+    right: 21px;
+    margin: auto;
+    top: 0px;
+    bottom: 0;
+    z-index: 1;
+}
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Tooltip Button */
 .tooltip {
-  position: relative;
-  display: inline-block;
-  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+       position: absolute;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
-/* Tooltip text */
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 120px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  padding: 5px 0;
-  border-radius: 6px;
-
-  /* Position the tooltip text */
-  position: absolute;
-  z-index: 1;
-  bottom: 125%;
-  left: 50%;
-  margin-left: -60px;
-
-  /* Fade in tooltip */
-  opacity: 0;
-  transition: opacity 0.3s;
+/* Tooltip Text Styling */
+.tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 125%; /* Position above the button */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 8px;
+    width: 120px;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    font-size: 14px;
 }
 
-/* Tooltip arrow */
-.tooltip .tooltiptext::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #555 transparent transparent transparent;
+/* Tooltip Text Arrow */
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
 }
 
-/* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
+/* Show Tooltip on Hover */
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
 }
-</style>
+
+/* Hover Effect for Button */
+.tooltip:hover {
+    background-color: #2980b9;
+}
+
+ </style>
