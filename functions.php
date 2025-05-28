@@ -266,6 +266,20 @@ function add_custom_query_vars($vars) {
 }
 add_filter('query_vars', 'add_custom_query_vars');
 
+/**
+ * Prevent usernames that are in email format during registration.
+ */
+add_filter('registration_errors', 'block_email_as_username', 10, 3);
+function block_email_as_username($errors, $sanitized_user_login, $user_email) {
+    if (is_email($sanitized_user_login)) {
+        $errors->add(
+            'username_email_not_allowed',
+            __('Usernames cannot be email addresses. Please choose a different username.', 'your-text-domain')
+        );
+    }
+    return $errors;
+}
+
 // Flush permalinks after activating the theme (Run once)
 function flush_rewrite_rules_on_activate() {
     flush_rewrite_rules();

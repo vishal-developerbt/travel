@@ -32,10 +32,10 @@ $sort_option = isset($_GET['sort']) ? $_GET['sort'] : 'most-popular';
 if (!empty($location) && !empty($checkin) && !empty($checkout) && !empty($rooms)) {
     // If search parameters exist, fetch filtered hotels
     $booking_data = fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms);
-    if($booking_data['status']['errors']){
-        header("Location: /error.php");
-        exit;
-    }
+    // if($booking_data['status']['errors']){
+    //     header("Location: /error.php");
+    //     exit;
+    // }
     $status = $booking_data['status'];
     $hotels = $booking_data['itineraries'];
     
