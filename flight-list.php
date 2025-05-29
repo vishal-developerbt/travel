@@ -235,7 +235,7 @@ get_header(); ?>
         <div class="row">
             <!-- Left Sidebar - Filters -->
             <div class="col-md-3">
-                <div class="filters-container">
+                <div class="filters-container flight-listing-section">
                     <!-- Select Filters -->
                     <div class="filter-section">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -251,11 +251,17 @@ get_header(); ?>
                                     <span id="price-min-display">$0</span>
                                     <span id="price-max-display">$0</span>
                                 </div>
-                                <div class="multi-range-slider mb-2">
+                                <!-- <div class="multi-range-slider mb-2">
                                     <input type="range" id="price-slider-min" class="noUi-connect" min="0" max="0" step="1" value="0">
                                     <input type="range" id="price-slider-max" class="" min="0" max="0" step="1" value="0">
-                                </div>
-                            </div>
+                                </div> -->
+                    <div class="multi-range-slider mb-2">
+                <div class="slider-track"></div>
+                <div class="slider-fill" id="slider-fill"></div>
+                <input type="range" id="price-slider-min" min="0" max="100" step="1" value="20">
+                <input type="range" id="price-slider-max" min="0" max="100" step="1" value="80">
+                </div>
+                </div>
                         </div>
     
                         <!-- Airlines Filter -->
@@ -278,60 +284,91 @@ get_header(); ?>
                             foreach ($fareList as $fareItem):
                                
                                 $fare = $fareItem['FareItinerary'];
-                                $segment = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'];
+                                $segment = $fare['OriginDestinationOptions'];
+            
+            foreach($fare['OriginDestinationOptions'] as $index => $farevalue){
 
-                                $segment_one = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'];
-                                $segment_two = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][1]['FlightSegment'];
+                //Find out total time
+                 $segment = $farevalue['OriginDestinationOption'][$index]['FlightSegment'];
+                 $total_minutes = $segment['JourneyDuration'] + $segment['JourneyDuration'];
+                 $hours = floor($total_minutes / 60);
+                 $minutes = $total_minutes % 60;
+                 $totalTime = sprintf("%02dh %02dm", $hours, $minutes);
+                 
+                 //Get other information from options//
+                 $originOptions = $fare['OriginDestinationOptions'][$index]['OriginDestinationOption'];
+                 $airlineName = '';
+                 $flightCodes = [];
 
-                                $total_minutes = $segment_one['JourneyDuration'] + $segment_two['JourneyDuration'];
-                                $hours = floor($total_minutes / 60);
-                                $minutes = $total_minutes % 60;
-                                $totalTime = sprintf("%02dh %02dm", $hours, $minutes);
-                                $originOptions = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'];
+                 $flightsegment = $originOptions[$index]['FlightSegment'];
+                 if (empty($airlineName) && !empty($flightsegment['MarketingAirlineName'])) {
+                    $airlineName = $flightsegment['MarketingAirlineName'];
+                 }
 
-                                $airlineName = '';
-                                $flightCodes = [];
+                 $airlineCode = $flightsegment['MarketingAirlineCode'] ?? 'XX';
+                 $flightNumber = $flightsegment['FlightNumber'] ?? '000';
+                 $flightCodes[] = $airlineCode . ' ' . $flightNumber;
+                 $flightNumberString = implode(', ', $flightCodes);
 
-                                foreach ($originOptions as $option) {
-                                    $segment = $option['FlightSegment'];
-                                    if (empty($airlineName) && !empty($segment['MarketingAirlineName'])) {
-                                        $airlineName = $segment['MarketingAirlineName'];
-                                    }
+                 $origin = $flightsegment['DepartureAirportLocationCode'] ?? 'XXX';
+                 $destination = $flightsegment['ArrivalAirportLocationCode'] ?? 'YYY';
+                 $departureTime = date("H:i", strtotime($flightsegment['DepartureDateTime']));
+                 $arrivalTime = date("H:i", strtotime($flightsegment['ArrivalDateTime']));
 
-                                    $airlineCode = $segment['MarketingAirlineCode'] ?? 'XX';
-                                    $flightNumber = $segment['FlightNumber'] ?? '000';
+                 $durationMin = (int)($flightsegment['JourneyDuration'] ?? 0);
+                 $durationHours = floor($durationMin / 60);
+                 $durationMins = $durationMin % 60;
+                 $durationFormatted = sprintf("%02dh %02dm", $durationHours, $durationMins);
 
-                                    $flightCodes[] = $airlineCode . ' ' . $flightNumber;
-                                }
+                 $price = $fare['AirItineraryFareInfo']['ItinTotalFares']['TotalFare']['Amount'] ?? '0';
+                 $currency = $fare['AirItineraryFareInfo']['ItinTotalFares']['TotalFare']['CurrencyCode'] ?? 'USD';
 
-                                $flightNumberString = implode(', ', $flightCodes);
+                 //related to airline//
+                 $airline_code = $fare['ValidatingAirlineCode'];
+                 $airline_codea =$flightsegment['OperatingAirline']['Code'];
+                 $logo_url = 'https://travelnext.works/api/airlines/'.$airline_codea.'.gif';
 
+                // Unique ID and flight data JSON
+                 $flightCardId = 'flight-' . uniqid();
+                 $flightDataJson = htmlspecialchars(json_encode(['FareItinerary' => $fare]), ENT_QUOTES, 'UTF-8');
+                 
 
-                                $origin = $segment['DepartureAirportLocationCode'] ?? 'XXX';
-                                $destination = $segment['ArrivalAirportLocationCode'] ?? 'YYY';
-                                $departureTime = date("H:i", strtotime($segment['DepartureDateTime']));
-                                $arrivalTime = date("H:i", strtotime($segment['ArrivalDateTime']));
+                 $data = $fare['OriginDestinationOptions'][$index]['OriginDestinationOption'];
+                 $firstDepartureAirportLocationCode = $data[$index]['FlightSegment']['DepartureAirportLocationCode'];
+                 $firstDepartureDateTime = date("H:i", strtotime($data[$index]['FlightSegment']['DepartureDateTime']));
+                 $secondArrivalAirportLocationCode = $data[$index]['FlightSegment']['ArrivalAirportLocationCode'];
+                 $secondArrivalDateTime = date("H:i", strtotime($data[$index]['FlightSegment']['ArrivalDateTime']));
+                 $secondDepartureDateTime = date("H:i", strtotime($data[$index]['FlightSegment']['DepartureDateTime']));
 
-                                $durationMin = (int)($segment['JourneyDuration'] ?? 0);
-                                $durationHours = floor($durationMin / 60);
-                                $durationMins = $durationMin % 60;
-                                $durationFormatted = sprintf("%02dh %02dm", $durationHours, $durationMins);
+                 $totalStops = $fare['OriginDestinationOptions'][$index]['TotalStops'];
+                 $data = array('totalstop'=>$totalStops);
+                 $datasecuritycode['securitycode'][] = $secondArrivalAirportLocationCode;
 
-                                $price = $fare['AirItineraryFareInfo']['ItinTotalFares']['TotalFare']['Amount'] ?? '0';
-                                $currency = $fare['AirItineraryFareInfo']['ItinTotalFares']['TotalFare']['CurrencyCode'] ?? 'USD';
+                 //To finding layover time//
+            // $currentArrival = $farevalue['OriginDestinationOption'][$index]['FlightSegment'];
+            // $nextDeparture = $farevalue['OriginDestinationOption'][$index + 1]['FlightSegment']['DepartureDateTime'];
 
-                                $airline_code = $fare['ValidatingAirlineCode'];
-                                //$airline_code = $fare['ValidatingAirlineCode'];
+            //     // Convert to DateTime objects
+            //     $arrivalTime = new DateTime($currentArrival);
+            //     $departureTime = new DateTime($nextDeparture);
 
-                                $airline_codea =$segment['OperatingAirline']['Code'];
-                                $logo_url = 'https://travelnext.works/api/airlines/'.$airline_codea.'.gif';//get_airline_logo_url($airline_code);
+            //     // Calculate difference
+            //     $interval = $arrivalTime->diff($departureTime);
 
-                                // Unique ID and flight data JSON
-                                $flightCardId = 'flight-' . uniqid();
-                                $flightDataJson = htmlspecialchars(json_encode(['FareItinerary' => $fare]), ENT_QUOTES, 'UTF-8');
-                                 $totalStops = $fare['OriginDestinationOptions'][0]['TotalStops'];
-                              
-                    ?>
+            //     // Format difference - for example: "3 hrs 20 mins"
+            //     $layover = '';
+            //     if ($interval->h > 0) {
+            //         $layover .= $interval->h . ' hrs ';
+            //     }
+            //     if ($interval->i > 0) {
+            //         $layover .= $interval->i . ' mins';
+            //     }
+
+            //     echo "Layover between segment $i and " . ($i + 1) . ": " . trim($layover) . "\n";
+
+                
+            }//end foreach loop//    
+                ?>
                         <div class="flight-card mb-3"
                              id="<?php echo esc_attr($flightCardId); ?>"
                              data-price="<?php echo esc_attr($price); ?>"
@@ -353,18 +390,8 @@ get_header(); ?>
                                     </div>
                                 </div>
                                 <?php 
-                                if($totalStops){
-                                $data = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'];
-                                   
-                                $firstDepartureAirportLocationCode = $data[0]['FlightSegment']['DepartureAirportLocationCode'];
-                                $firstDepartureDateTime = date("H:i", strtotime($data[0]['FlightSegment']['DepartureDateTime']));
 
-                                $secondArrivalAirportLocationCode = $data[0]['FlightSegment']['ArrivalAirportLocationCode'];
-                                $secondArrivalDateTime = date("H:i", strtotime($data[0]['FlightSegment']['ArrivalDateTime']));
-
-                                $secondDepartureDateTime = date("H:i", strtotime($data[1]['FlightSegment']['DepartureDateTime']));
-
-                                    ?>
+                                if($totalStops){?>
                                     <div class="col-md-1 d-flex flex-column justify-content-center time-place-flight">
                                     <div class="place-time-flight-th">
                                         <div class="departure-time"><?php echo esc_html($firstDepartureDateTime); ?></div>
@@ -373,13 +400,39 @@ get_header(); ?>
                                 </div>
                                 <div class="col-md-3 flight-dustination-duration">
                                     <div class="duration mb-1">
-                                        <?php echo esc_html($totalTime); ?>
+
+                                        <?php echo esc_html($totalTime); 
+
+                $segments = $fare['OriginDestinationOptions'];
+                $totalStops = $data['totalstop'];
+                $datacity = [];
+                 
+                for ($i = 0; $i < $totalStops; $i++) {
+                   
+                   $arrivalAirport = $segments[$i]['OriginDestinationOption'][0]['FlightSegment']['ArrivalAirportLocationCode'] ?? null;
+                    $countryCode = getCityNameByAirPortCode($arrivalAirport);
+                    $datacity['countrycode'][] = $countryCode; 
+                    
+                }
+
+                    ?>
                                     </div>
                                      <div class="tooltip-container">
-                                 <div class="relative fliStopsSep"><p class="fliStopsSepLine" style="border-top: 3px solid rgb(13 110 253);"></p><span class="fliStopsDisc"></span></div>
-                                    <button class="tooltip">------------</button>
-                                    <span class="tooltip-text">Plane change  
-                            <?php echo esc_html(getCityNameByAirPortCode($secondArrivalAirportLocationCode)); ?> (<?php echo esc_html($secondArrivalAirportLocationCode); ?>) | 3 hrs 20 mins Layover</span>
+     <div class="relative fliStopsSep"><p class="fliStopsSepLine" style="border-top: 3px solid rgb(13 110 253);"></p><span class="fliStopsDisc"></span></div>
+        <button class="tooltip">------------</button>
+        <span class="tooltip-text"> 
+<?php
+
+$totalStops = $data['totalstop'];
+//echo "<pre/>"; print_r($datasecuritycode['securitycode']);
+for ($i = 0; $i < $totalStops; $i++) {?>
+    Plane change<span></span>
+    <?php echo esc_html($datacity['countrycode'][$i]);if ($i < $totalStops) {echo ', ';}
+    echo esc_html($datasecuritycode['securitycode'][$i]).'</br>'.'|';
+}?>
+
+(1st arrival diff 2nd departure 3 hrs 20 mins Layover</span>
+
                                 </div>
                                      <div class="flight-type mt-2" ><?php echo $totalStops;?> stop via <?php echo esc_html(getCityNameByAirPortCode($secondArrivalAirportLocationCode)); ?>
                                      </div>
@@ -416,7 +469,7 @@ get_header(); ?>
                                         <div class="arrival-city"><?php echo esc_html(getCityNameByAirPortCode($destination)); ?></div>
                                     </div>
                                 </div>
-                            <?php }?>
+                            <?php }//end of if else//?>
                                
 
                                 <div class="col-md-2 d-flex flex-column justify-content-center">
@@ -512,6 +565,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     //Getting city code to city name//
                     const fromcode = segment.DepartureAirportLocationCode;
                     const tocode = segment.ArrivalAirportLocationCode;
+
                     function getCityNameByAirPortCode(code) {
                       const airportCityMap = {
                         JFK: "New York City",
@@ -1150,6 +1204,44 @@ function resetFilters() {
     }
 }
 </script>
+<script>
+    const minSlider = document.getElementById('price-slider-min');
+    const maxSlider = document.getElementById('price-slider-max');
+    const fill = document.getElementById('slider-fill');
+
+    function updateFill() {
+      const min = parseInt(minSlider.value);
+      const max = parseInt(maxSlider.value);
+
+      const range = parseInt(minSlider.max) - parseInt(minSlider.min);
+      const left = ((min - minSlider.min) / range) * 100;
+      const width = ((max - min) / range) * 100;
+
+      fill.style.left = left + '%';
+      fill.style.width = width + '%';
+    }
+
+    minSlider.addEventListener('input', () => {
+      if (parseInt(minSlider.value) > parseInt(maxSlider.value)) {
+        minSlider.value = maxSlider.value;
+      }
+      updateFill();
+    });
+
+    maxSlider.addEventListener('input', () => {
+      if (parseInt(maxSlider.value) < parseInt(minSlider.value)) {
+        maxSlider.value = minSlider.value;
+      }
+      updateFill();
+    });
+
+    window.addEventListener('load', () => {
+      minSlider.value = minSlider.min;
+      maxSlider.value = maxSlider.max;
+      updateFill();
+    });
+  </script>
+
  <style>
      /* Basic Styling */
 span.fliStopsDisc {
