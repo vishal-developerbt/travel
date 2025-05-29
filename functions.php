@@ -3933,7 +3933,8 @@ function getCityNameByAirPortCode($airportCode) {
     global $wpdb;
 
     // Sanitize the input
-    $airportCode = strtoupper(trim($airportCode));
+    //$airportCode = strtoupper(trim($airportCode));
+    $airportCode = strtoupper(trim($airportCode ?? ''));
 
     // Replace with your actual table name if it uses a prefix
     $table_name = 'airport_list';
