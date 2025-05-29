@@ -15,45 +15,46 @@ get_header();
         'adults' => $_GET['adults'] ?? 1,
         'children' => $_GET['children'] ?? 0,
         'infants' => $_GET['infants'] ?? 0,
-        'session_id' => $_GET['session_id'] ?? 0,
+        'session_id' => $_GET['session_id'] ?? '',
+        'fare_source_code' => $_GET['fareSourceCode'] ?? '',
         
     ];
 
-    $selectedFlightEncoded = $_GET['flightData'] ?? '';
+    $fareSourceCode = $_GET['fareSourceCode'] ?? '';
     $sessionId = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
-
-    // Decode the flight data
-    $flightData = [];
-    if (!empty($selectedFlightEncoded)) {
-        $decoded = base64_decode($selectedFlightEncoded);
-        $flightData = json_decode($decoded, true);
-        $fareSourceCode = $flightData['FareItinerary']['AirItineraryFareInfo']['FareSourceCode'];
-         
-    }
     $validateFlightData = validateFlightFareMethod($sessionId, $fareSourceCode);
+
     $IsValid =$validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['IsValid'];
     if($IsValid){
         $flightData = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries'];
+        $flightDataWithReturn = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries'];
         $fare = $flightData['FareItinerary'] ?? [];
     }else{
-        $fare = $flightData['FareItinerary'] ?? [];
+         echo "<script>
+        alert('Response not getting from validateFlightFareMethod Api');
+        window.history.back();
+    </script>";
+    exit;
+        // echo "Response not getting from validateFlightFareMethod Api ";
     }   
-    
-    $IsRefundable = $fare['AirItineraryFareInfo']['IsRefundable'];
+   
+    $isRefundable = $fare['AirItineraryFareInfo']['IsRefundable'];
+    $fareType   = $fare['AirItineraryFareInfo']['FareType'];
+  
     $isPassportMandatory = $fare['IsPassportMandatory'];
    
     // STEP 1: Segment details
     $segment = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'] ?? [];
     $segment1 = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'] ?? [];
+    $segmentU = $fare['OriginDestinationOptions'] ?? [];
 
     // STEP 2: Baggage & Penalty (use first FareBreakdown for reference)
     $fareBreakdown = $fare['AirItineraryFareInfo']['FareBreakdown'][0] ?? [];
     $baggage = $fareBreakdown['Baggage'][0] ?? '0PC';
     $cabinBaggage = $fareBreakdown['CabinBaggage'][0] ?? 'SB';
     $penalty = $fareBreakdown['PenaltyDetails'] ?? [];
-    //$refundAllowed = !empty($penalty['RefundAllowed']) ? 'Yes' : 'No';
     $refundAllowed = $fare['AirItineraryFareInfo']['IsRefundable'];
-    $refundFee = $penalty['RefundPenaltyAmount'] ?? '0.00';
+
     $changeAllowed = !empty($penalty['ChangeAllowed']) ? 'Yes' : 'No';
     $changeFee = $penalty['ChangePenaltyAmount'] ?? '0.00';
 
@@ -86,19 +87,6 @@ get_header();
             'fare' => $unitTotal,
         ];
     }
-
-    // STEP 5: Flight meta info
-   $totalStops   = $fare['OriginDestinationOptions'][0]['TotalStops'];
-    if($totalStops ==1){ 
-        $origin = $segment1[0]['FlightSegment']['DepartureAirportLocationCode'] ?? '';
-        $destination = $segment1[1]['FlightSegment']['ArrivalAirportLocationCode'] ?? '';
-    }elseif($totalStops ==2){
-        $origin = $segment1[0]['FlightSegment']['DepartureAirportLocationCode'] ?? '';
-        $destination = $segment1[2]['FlightSegment']['ArrivalAirportLocationCode'] ?? '';
-    }else{
-        $origin = $segment['DepartureAirportLocationCode'] ?? '';
-        $destination = $segment['ArrivalAirportLocationCode'] ?? '';
-    }
 ?>
 
 <div class="container-fluid heading-blue-booking-things"></div>
@@ -109,105 +97,133 @@ get_header();
         <div class="col-md-8">
             <!-- Flight Details Start-->
             <div class="bg-white rounded p-4 mb-4 dustination-and-weight-condition-in-travelling">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <img src="<?php echo get_template_directory_uri(); ?>/photos/flight.png" alt="flight">
-                    <div class="flight-dustination-into-travelling-fl">
-                        <?php 
-                            $originCity = getCityNameByAirPortCode($origin);
-                            $destinationCity = getCityNameByAirPortCode($destination);
-                        echo esc_html("{$originCity} → {$destinationCity} | {$departureDate}"); ?>
-                    </div>
-                </div>
-                <div class="no-stop-text-secondary mb-3">
-                    <?php
-                        $stopsText = !empty($totalStops) ? "{$totalStops} Stop(s)" : "Non Stop";
-                        echo esc_html($stopsText);?> | All departure/arrival times are in local time
-                </div>
+         
+        <?php
+                
+            foreach($segmentU as $index =>  $flightdata){ 
 
-                <?php
                 $previousArrival = null;
+                $totalStops = $flightdata['TotalStops'];
+                $flights    = $flightdata['OriginDestinationOption'];
 
-                 foreach($segment1 as $flightrow){
-                    $airlineName =$flightrow['FlightSegment']['MarketingAirlineName'];
-                    $flightNumber =$flightrow['FlightSegment']['FlightNumber'];
+                if($totalStops ==1){ 
+                $origin = $flights[0]['FlightSegment']['DepartureAirportLocationCode'] ?? '';
+                $destination = $flights[1]['FlightSegment']['ArrivalAirportLocationCode'] ?? '';
+                $departureDateTime = date("D, d M Y", strtotime($flights[0]['FlightSegment']['DepartureDateTime']));
+                }elseif($totalStops ==2){
+                $origin = $flights[0]['FlightSegment']['DepartureAirportLocationCode'] ?? '';
+                $destination = $flights[2]['FlightSegment']['ArrivalAirportLocationCode'] ?? '';
+                }else{
+                $origin = $flights['DepartureAirportLocationCode'] ?? '';
+                $destination = $flights['ArrivalAirportLocationCode'] ?? '';
+                }
+        ?>
+        <div class="d-flex align-items-center gap-2 mb-5">
+            <img src="<?php echo get_template_directory_uri(); ?>/photos/flight.png" alt="flight">
+            <div class="flight-dustination-into-travelling-fl">
+            <?php 
+                $stopsText = !empty($totalStops) ? "{$totalStops} Stop(s)" : "Non Stop";
+                $originCity = getCityNameByAirPortCode($origin);
+                $destinationCity = getCityNameByAirPortCode($destination);
+                echo esc_html("{$originCity} → {$destinationCity} | {$departureDateTime} | {$stopsText}"); ?>
+            </div>
+        </div>
+        
+        <?php
+        foreach($flights as $flightrow){
+            $airlineName    =$flightrow['FlightSegment']['MarketingAirlineName'];
+            $flightNumber   =$flightrow['FlightSegment']['FlightNumber'];
+            $departureTime  = date("H:i", strtotime($flightrow['FlightSegment']['DepartureDateTime']));
+            $arrivalTime    = date("H:i", strtotime($flightrow['FlightSegment']['ArrivalDateTime']));
+            $departureDateTime = date("D, d M Y h:i A", strtotime($flightrow['FlightSegment']['DepartureDateTime']));
+            $ArrivalDateTime = date("D, d M Y h:i A", strtotime($flightrow['FlightSegment']['ArrivalDateTime']));
+            $duration = $flightrow['FlightSegment']['JourneyDuration'] ?? 0;
+            $durationFormatted = sprintf("%02dh %02dm", floor($duration / 60), $duration % 60);
+            $origin1 =$flightrow['FlightSegment']['DepartureAirportLocationCode'];
+            $destination1 =$flightrow['FlightSegment']['ArrivalAirportLocationCode'];
+            if (isset($previousArrival)) {
+                $layoverSeconds = strtotime($flightrow['FlightSegment']['DepartureDateTime']) - strtotime($previousArrival);
+                $layoverFormatted = sprintf("%02dh %02dm", floor($layoverSeconds / 3600), ($layoverSeconds % 3600) / 60);
+            }
 
-                     $departureTime = date("H:i", strtotime($flightrow['FlightSegment']['DepartureDateTime']));
-                    $arrivalTime = date("H:i", strtotime($flightrow['FlightSegment']['ArrivalDateTime']));
-                    $departureDateTime = date("D, d M Y h:i A", strtotime($flightrow['FlightSegment']['DepartureDateTime']));
-                    $ArrivalDateTime = date("D, d M Y h:i A", strtotime($flightrow['FlightSegment']['ArrivalDateTime']));
+        ?>
+        <?php if ($layoverFormatted !== null && isset($previousArrival)) { ?>
+            <div class="layover-time-section mt-3">
+                <span class="change of planes">Change of planes:</span>
+                <?php echo $layoverFormatted;?>
+            </div>
+        <?php }
+        $previousArrival = $flightrow['FlightSegment']['ArrivalDateTime']; 
+        ?>
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                <div class="airline-logo">
+                    <div class="airline-inner">
+                        <img src="<?php echo esc_url(get_airline_logo_url($flightrow['FlightSegment']['MarketingAirlineCode'])); ?>" alt="">
+                    </div>
+                </div>
+                <div>
+                    <div class="flight-no-flight-detail">
+                        <?php echo esc_html("{$airlineName} | {$flightNumber}"); ?>
+                    </div>
+                    <div class="text-secondary-boding">
+                        Aircraft: <?php echo esc_html($flightrow['FlightSegment']['OperatingAirline']['Equipment'] ?? ''); ?>
+                    </div>
+                </div>
+                <div class="ms-auto text-end">
+                    <div class="eco-sev-both"><?php echo esc_html($tripArgs['class']); ?></div>
+                </div>
+            </div>
 
-                    $duration = $flightrow['FlightSegment']['JourneyDuration'] ?? 0;
-                    $durationFormatted = sprintf("%02dh %02dm", floor($duration / 60), $duration % 60);
-                    $origin1 =$flightrow['FlightSegment']['DepartureAirportLocationCode'];
-                    $destination1 =$flightrow['FlightSegment']['ArrivalAirportLocationCode'];
-                    if ($previousArrival !== null) {
-                        $layoverSeconds = strtotime($flightrow['FlightSegment']['DepartureDateTime']) - strtotime($previousArrival);
-                        $layoverFormatted = sprintf("%02dh %02dm", floor($layoverSeconds / 3600), ($layoverSeconds % 3600) / 60);
-                    }
-                    
-                    $previousArrival = $flightrow['FlightSegment']['ArrivalDateTime']; 
-                ?>
-                <?php if ($layoverFormatted !== null) { ?>
-                    <div>
-                        Layover Time : <?php echo $layoverFormatted;?>
-                    </div>
-                <?php }?>
-                 <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
-                    <div class="airline-logo">
-                        <div class="airline-inner">
-                            <img src="<?php echo esc_url(get_airline_logo_url($flightrow['FlightSegment']['MarketingAirlineCode'])); ?>" alt="">
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flight-no-flight-detail">
-                            <?php echo esc_html("{$airlineName} | {$flightNumber}"); ?>
-                        </div>
-                        <div class="text-secondary-boding">
-                            Aircraft: <?php echo esc_html($flightrow['FlightSegment']['OperatingAirline']['Equipment'] ?? ''); ?>
-                        </div>
-                    </div>
-                    <div class="ms-auto text-end">
-                        <div class="eco-sev-both"><?php echo esc_html($tripArgs['class']); ?></div>
+            <div class="flight-segment-wrapper d-flex align-items-start">
+                <!-- Departure -->
+                <div class="flight-time-info text-end pe-3">
+                    <div class="flight-time fw-bold"><?php echo esc_html($departureTime); ?></div>
+                    <div class="flight-location fw-semibold">
+                        <?php echo esc_html(getCityNameByAirPortCode($origin1));?>
+                    </div>,
+                    <span>
+                        <?php echo esc_html(getAirPortNameByAirPortCode($origin1));?>    
+                    </span>
+                    <div class="text-secondary-day-date-mon">
+                        (Depart on - <?php echo esc_html($departureDateTime); ?>)
                     </div>
                 </div>
 
-                <div class="items-selection-flight-dur-dus-weight">
-                    <div class="row mb-2 airport-detail-weight-detail-time-det">
-                        <div class="col-3 depart-day-time-flight-1">
-                            <div class="text-secondary-day-date-mon">
-                                Depart on - <?php echo esc_html($departureDateTime); ?>
-                            </div>
-                            <div class="hours-flight-1-1"><?php echo esc_html($departureTime); ?></div>
-                            <div class="location-del-flight"><?php echo esc_html(getCityNameByAirPortCode($origin1)); ?></div>
-                        </div>
+                <!-- Duration -->
+                <div class="flight-connector flex-grow-1 d-flex flex-column align-items-center mx-3 mt-3">
+                    <div class="dotted-line flex-grow-1"></div>
+                    <div class="flight-duration text-muted my-1"><?php echo esc_html($durationFormatted); ?></div>
+                    <div class="dotted-line flex-grow-1"></div>
+                </div>
 
-                        <div class="col-6 d-flex flex-column align-items-center justify-content-center">
-                            <div class="text-secondary-only-time">
-                                <?php echo esc_html($durationFormatted); ?>
-                            </div>
-                            <div class="text-secondary-durition-fli">Duration</div>
-                        </div>
-
-                        <div class="col-3 depart-day-time-flight-1">
-                            <div class="text-secondary-day-date-mon">
-                                Arrives - <?php echo esc_html($ArrivalDateTime); ?>
-                            </div>
-                            <div class="hours-flight-1-1">
-                                <?php echo esc_html($arrivalTime); ?>
-                            </div>
-                            <div class="location-del-flight"><?php echo esc_html(getCityNameByAirPortCode($destination1)); ?></div>
-                        </div>
+                <!-- Arrival -->
+                <div class="flight-time-info text-start ps-3">
+                    <div class="flight-time fw-bold">
+                        <?php echo esc_html($arrivalTime); ?></div>
+                    <div class="flight-location fw-semibold">
+                        <?php echo esc_html(getCityNameByAirPortCode($destination1)); ?>
+                    </div>,
+                    <span>
+                        <?php echo esc_html(getAirPortNameByAirPortCode($destination1));?>
+                    </span>
+                    <div class="text-secondary-day-date-mon">
+                        (Arrives - <?php echo esc_html($ArrivalDateTime); ?>)
                     </div>
                 </div>
-                <div class="d-flex flex-wrap gap-3 small baggages-weight--check-bagger">
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="<?php echo get_template_directory_uri(); ?>/photos/items.png" alt="items" id="bag-of-items">
-                                <span class="cabin-bags-kg">Cabin Baggage: <span class="weight-only-sp"><?php echo esc_html("Cabin: {$cabinBaggage}, Checked: {$baggage}"); ?></span>   </span>
-                        </div>
-                    </div>
-               <?php
-               
-                } ?>
+            </div>
+
+            <div class="d-flex flex-wrap gap-3 small baggages-weight--check-bagger mb-2 mt-2">
+                <div class="d-flex align-items-center gap-2 mt-3">
+                    <img src="<?php echo get_template_directory_uri(); ?>/photos/items.png" alt="items" id="bag-of-items">
+                    <span class="cabin-bags-kg">Cabin Baggage: <span class="weight-only-sp"><?php echo esc_html("Cabin: {$cabinBaggage}, Checked: {$baggage}"); ?></span></span>
+                </div>
+            </div>
+        <?php  }
+
+        echo "<br><hr><br>";
+            }
+
+        ?>
                
             </div>
             <!-- Flight Details End-->
@@ -229,34 +245,7 @@ get_header();
                         </div>
                     </div>
                 </div>
-                <div class="flight-dot-end-regular-charge">
-                    <div class="row  time-date-flight-cencillation-items">
-                        <div class="col-md-8 schedule-flight-depart">
-                            <h3 class="time-fair-charge-items mb-1">Change Policy</h3>
-                            <div class="text-secondary-no-delay">(Based on airline fare rules)</div>
-                        </div>
-                        <div class="col-md-4">
-                            <h3 class="time-fair-charge-items mb-1">Change Allowed</h3>
-                            <div class="text-secondary-fee-passsanger">
-                                <?php echo esc_html($changeAllowed); ?>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row py-2 time-date-flight-cencillation-items ">
-                        <div class="col-md-8 px-3 price-fare-flight-sec-thi-item">Change Fee</div>
-                        <div class="col-md-4 px-3 price-fare-flight-sec-thi-item">
-                           <?php
-                            if ($changeAllowed === 'Yes') {
-                                $currency = get_option('travelx_required_currency');
-                                $symbol = ($currency === 'USD') ? '$' : esc_html($currency);
-                                echo $symbol . esc_html($changeFee);
-                            } else {
-                                echo 'Not Changeable';
-                            }
-                            ?>
-                        </div>
-                    </div>
-                </div>
+          
                 <div class="info-impo-text-secondary mt-3">
                     <span class="Important-info-note">Important:</span> The airline fees are fetched from the API and are subject to change without prior notice. Final fees are confirmed upon ticket booking.
                 </div>
@@ -318,26 +307,30 @@ get_header();
                  
                      <div class="row mb-3">
                         <div class="col-md-4 mb-3 mb-md-0">
-                            <label class="form-label small form-name-email-detail-all-th">Passport Number</label>
-                            <input type="text" class="form-control" id="passport_number" placeholder="Enter passport number" required>
+                          <label for="passport_number" class="form-label small form-name-email-detail-all-th">Passport Number</label>
+                          <input type="text" class="form-control" id="passport_number" placeholder="Enter passport number" required>
+                          <div class="invalid-feedback">Please enter a valid passport number.</div>
                         </div>
                         <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Passport Issue Country</label>
                             <input type="text" class="form-control" id="passport_issue_country" placeholder="Enter issue country (e.g., IN" required>
                         </div>
+                       
                         <div class="col-md-4 mb-3 mb-md-0">
-                            <label class="form-label small form-name-email-detail-all-th">Passport Expiry Date</label>
-                           <input type="date" class="form-control" id="passport_expiry_date" required>
+                          <label for="passport_expiry_date" class="form-label small form-name-email-detail-all-th">Passport Expiry Date</label>
+                          <input type="date" class="form-control" id="passport_expiry_date" required>
+                          <div class="invalid-feedback">Please enter a valid future expiry date.</div>
                         </div>
                     </div>
                      <?php   } ?>
                      <input type="hidden" name="isPassportRequired" id="isPassportRequired" value="<?php echo esc_attr($isPassportMandatory); ?>">
-                     <input type="hidden" name="isRefundable" id="isRefundable" value="<?php echo esc_attr($IsRefundable); ?>">
+                     <input type="hidden" name="isRefundable" id="isRefundable" value="<?php echo esc_attr($isRefundable); ?>">
                      
                 <!-- Hidden inputs to pass selected flight & trip args -->
-                    <input type="hidden" name="selectedFlightEncoded" id="selectedFlightEncoded" value="<?php echo esc_attr($selectedFlightEncoded); ?>">
                     <input type="hidden" name="tripArgsEncoded" id="tripArgsEncoded" value="<?php echo esc_attr(base64_encode(json_encode($tripArgs))); ?>">
                     <input type="hidden" name="netPrice" id="netPrice" value="<?php echo esc_attr($totalFare); ?>">
+                    <input type="hidden" name="fareType" id="fareType" value="<?php echo esc_attr($fareType); ?>">
+                    
                 </form>
                 <div class="impo-ticket-sms-text-secondary">
                     Your ticket will be delivered through WhatsApp, SMS, phone calls, email, and other available
@@ -396,7 +389,7 @@ get_header();
                                     <input type="text" id="guestNationality" class="hotel-payment-form-control" required />
                                 </div>
                                  <?php if($isPassportMandatory){ ?>
-                                 <div class="hotel-payment-form-group">
+                                <div class="hotel-payment-form-group">
                                     <label>Passport Number:</label>
                                     <input type="text" id="guest_passport_number" class="hotel-payment-form-control" required />
                                 </div>
@@ -404,7 +397,7 @@ get_header();
                                     <label>Passport Issue Country:</label>
                                     <input type="text" id="guest_issue_country" class="hotel-payment-form-control" required />
                                 </div>
-                                 <div class="hotel-payment-form-group">
+                                <div class="hotel-payment-form-group">
                                     <label> Passport Expiry Date:</label>
                                     <input type="date" id="guest_passport_expiry" class="hotel-payment-form-control" required />
                                 </div>
@@ -506,6 +499,8 @@ jQuery(document).ready(function ($) {
     $(".book-now-button-confirm-page").on("click", function (e) {
         e.preventDefault();
 
+        let valid = true; // Declare and initialize the validation flag
+
         let baseUrl = "<?php echo site_url(); ?>";
         let checkoutUrl = baseUrl + "/flightcheckout.php";
         let paymentMethod = $(this).val();
@@ -519,25 +514,56 @@ jQuery(document).ready(function ($) {
         let nationality = $("#nationality").val().trim();
         let isPassportRequired = $("#isPassportRequired").val().trim();
         let isRefundable = $("#isRefundable").val().trim();
-        
-        if (isPassportRequired === "1") {
 
+        // Passport required validations
+        if (isPassportRequired === "1") {
             let passportNumber = $("#passport_number").val().trim();
             let passportIssueCountry = $("#passport_issue_country").val().trim();
             let passportExpiryDate = $("#passport_expiry_date").val().trim();
 
-            if (!title || !firstName || !lastName || !dob || !nationality ||
-            !passportNumber || !passportIssueCountry || !passportExpiryDate) {
-            alert("Please fill in all required fields.");
-            return;
+            if (!title || !firstName || !lastName || !dob || !nationality || 
+                !passportNumber || !passportIssueCountry || !passportExpiryDate) {
+                alert("Please fill in all required fields.");
+                return;
             }
-        }else {
-            if(!title || !firstName || !lastName || !dob || !nationality) {
-                    alert("Please fill in all required fields.");
-                    return;
+
+            // Validate passport number
+            const passportPattern = /^[a-zA-Z0-9]{8,9}$/;
+            if (!passportPattern.test(passportNumber)) {
+                $("#passport_number").addClass('is-invalid');
+                valid = false;
+            } else {
+                $("#passport_number").removeClass('is-invalid');
+            }
+
+            // Validate passport expiry date
+            if (passportExpiryDate) {
+                const expiry = new Date(passportExpiryDate);
+                const today = new Date();
+                const sixMonthsLater = new Date();
+                sixMonthsLater.setMonth(today.getMonth() + 6);
+
+                if (expiry <= sixMonthsLater) {
+                    $("#passport_expiry_date").addClass('is-invalid');
+                    valid = false;
+                } else {
+                    $("#passport_expiry_date").removeClass('is-invalid');
+                }
+            }
+
+        } else {
+            if (!title || !firstName || !lastName || !dob || !nationality) {
+                alert("Please fill in all required fields.");
+                return;
             }
         }
-        // Validate DOB: must be more than 12 years ago (including month and day)
+
+        if (!valid) {
+            alert("Please correct the errors before continuing.");
+            return;
+        }
+
+        // Validate DOB: must be more than 12 years ago
         let enteredDOB = new Date(dob);
         let today = new Date();
 
@@ -546,7 +572,6 @@ jQuery(document).ready(function ($) {
             return;
         }
 
-        // Calculate age
         let age = today.getFullYear() - enteredDOB.getFullYear();
         let m = today.getMonth() - enteredDOB.getMonth();
         let d = today.getDate() - enteredDOB.getDate();
@@ -560,13 +585,12 @@ jQuery(document).ready(function ($) {
             return;
         }
 
-        //  Extract expected guest numbers from URL
+        // Extract expected guest numbers from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const expectedAdults = parseInt(urlParams.get("adults") || 0);
-        const expectedChildren = parseInt(urlParams.get("children") || 0);
-        const expectedInfants = parseInt(urlParams.get("infants") || 0);
+        const expectedAdults = parseInt(urlParams.get("adults") || "0");
+        const expectedChildren = parseInt(urlParams.get("children") || "0");
+        const expectedInfants = parseInt(urlParams.get("infants") || "0");
 
-        //  Collect selected guest IDs and types
         let selectedGuests = [];
         let guests_type = { adult: 1, child: 0, infant: 0 };
 
@@ -585,21 +609,24 @@ jQuery(document).ready(function ($) {
             selectedGuests.push(guestId);
         });
 
-
-        //  Validate guest type counts
-        if (guests_type.adult !== expectedAdults || 
+        // Validate guest type counts
+        if (
+            guests_type.adult !== expectedAdults || 
             guests_type.child !== expectedChildren || 
-            guests_type.infant !== expectedInfants) {
-            alert("Selected guests do not match the flight booking requirements.\n" +
-                  `Expected: ${expectedAdults} adults, ${expectedChildren} children, ${expectedInfants} infant\n` +
-                  `Selected: ${guests_type.adult} adults, ${guests_type.child} children, ${guests_type.infant} infants`);
+            guests_type.infant !== expectedInfants
+        ) {
+            alert(
+                "Selected guests do not match the flight booking requirements.\n" +
+                `Expected: ${expectedAdults} adults, ${expectedChildren} children, ${expectedInfants} infants\n` +
+                `Selected: ${guests_type.adult} adults, ${guests_type.child} children, ${guests_type.infant} infants`
+            );
             return;
         }
 
         // Hidden fields
-        let selectedFlight = $("#selectedFlightEncoded").val();
         let tripArgs = $("#tripArgsEncoded").val();
         let netPrice = $("#netPrice").val();
+        let fareType = $("#fareType").val();
 
         let requestData = {
             action: "confirm_flight_booking",
@@ -609,28 +636,26 @@ jQuery(document).ready(function ($) {
             title: title,
             dob: dob,
             nationality: nationality,
-            selectedFlightEncoded: selectedFlight,
             tripArgsEncoded: tripArgs,
             netPrice: netPrice,
             guests: selectedGuests,
             paymentMethod: paymentMethod,
-            isRefundable: isRefundable
+            isRefundable: isRefundable,
+            fareType: fareType
         };
 
-        // If passport is required, add passport fields
         if (isPassportRequired === "1") {
             requestData.passport_number = $("#passport_number").val().trim();
             requestData.passport_issue_country = $("#passport_issue_country").val().trim();
             requestData.passport_expiry_date = $("#passport_expiry_date").val().trim();
         }
 
-
-        // Send data to PHP
+        // Send data to server
         $.ajax({
             url: checkoutUrl,
             type: "POST",
             dataType: "json",
-              data: requestData,
+            data: requestData,
             success: function (response) {
                 console.log(response);
                 if (response.status === "success") {
@@ -646,6 +671,7 @@ jQuery(document).ready(function ($) {
     });
 });
 </script>
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const guestTypeSelect = document.getElementById('guest_type');
@@ -679,4 +705,56 @@ jQuery(document).ready(function ($) {
     });
   });
 </script>
+<style>
+    .flight-segment-wrapper {
+    background: #f8f8f8;
+    flex-direction: column;
+    border-radius: 6px;
+    padding: 15px 20px;
+    font-family: Arial, sans-serif;
+}
+.flight-time-info.text-start.ps-3 {
+    display: flex
+;
+    gap: 20px;
+    margin-top: 20px;
+    padding-left: 0px ! IMPORTANT;
+}
+.flight-segment-wrapper.d-flex.align-items-start .text-end {
+    text-align: start !important;
+    display: flex
+;
+    align-items: center;
+    gap: 20px;
+}
+.flight-time {
+    font-size: 1.2rem;
+}
+
+.flight-location {
+    font-size: 1rem;
+}
+.bg-white.rounded.p-4.mb-4.dustination-and-weight-condition-in-travelling span.change.of.planes {
+    color: #0b5ed7;
+    font-weight: bold;
+}
+.flight-airport {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.flight-connector .dotted-line {
+    border-left: 2px dashed #ccc;
+    height: 15px;
+    width: 1px;
+}
+
+.flight-duration {
+    font-size: 0.9rem;
+    color: #777;
+}
+.flight-connector.flex-grow-1.d-flex.flex-column.align-items-center.mx-3.mt-3 {
+    margin-left: 0px ! IMPORTANT;
+}
+</style>
 <?php get_footer(); ?>

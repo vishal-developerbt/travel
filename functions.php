@@ -3947,6 +3947,25 @@ function getCityNameByAirPortCode($airportCode) {
 
     return $city ?: 'Unknown City';
 }
+function getAirPortNameByAirPortCode($airportCode) {
+    global $wpdb;
+
+    // Sanitize the input
+    $airportCode = strtoupper(trim($airportCode));
+
+    // Replace with your actual table name if it uses a prefix
+    $table_name = 'airport_list';
+
+    // Query the database
+    $airportName = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT airport_name FROM {$table_name} WHERE airport_code = %s LIMIT 1",
+            $airportCode
+        )
+    );
+
+    return $airportName ?: 'Unknown Airport Name';
+}
 
 function validateFlightFareMethod($sessionId, $fareSourceCode) {
     $url = 'https://travelnext.works/api/aeroVE5/revalidate';

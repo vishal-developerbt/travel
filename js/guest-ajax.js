@@ -29,91 +29,123 @@ jQuery(document).ready(function ($) {
   }
   
 
-  // ✅ Submit Guest Form Start
-  $('#hotelPaymentForm').on('submit', function (e) {
-    e.preventDefault();
-    if (!hotelPaymentValidateForm()) return;
+// ✅ Submit Guest Form Start
+$('#hotelPaymentForm').on('submit', function (e) {
+  e.preventDefault();
 
-    let guestType = $('#guest_type').val();
-    const dob = $('#guestDob').val();
+  if (!hotelPaymentValidateForm()) return;
 
-    if (dob) {
-      const currentDate = new Date();
-      const dobDate = new Date(dob);
+  let guestType = $('#guest_type').val();
+  const dob = $('#guestDob').val();
+  let valid = true;
 
-      let years = currentDate.getFullYear() - dobDate.getFullYear();
-      let months = currentDate.getMonth() - dobDate.getMonth();
-      let days = currentDate.getDate() - dobDate.getDate();
+  if (dob) {
+    const currentDate = new Date();
+    const dobDate = new Date(dob);
 
-      if (months < 0) {
-        years--;
-        months += 12;
-      }
+    let years = currentDate.getFullYear() - dobDate.getFullYear();
+    let months = currentDate.getMonth() - dobDate.getMonth();
+    let days = currentDate.getDate() - dobDate.getDate();
 
-      if (days < 0) {
-        months--;
-        const lastMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-        days += lastMonthDate.getDate();
-      }
-
-      // ✅ Auto-select 'infants' if age is less than 2 years
-      if (
-        years < 2 ||
-        (years === 2 && months === 0 && days === 0) // exactly 2 years still valid
-      ) {
-        $('#guest_type').val('infant');
-        guestType = 'infant';
-      }
-
-      // ❌ Infant validation
-      if (
-        guestType === 'infant' &&
-        (years > 2 || (years === 2 && months > 0) || (years === 2 && months === 0 && days > 0))
-      ) {
-        alert('Infant date of birth must not be more than 2 years ago.');
-        return;
-      }
-
-      // ❌ Child validation
-      if (
-        guestType === 'child' &&
-        (years > 12 || (years === 12 && months > 0) || (years === 12 && months === 0 && days > 0))
-      ) {
-        alert('Child date of birth must not be more than 12 years ago.');
-        return;
-      }
+    if (months < 0) {
+      years--;
+      months += 12;
     }
 
-    let guestData = {
-      action: 'save_guest_data',
-      nonce: guestAjax.nonce,
-      title: $('#guest_title').val(),
-      first_name: $('#first_name').val(),
-      last_name: $('#last_name').val(),
-      guest_type: guestType,
-      dob: dob,
-      nationality: $('#guestNationality').val(),
-      guest_passport_number: $('#guest_passport_number').val(),
-      guest_issue_country: $('#guest_issue_country').val(),
-      guest_passport_expiry: $('#guest_passport_expiry').val(),
-      user_id: $('#user_id').val(),
-      g_id: $('#g_id').val() || ''
-    };
+    if (days < 0) {
+      months--;
+      const lastMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+      days += lastMonthDate.getDate();
+    }
 
-    $.post(guestAjax.ajax_url, guestData, function (response) {
-      if (response.success) {
-        resetGuestForm();
-        hotelPaymentCloseForm();
+    // ✅ Auto-set guest type to infant if < 2 years
+    if (years < 2 || (years === 2 && months === 0 && days === 0)) {
+      $('#guest_type').val('infant');
+      guestType = 'infant';
+    }
 
-        const li = $(`li[data-id="${response.data.id}"]`);
-        if (li.length) li.remove(); // Replace if exists
+    // ❌ Infant DOB validation
+    if (
+      guestType === 'infant' &&
+      (years > 2 || (years === 2 && (months > 0 || days > 0)))
+    ) {
+      alert('Infant date of birth must not be more than 2 years ago.');
+      return;
+    }
 
-        appendGuest(response.data);
-      } else {
-        alert(response.data || 'Error saving guest.');
-      }
-    });
+    // ❌ Child DOB validation
+    if (
+      guestType === 'child' &&
+      (years > 12 || (years === 12 && (months > 0 || days > 0)))
+    ) {
+      alert('Child date of birth must not be more than 12 years ago.');
+      return;
+    }
+  }
+
+  // ✅ Passport validation
+  const passportNumber = $('#guest_passport_number').val().trim();
+  const passportExpiry = $('#guest_passport_expiry').val().trim();
+  const passportNumberPattern = /^[a-zA-Z0-9]{8,9}$/;
+
+  $('#guest_passport_number, #guest_passport_expiry').removeClass('is-invalid');
+
+  if (!passportNumberPattern.test(passportNumber)) {
+    $('#guest_passport_number').addClass('is-invalid');
+    valid = false;
+  }
+
+  if (passportExpiry) {
+    const expiry = new Date(passportExpiry);
+    const today = new Date();
+    const sixMonthsFromNow = new Date();
+    sixMonthsFromNow.setMonth(today.getMonth() + 6);
+
+    if (expiry <= sixMonthsFromNow) {
+      $('#guest_passport_expiry').addClass('is-invalid');
+      valid = false;
+    }
+  } else {
+    $('#guest_passport_expiry').addClass('is-invalid');
+    valid = false;
+  }
+
+  if (!valid) {
+    return;
+  }
+
+  // ✅ Proceed with AJAX submission
+  let guestData = {
+    action: 'save_guest_data',
+    nonce: guestAjax.nonce,
+    title: $('#guest_title').val(),
+    first_name: $('#first_name').val(),
+    last_name: $('#last_name').val(),
+    guest_type: guestType,
+    dob: dob,
+    nationality: $('#guestNationality').val(),
+    guest_passport_number: passportNumber,
+    guest_issue_country: $('#guest_issue_country').val(),
+    guest_passport_expiry: passportExpiry,
+    user_id: $('#user_id').val(),
+    g_id: $('#g_id').val() || ''
+  };
+
+  $.post(guestAjax.ajax_url, guestData, function (response) {
+    if (response.success) {
+      resetGuestForm();
+      hotelPaymentCloseForm();
+
+      const li = $(`li[data-id="${response.data.id}"]`);
+      if (li.length) li.remove();
+
+      appendGuest(response.data);
+    } else {
+      alert(response.data || 'Error saving guest.');
+    }
   });
+});
+
   // ✅ Submit Guest Form End
 
   // ✅ Append Guest to List Start
