@@ -1706,6 +1706,7 @@ function saveMyBookings($data){
                         'transaction_id'=>$params['transaction_id'] ?? '',
                         'booking_id'=>null,
                         'fare_type' => $params['fare_type'],
+                        'is_refundable' => $params['is_refundable'],
                         "created_at"=>current_time('mysql'),
                         "updated_at "=>current_time('mysql'),
                     ];
@@ -1807,7 +1808,7 @@ function saveFlightBookingdata  ($data) {
     $query = "INSERT INTO flight_booking_details (
         customer_id, trip_type, title, first_name, last_name, phone, email, dob, nationality, passenger_type,
         destination_from, destination_to, departure_date, return_date, travel_class, adults_qty, children_qty, infants_qty,
-        session_id, fare_source_code, amount, payment_status, booking_status, transaction_id, booking_id,fare_type, created_at, updated_at
+        session_id, fare_source_code, amount, payment_status, booking_status, transaction_id, booking_id,fare_type,is_refundable, created_at, updated_at
     ) VALUES " . implode(', ', $placeholders);
 
     // Execute the query with the prepared values
