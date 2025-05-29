@@ -148,7 +148,7 @@
                     <label class="rooms-home-page-text">
                         <div class="d-flex gap-1 align-items-center">
                             <div>
-                                <i class="fa-solid fa-plane    aeroplane-image-home-page"></i>
+                                <i class="fa-solid fa-plane aeroplane-image-home-page"></i>
                             </div>
                             <div>
                                 <span class="departure-text-home-page">From</span>
@@ -157,9 +157,7 @@
                     </label>
                     <input type="text" class="form-control" id="departure_airport" name="departure_airport" placeholder="Departure Airport">
                </div> 
-               <?php //echo do_shortcode('[airport_dropdown]') ?>
-
-    
+                  
                 <div class="col-12 col-md-6 col-lg-2 text-start location-flight-section">
                     <label class="fw-bold loaction-text-homepage">
                         <i class="fa-solid fa-location-dot"></i> To
@@ -559,7 +557,7 @@
                 origin,
                 destination,
                 departureDate,
-                returnDate: tripType === 'RoundTrip' ? returnDate : '',
+                returnDate: tripType === 'Return' ? returnDate : '',
                 class: travelClass,
                 adults,
                 children,
@@ -582,14 +580,4 @@
     }
 
 </script>
-
-
-<!-- <script >
-    $(document).ready(function() {
-  $('select').selectize({
-    sortField: 'text'
-  });
-});
-</script> -->
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
