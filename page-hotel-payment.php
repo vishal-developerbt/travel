@@ -183,40 +183,42 @@ function formatRoomData($roomData) {
         <!-- User Form -->
           <div class="rounded p-4 Traveller-details-in-booking-sec">
               <div class="rounded Traveller-details-in-booking-sec">
-                <h2 class="fs-5 fw-bold mb-3 details-fare-det-tra-offert">Your Details</h2>
+                <h2 class="fs-5 fw-bold mb-3 details-fare-det-tra-offert">Traveller Details</h2>
                 <form id="travelerForm">
                   <div class="row mb-3">
-                    <div class="col-md-4 mb-3 mb-md-0">
-                      <label class="form-label small form-name-email-detail-all-th">Gender</label>
+                    <div class="col-md-6 mb-3 mb-md-0">
+                      <label class="form-label small form-name-email-detail-all-th">Gender<span class="star-section-red-color">*</span></label>
                       <select name="title" id="title" class="form-select hotel-payment-form-control">
                           <option value="Mr">Mr</option>
                           <option value="Mrs">Mrs</option>
                       </select>
                     </div>
                     <div class="col-md-6 mb-3 mb-md-0">
-                      <label class="form-label small form-name-email-detail-all-th">First Name</label>
+                      <label class="form-label small form-name-email-detail-all-th">First Name<span class="star-section-red-color">*</span></label>
                       <input type="text" class="form-control" id="firstName" value="<?php echo $first_name; ?>"required>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label small form-name-email-detail-all-th">Last Name</label>
+                      <label class="form-label small form-name-email-detail-all-th">Last Name<span class="star-section-red-color">*</span></label>
                       <input type="text" class="form-control" id="lastName" value="<?php echo $last_name; ?>" required>
                     </div>
-                  </div>
+               
 
-                  <div class="row mb-3">
+                  
                     <div class="col-md-6 mb-3 mb-md-0">
-                      <label class="form-label small form-name-email-detail-all-th">Phone Number</label>
+                      <label class="form-label small form-name-email-detail-all-th">Phone Number<span class="star-section-red-color">*</span></label>
                       <input type="tel" class="form-control" id="phone" value="<?php echo $phone; ?>" required>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label small form-name-email-detail-all-th">Email Address</label>
+                      <label class="form-label small form-name-email-detail-all-th">Email Address<span class="star-section-red-color">*</span></label>
                       <input type="email" class="form-control" id="email" value="<?php echo $email; ?>" required>
                     </div>
-                  </div>
 
-                  <div class="special-requests-wrapper mb-4">
+                
+
+                  <div class="col-md-6 special-requests-wrapper mb-4">
                     <label class="form-name-email-detail-all-th">Special requests to hotel</label>
-                    <textarea class="requests-input form-control" rows="4"></textarea>
+                    <input type="text" class="form-control requests-input ">
+                    <!-- <textarea class="requests-input form-control" rows="4"></textarea> -->
                   </div>
 
                   <div class="terms-wrapper form-check mb-4">
@@ -225,9 +227,10 @@ function formatRoomData($roomData) {
                       By proceeding, I agree to BookATravel Privacy Policy, User Agreement & Terms of Service
                     </label>
                   </div>
+                     </div>
                   <input type="hidden" name="pid" value="<?php echo $productId ; ?>">
                   <input type="hidden" name="rateBasisId" value="<?php echo $rateBasisId; ?>">
-                  <input type="hidden" name="netPrice" value="<?php echo $price; ?>">
+                  <input type="hidden" name="netPrice" value="<?php echo $roomPrice; ?>">
                </form>
 
                <!-- Guest Form start -->
@@ -389,9 +392,9 @@ jQuery(document).ready(function ($) {
         let checkoutUrl = baseUrl + "/checkout.php";
 
         // Clean the visible net price and assign to hidden input
-        let netPriceText = $(".amount-money-count-only-items").text().trim();
-        let visibleNetPrice = netPriceText.replace(/[^0-9.]/g, "");
-        $("input[name='netPrice']").val(visibleNetPrice);
+        // let netPriceText = $(".amount-money-count-only-items").text().trim();
+        // let visibleNetPrice = netPriceText.replace(/[^0-9.]/g, "");
+        // $("input[name='netPrice']").val(visibleNetPrice);
 
         // Collect form inputs
         let title = $("#title").val().trim();
