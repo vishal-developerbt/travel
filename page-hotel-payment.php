@@ -387,14 +387,8 @@ jQuery(document).ready(function ($) {
 
         // Payment method from the clicked button
         let paymentMethod = $(this).val();
-
         let baseUrl = window.location.origin;
         let checkoutUrl = baseUrl + "/checkout.php";
-
-        // Clean the visible net price and assign to hidden input
-        // let netPriceText = $(".amount-money-count-only-items").text().trim();
-        // let visibleNetPrice = netPriceText.replace(/[^0-9.]/g, "");
-        // $("input[name='netPrice']").val(visibleNetPrice);
 
         // Collect form inputs
         let title = $("#title").val().trim();
