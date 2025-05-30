@@ -35,7 +35,6 @@ get_header();
         window.history.back();
     </script>";
     exit;
-        // echo "Response not getting from validateFlightFareMethod Api ";
     }   
    
     $isRefundable = $fare['AirItineraryFareInfo']['IsRefundable'];
@@ -201,18 +200,14 @@ get_header();
 
                 <!-- Duration -->
                 <div class="flight-connector d-flex flex-column align-items-center mx-3 mt-4">
-    <div class="dot-circle"></div> <!-- Top circle -->
-
-    <div class="dotted-line flex-grow-1"></div>
-
-    <div class="flight-duration text-muted my-1">
-        <?php echo esc_html($durationFormatted); ?>
-    </div>
-
-    <div class="dotted-line flex-grow-1"></div>
-
-    <div class="dot-circle"></div> <!-- Bottom circle -->
-</div>
+                    <div class="dot-circle"></div> <!-- Top circle -->
+                    <div class="dotted-line flex-grow-1"></div>
+                    <div class="flight-duration text-muted my-1">
+                        <?php echo esc_html($durationFormatted); ?>
+                    </div>
+                    <div class="dotted-line flex-grow-1"></div>
+                    <div class="dot-circle"></div> <!-- Bottom circle -->
+                </div>
 
 
                 <!-- Arrival -->
@@ -239,12 +234,9 @@ get_header();
             </div>
         </section>
         <?php  }
-
         echo "<br></section>
-
         <br>";
             }
-
         ?>
                
             </div>

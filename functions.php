@@ -251,7 +251,6 @@ function fetch_booking_listings() {
 
     // Decode JSON response
     $data = json_decode($body, true);
-die('test fetch_booking_listings');
     // Ensure both `status` and `itineraries` exist in response
     return [
         'status' => isset($data['status']) ? $data['status'] : [],
@@ -326,7 +325,6 @@ setcookie('hotel_occupancy_data', $occupancy_serialized, time() + 3600, "/");
         $city_name = $city_data['city_name'];
         $country_name = $city_data['country_name'];
     }
-   // echo "rooms----".print_r($rooms);
 
     // API request body
     $request_body = array(
@@ -345,7 +343,6 @@ setcookie('hotel_occupancy_data', $occupancy_serialized, time() + 3600, "/");
         "occupancy" => $occupancy
     );
 
-//echo "<pre>+"; print_r($request_body); die;
     // API Request
     $response = wp_remote_post($api_url, array(
         'body'    => json_encode($request_body),
@@ -625,8 +622,6 @@ function render_airport_dropdown() {
 
     ob_start(); ?>
     
-    
-
         <!-- Departure Airport Dropdown -->
         <div class="col-md-2 text-start location-flight-section">
             <label class="fw-bold loaction-text-homepage">
@@ -656,10 +651,6 @@ function render_airport_dropdown() {
                 <?php endforeach; ?>
             </select>
         </div>
-
-
-    
-
     <?php
     return ob_get_clean();
 }
@@ -720,7 +711,7 @@ function get_airport_suggestions() {
 
         $suggestions[] = [
             'label' => $label,
-            'value' => $label//$airport['airport_code'] // this will be set as input value
+            'value' => $label
         ];
     }
 
@@ -793,30 +784,6 @@ function save_guest_data_callback() {
         }
     }
 }
-// function save_guest_data_callback() {
-//     check_ajax_referer('guest_nonce', 'nonce');
-//     global $wpdb;
-//     $table = 'flight_booking_guest_details';
-
-//     $data = array(
-//         'parent_user_id' => intval($_POST['user_id']),
-//         'guest_type' => sanitize_text_field($_POST['guest_type']),
-//         'title' => sanitize_text_field($_POST['title']),
-//         'first_name' => sanitize_text_field($_POST['first_name']),
-//         'last_name' => sanitize_text_field($_POST['last_name']),
-//         'dob' => sanitize_text_field($_POST['dob']),
-//         'nationality' => sanitize_text_field($_POST['nationality']),
-//     );
-
-//     $insert = $wpdb->insert($table, $data);
-
-//     if ($insert) {
-//         $id = $wpdb->insert_id;
-//         wp_send_json_success(array_merge($data, ['id' => $id]));
-//     } else {
-//         wp_send_json_error('Database insert failed.');
-//     }
-// }
 
 add_action('wp_ajax_get_flight_booking_guests', 'get_flight_booking_guests_callback');
 
@@ -1035,9 +1002,6 @@ function get_hotel_guest_by_id_callback() {
     }
 }
 
-
-
-
 add_action('rest_api_init', function () {
         register_rest_route('myplugin/v1', '/hotel-search', [
             'methods'  => 'POST',
@@ -1163,7 +1127,7 @@ function get_hotel_details_proxy($request) {
 }
 
 
-  //Check More Hotels Request
+    //Check More Hotels Request
     // https://travel.nexdew.com/wp-json/myplugin/v1/hotel-search
 
     add_action('rest_api_init', function () {
@@ -1193,8 +1157,8 @@ function get_hotel_details_proxy($request) {
      
         return rest_ensure_response($data);
     }
-  //Hotel Room Rates Request
-    //// https://travel.nexdew.com/wp-json/myplugin/v1/hotel-search
+    //Hotel Room Rates Request
+    //https://travel.nexdew.com/wp-json/myplugin/v1/hotel-search
 
 
     add_action('rest_api_init', function () {
@@ -1205,7 +1169,6 @@ function get_hotel_details_proxy($request) {
         ]);
     });
 
-     
     function my_custom_get_hotel_room_rates($request) {
         $params = $request->get_json_params(); // Get POST data sent by client
         $travelxHotelApi = get_option('travelx_hotel_api');
@@ -1225,7 +1188,7 @@ function get_hotel_details_proxy($request) {
      
         return rest_ensure_response($data);
     }
-//Hotel Check Room Rates Request
+    //Hotel Check Room Rates Request
     // https://travel.nexdew.com/wp-json/myplugin/v1/get-rate_rules
 
 
@@ -1258,8 +1221,8 @@ function get_hotel_details_proxy($request) {
         return rest_ensure_response($data);
     }
 
-     //Hotel Booking Request
-    //// https://travel.nexdew.com/wp-json/myplugin/v1/hotel-book
+    //Hotel Booking Request
+    // https://travel.nexdew.com/wp-json/myplugin/v1/hotel-book
 
 
     add_action('rest_api_init', function () {
@@ -1274,7 +1237,7 @@ function get_hotel_details_proxy($request) {
    function my_custom_hotel_book($request) {
         $params = $request->get_json_params(); // Get POST data sent by client
         $customerPhone = $params['customerPhone'];
-$insertData = [];
+        $insertData = [];
 
 foreach ($params['paxDetails'] as $room) {
     $roomNo = $room["room_no"];
@@ -1348,8 +1311,6 @@ foreach ($params['paxDetails'] as $room) {
 }
 
   saveMyBookings($insertData);
-
- //echo "<pre>"; print_r($insertData); die;
 
         $travelxHotelApi = get_option('travelx_hotel_api');
         $response = wp_remote_post($travelxHotelApi.'/hotel_book', [
@@ -1436,8 +1397,6 @@ function saveMyBookings($data){
 
       //Hotel Booking Request
     //// https://travel.nexdew.com/wp-json/myplugin/v1/booking-details
-
-
     add_action('rest_api_init', function () {
         register_rest_route('myplugin/v1', '/booking-details', [
             'methods'  => 'POST',
@@ -1446,7 +1405,6 @@ function saveMyBookings($data){
         ]);
     });
 
-     
     function my_custom_hotel_booking_details($request) {
         $params = $request->get_json_params(); // Get POST data sent by client
         $params['user_id'] = get_option('travelx_user_id');
@@ -1471,8 +1429,8 @@ function saveMyBookings($data){
         return rest_ensure_response($data);
     }
 
-     //Hotel Booking Cancel Request
-    //// https://travel.nexdew.com/wp-json/myplugin/v1/hotel-booking-cancel
+    //Hotel Booking Cancel Request
+    // https://travel.nexdew.com/wp-json/myplugin/v1/hotel-booking-cancel
 
 
     add_action('rest_api_init', function () {
@@ -1483,7 +1441,7 @@ function saveMyBookings($data){
         ]);
     });
 
-     function my_custom_hotel_booking_cancel($request) {
+    function my_custom_hotel_booking_cancel($request) {
     global $wpdb;
 
     $params = $request->get_json_params();
@@ -1535,8 +1493,7 @@ function saveMyBookings($data){
     return rest_ensure_response($data);
 }
 
-
-      //Hotel city suggestions Request
+    //Hotel city suggestions Request
     // https://travel.nexdew.com/wp-json/myplugin/v1/get-city
 
 
@@ -1549,8 +1506,7 @@ function saveMyBookings($data){
     });
 
     // API FOR FLIGHT BOOKING
-
-   // https://travel.nexdew.com/wp-json/myplugin/v1/flight-availability
+    // https://travel.nexdew.com/wp-json/myplugin/v1/flight-availability
 
     add_action('rest_api_init', function () {
         register_rest_route('myplugin/v1', '/flight-availability', [
@@ -1563,7 +1519,7 @@ function saveMyBookings($data){
      
     function my_custom_flight_availability($request) {
         $params = $request->get_json_params(); // Get POST data sent by client
-         $params['user_id'] = get_option('travelx_user_id');
+        $params['user_id'] = get_option('travelx_user_id');
         $params['user_password'] = get_option('travelx_user_password');
         $params['access'] = get_option('travelx_access');
         $params['ip_address'] = get_option('travelx_user_ip_address');
@@ -1576,7 +1532,6 @@ function saveMyBookings($data){
             'body' => json_encode($params),
             'timeout' => 50,
         ]);
-     //echo "<pre>"; print_r($response); die;
         if (is_wp_error($response)) {
             return new WP_Error('api_error', 'Unable to reach travelnext API', ['status' => 500]);
         }
@@ -1735,8 +1690,6 @@ function saveMyBookings($data){
             }
         }
     }
-// echo "<pre>++++"; print_r(json_encode($insertData)); die;
-
 
     $logPath = $logDir . '/flight-logs.log';
     $logMessage = '[' . date('Y-m-d H:i:s') . '] Customer Detail for Flight Booking:: '.json_encode($insertData) . PHP_EOL;
@@ -1751,7 +1704,7 @@ function saveMyBookings($data){
             'body' => json_encode($params),
             'timeout' => 50,
         ]);
-     //echo "<pre>"; print_r($response); die();
+
         if (is_wp_error($response)) {
             return new WP_Error('api_error', 'Unable to reach travelnext API', ['status' => 500]);
         }
@@ -1762,17 +1715,13 @@ function saveMyBookings($data){
 
         $logPath = $logDir . '/flight-logs.log';
         $logMessage = '[' . date('Y-m-d H:i:s') . '] Flight Booking Response:: '.json_encode($response_json) .'bookingSessionId: '.$bookingSessionId. PHP_EOL;
-    file_put_contents($logPath, $logMessage, FILE_APPEND | LOCK_EX);
-     updateFlightBookingdata($response_json, $bookingSessionId);
-//echo"<pre>"; print_r($response_json);
+        file_put_contents($logPath, $logMessage, FILE_APPEND | LOCK_EX);
+        updateFlightBookingdata($response_json, $bookingSessionId);
         return rest_ensure_response($response_json);
     }
 
 function updateFlightBookingData($response_json, $bookingSessionId) {
     global $wpdb;
-
-    
-
     // Extract status and booking ID from the response
     $status = strtoupper($response_json['BookFlightResponse']['BookFlightResult']['Status'] ?? '');
     $transaction_id = $response_json['BookFlightResponse']['BookFlightResult']['UniqueID'] ?? null;
@@ -1871,7 +1820,7 @@ function saveFlightBookingdata  ($data) {
         return rest_ensure_response($data);
     }
 
-        //Flight Ticket Order Request
+    //Flight Ticket Order Request
     //https://travel.nexdew.com/wp-json/myplugin/v1/ticket-order
 
     add_action('rest_api_init', function () {
@@ -1906,7 +1855,7 @@ function saveFlightBookingdata  ($data) {
      
         return rest_ensure_response($data);
     }
- // Flight Cancel Request
+    // Flight Cancel Request
     // https://travel.nexdew.com/wp-json/myplugin/v1/flight-cancel
 
     add_action('rest_api_init', function () {
@@ -1918,7 +1867,7 @@ function saveFlightBookingdata  ($data) {
     });
 
      
-     function my_custom_flight_trip_cancel($request) {
+    function my_custom_flight_trip_cancel($request) {
     global $wpdb;
 
     $params = $request->get_json_params(); // Get POST data sent by client
@@ -1949,9 +1898,7 @@ function saveFlightBookingdata  ($data) {
         $data['CancelBookingResponse']['CancelBookingResult']['Success'] === "true"
     ) {
         $cancelledBookingID = sanitize_text_field($data['CancelBookingResponse']['CancelBookingResult']['UniqueID']);
-
         $table = 'flight_booking_details';
-
         $wpdb->update(
             $table,
             [
@@ -2078,7 +2025,7 @@ function saveFlightBookingdata  ($data) {
         return rest_ensure_response($data);
     }
 
-    //     //Customer Register Api
+    //Customer Register Api
     function custom_user_register($request) {
 
         $first_name = sanitize_text_field($request['first_name']);
@@ -2130,7 +2077,7 @@ function saveFlightBookingdata  ($data) {
         if (!class_exists('Firebase\JWT\JWT')) {
             require_once ABSPATH . 'wp-content/plugins/jwt-authentication-for-wp-rest-api/includes/vendor/firebase/php-jwt/src/JWT.php';
         }
-// Retrieve the profile picture ID and get the URL
+       // Retrieve the profile picture ID and get the URL
             $profile_pic_id = get_user_meta($user->ID, 'user_registration_profile_pic_url', true);
             $profile_pic_url = $profile_pic_id ? wp_get_attachment_url($profile_pic_id) :'';
         $token = \Firebase\JWT\JWT::encode($payload, $secret_key, 'HS256');
@@ -2158,36 +2105,6 @@ function saveFlightBookingdata  ($data) {
             'permission_callback' => '__return_true', // Consider securing this for production
         ]);
     });
-
-    // function custom_user_register($request) {
-    //     $username = sanitize_text_field($request['username']);
-    //     $email    = sanitize_email($request['email']);
-    //     $phone    = sanitize_text_field($request['phone']);
-    //     $password = $request['password'];
-
-    //     if (empty($username) || empty($email) || empty($password) || empty($phone)) {
-    //         return new WP_Error('missing_fields', 'Username, email, and password are required.', ['status' => 400]);
-    //     }
-
-    //     if (username_exists($username) || email_exists($email)) {
-    //         return new WP_Error('user_exists', 'Username or email already exists.', ['status' => 409]);
-    //     }
-
-    //     $user_id = wp_create_user($username, $password, $email, $phone);
-
-    //     if (is_wp_error($user_id)) {
-    //         return new WP_Error('registration_failed', 'User registration failed.', ['status' => 500]);
-    //     }
-
-    //     return new WP_REST_Response([
-    //         'success' => true,
-    //         'user_id' => $user_id,
-    //          'username' => $username,
-    //         'email' => $email,
-    //         'phone' => $phone,
-    //         'message' => 'User registered successfully.'
-    //     ], 201);
-    // }
 
        //Customer Login Api
         add_action('rest_api_init', function () {
@@ -2411,46 +2328,6 @@ function custom_upload_base64_image($base64_image, $user_id) {
 
     return $attach_id;
 }
-
-//     add_action('rest_api_init', function () {
-//         register_rest_route('custom/v1', '/update-profile', [
-//             'methods'  => 'POST',
-//             'callback' => 'custom_update_user_profile',
-//             'permission_callback' => function () {
-//                 return is_user_logged_in(); // requires authentication
-//             }
-//         ]);
-//     });
-
-//     function custom_update_user_profile($request) {
-//     $user = wp_get_current_user();
-
-//     $first_name = sanitize_text_field($request['first_name']);
-//     $last_name  = sanitize_text_field($request['last_name']);
-//     $phone      = sanitize_text_field($request['phone']);
-
-//     $user_data = [
-//         'ID'         => $user->ID,
-//         'first_name' => $first_name,
-//         'last_name'  => $last_name,
-//     ];
-
-//     // Update user profile fields
-//     wp_update_user($user_data);
-
-//     // Update phone as user meta
-//     update_user_meta($user->ID, 'phone', $phone);
-
-//     return new WP_REST_Response([
-//         'success' => true,
-//         'message' => 'Profile updated successfully.',
-//         'data' => [
-//             'first_name' => $first_name,
-//             'last_name'  => $last_name,
-//             'phone'      => $phone
-//         ]
-//     ], 200);
-// }
 
 /*for User Hotel Bokking detail Get by APi*/
 
@@ -2971,7 +2848,6 @@ function fetch_most_popular_hotels_listings() {
         // Ensure the values are unique
         $travelx_hotel_ids = array_unique($travelx_hotel_ids);
     }
-//echo "<pre>"; print_r($travelx_hotel_ids);
     // Prepare the body for the API request with dynamic hotelCodes
     $body = [
         "user_id" => get_option('travelx_user_id'),
@@ -3007,7 +2883,6 @@ function fetch_most_popular_hotels_listings() {
     $data = json_decode(wp_remote_retrieve_body($response), true);
     
     // Display response as pretty JSON
-  // echo '<pre>' . print_r($data, true) . '</pre>';
       return [
          'status' => isset($data['status']) ? $data['status'] : [],
         'itineraries' => isset($data['itineraries']) ? $data['itineraries'] : []
@@ -3372,7 +3247,6 @@ function fetch_Whislist_hotels_listings($hotelid) {
         ],
         "requiredCurrency" => get_option('travelx_required_currency')
     ];
- //echo json_encode($body);
     
     $response = wp_remote_post($api_url, [
         'headers' => [
@@ -3389,7 +3263,6 @@ function fetch_Whislist_hotels_listings($hotelid) {
     $data = json_decode(wp_remote_retrieve_body($response), true);
     
     // Display response as pretty JSON
-  // echo '<pre>' . print_r($data, true) . '</pre>';
       return [
          'status' => isset($data['status']) ? $data['status'] : [],
         'itineraries' => isset($data['itineraries']) ? $data['itineraries'] : []
@@ -3530,20 +3403,6 @@ function send_custom_flight_booking_email($user_email, $user_name, $booking_id) 
     wp_mail($to, $subject, $message, $headers);
 }
 
-
-// add_action('rest_api_init', function () {
-//     register_rest_route('custom-api/v1', '/airport-suggestions', [
-//         'methods'  => 'GET',
-//         'callback' => 'rest_get_airport_suggestions',
-//         'permission_callback' => '__return_true',
-//         'args' => [
-//             'term' => [
-//                 'required' => true,
-//                 'sanitize_callback' => 'sanitize_text_field'
-//             ]
-//         ]
-//     ]);
-// });
 add_action('rest_api_init', function () {
     register_rest_route('custom-api/v1', '/airport-suggestions', [
         'methods'  => ['GET', 'POST'],
