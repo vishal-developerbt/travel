@@ -1047,58 +1047,77 @@ add_action('rest_api_init', function () {
     });
      
     function my_custom_hotel_search($request) {
-
-    $params = $request->get_json_params(); 
+    // Retrieve parameters from the request
+    $params = $request->get_json_params();
+    
+    // Add user-specific settings
     $params['user_id'] = get_option('travelx_user_id');
     $params['user_password'] = get_option('travelx_user_password');
     $params['access'] = get_option('travelx_access');
     $params['ip_address'] = get_option('travelx_user_ip_address');
     //$params['requiredCurrency'] = get_option('travelx_required_currency');
+    
+    // Get the TravelX hotel API URL
     $travelxHotelApi = get_option('travelx_hotel_api');
+    
+    // Sanitize the inputs
     $cityName = isset($params['city_name']) ? sanitize_text_field($params['city_name']) : '';
     $countryName = isset($params['country_name']) ? sanitize_text_field($params['country_name']) : '';
-        global $wpdb;
-          if($countryName ==''){
-             $city_data = $wpdb->get_row(
+
+    // Default to empty city and country if nothing provided
+    if (!$cityName || !$countryName) {
+        return new WP_Error('invalid_parameters', 'City and Country are required.', ['status' => 400]);
+    }
+    
+    // Fetch city data from the database if country is not provided
+    global $wpdb;
+    if (empty($countryName)) {
+        $city_data = $wpdb->get_row(
             $wpdb->prepare("SELECT city_name, country_name FROM wp_cities WHERE city_name LIKE %s LIMIT 1", $cityName),
             ARRAY_A
         );
-      }
-        if ($city_data) {
+    }
+
+    // Check if we have a valid city and country from the database
+    if ($city_data) {
         $params['city_name'] = $city_data['city_name'];
         $params['country_name'] = $city_data['country_name'];
     }
 
-    
-    $response = wp_remote_post($travelxHotelApi.'/hotel_search', [
-    'timeout' => 20, // default is 5-15 seconds, you can try 20-30
-    'headers' => [ 'Content-Type' => 'application/json' ],
-    'body'    => json_encode($params),
-]); 
-  if (is_wp_error($response)) {
-    $error_code = $response->get_error_code();
-    $error_message = $response->get_error_message();
-    $error_data = $response->get_error_data(); // Can be array, string, or null
+    // Send API request to TravelX API
+    $response = wp_remote_post($travelxHotelApi . '/hotel_search', [
+        'timeout' => 50, // Adjust timeout as needed
+        'headers' => ['Content-Type' => 'application/json'],
+        'body'    => json_encode($params),
+    ]);
 
-    // Log it (optional, useful for debugging)
-    error_log("API Error [$error_code]: $error_message");
-    if ($error_data) {
-        error_log('Error Data: ' . print_r($error_data, true));
+    // Handle errors if the request fails
+    if (is_wp_error($response)) {
+        $error_code = $response->get_error_code();
+        $error_message = $response->get_error_message();
+        $error_data = $response->get_error_data();  // Optional, log or return as needed
+
+        error_log("API Error [$error_code]: $error_message");
+        if ($error_data) {
+            error_log('Error Data: ' . print_r($error_data, true));
+        }
+
+        return new WP_Error('api_error', "API Error [$error_code]: $error_message", [
+            'status' => 500,
+            'details' => $error_data,
+        ]);
     }
 
-    // Return a detailed WP_Error
-    return new WP_Error(
-        'api_error',
-        "TravelNext API Error [$error_code]: $error_message",
-        [
-            'status' => 500,
-            'details' => $error_data
-        ]
-    );
-}
- 
+    // Parse the response body
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body, true);
+
+    // Validate the response data
+    if (empty($data) || !is_array($data)) {
+        return new WP_Error('invalid_response', 'The API returned invalid data.', ['status' => 500]);
+    }
+
+    // Return a successful response with the data
     return rest_ensure_response($data);
 }
 
@@ -3933,8 +3952,7 @@ function getCityNameByAirPortCode($airportCode) {
     global $wpdb;
 
     // Sanitize the input
-    //$airportCode = strtoupper(trim($airportCode));
-    $airportCode = strtoupper(trim($airportCode ?? ''));
+    $airportCode = strtoupper(trim($airportCode));
 
     // Replace with your actual table name if it uses a prefix
     $table_name = 'airport_list';
@@ -3947,7 +3965,7 @@ function getCityNameByAirPortCode($airportCode) {
         )
     );
 
-    return $city ?: 'Unknown City';
+    return $city ?: '';
 }
 function getAirPortNameByAirPortCode($airportCode) {
     global $wpdb;
