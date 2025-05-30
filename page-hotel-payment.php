@@ -47,7 +47,6 @@ $tokenId = isset($_GET['token_id']) ? sanitize_text_field($_GET['token_id']) : '
 $rateBasisId = isset($_GET['rate_basis_id']) ? sanitize_text_field($_GET['rate_basis_id']) : '';
 $roomPrice = isset($_GET['price']) ? sanitize_text_field($_GET['price']) : '';
 $hotelDetails = fetch_hotel_details_by_id($hotelId,$productId,$tokenId,$sessionId);
-//echo "<pre>"; print_r($hotelDetails);die;
 // Calculate number of nights
 $day_checkIn = new DateTime($checkin);
 $day_checkOut = new DateTime($checkout);
@@ -68,7 +67,6 @@ function formatRoomData($roomData) {
     if ($children > 0) {
         $output .= $children == 1 ? ", 1 Child" : ", $children Children";
     }
-
     return $output;
 }
  ?>
@@ -185,40 +183,42 @@ function formatRoomData($roomData) {
         <!-- User Form -->
           <div class="rounded p-4 Traveller-details-in-booking-sec">
               <div class="rounded Traveller-details-in-booking-sec">
-                <h2 class="fs-5 fw-bold mb-3 details-fare-det-tra-offert">Your Details</h2>
+                <h2 class="fs-5 fw-bold mb-3 details-fare-det-tra-offert">Traveller Details</h2>
                 <form id="travelerForm">
                   <div class="row mb-3">
-                    <div class="col-md-4 mb-3 mb-md-0">
-                      <label class="form-label small form-name-email-detail-all-th">Gender</label>
+                    <div class="col-md-6 mb-3 mb-md-0">
+                      <label class="form-label small form-name-email-detail-all-th">Gender<span class="star-section-red-color">*</span></label>
                       <select name="title" id="title" class="form-select hotel-payment-form-control">
                           <option value="Mr">Mr</option>
                           <option value="Mrs">Mrs</option>
                       </select>
                     </div>
                     <div class="col-md-6 mb-3 mb-md-0">
-                      <label class="form-label small form-name-email-detail-all-th">First Name</label>
+                      <label class="form-label small form-name-email-detail-all-th">First Name<span class="star-section-red-color">*</span></label>
                       <input type="text" class="form-control" id="firstName" value="<?php echo $first_name; ?>"required>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label small form-name-email-detail-all-th">Last Name</label>
+                      <label class="form-label small form-name-email-detail-all-th">Last Name<span class="star-section-red-color">*</span></label>
                       <input type="text" class="form-control" id="lastName" value="<?php echo $last_name; ?>" required>
                     </div>
-                  </div>
+               
 
-                  <div class="row mb-3">
+                  
                     <div class="col-md-6 mb-3 mb-md-0">
-                      <label class="form-label small form-name-email-detail-all-th">Phone Number</label>
+                      <label class="form-label small form-name-email-detail-all-th">Phone Number<span class="star-section-red-color">*</span></label>
                       <input type="tel" class="form-control" id="phone" value="<?php echo $phone; ?>" required>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label small form-name-email-detail-all-th">Email Address</label>
+                      <label class="form-label small form-name-email-detail-all-th">Email Address<span class="star-section-red-color">*</span></label>
                       <input type="email" class="form-control" id="email" value="<?php echo $email; ?>" required>
                     </div>
-                  </div>
 
-                  <div class="special-requests-wrapper mb-4">
+                
+
+                  <div class="col-md-6 special-requests-wrapper mb-4">
                     <label class="form-name-email-detail-all-th">Special requests to hotel</label>
-                    <textarea class="requests-input form-control" rows="4"></textarea>
+                    <input type="text" class="form-control requests-input ">
+                    <!-- <textarea class="requests-input form-control" rows="4"></textarea> -->
                   </div>
 
                   <div class="terms-wrapper form-check mb-4">
@@ -227,22 +227,14 @@ function formatRoomData($roomData) {
                       By proceeding, I agree to BookATravel Privacy Policy, User Agreement & Terms of Service
                     </label>
                   </div>
+                     </div>
                   <input type="hidden" name="pid" value="<?php echo $productId ; ?>">
                   <input type="hidden" name="rateBasisId" value="<?php echo $rateBasisId; ?>">
-                  <input type="hidden" name="netPrice" value="<?php echo $price; ?>">
-                
-                  <div class="d-flex justify-content-center mt-4">
-                    <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
-                      style="max-width: 500px;" name="payment_method" value="stripe" id="confirmBtn">
-                      Pay with Stripe
-                    </button>
-                     <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
-                      style="max-width: 500px;" name="payment_method" value="crypto" id="confirmBtn">
-                     Pay with Crypto
-                    </button>
-                  </div>
-              </form>
-            <div class="add-guest-only-sec">
+                  <input type="hidden" name="netPrice" value="<?php echo $roomPrice; ?>">
+               </form>
+
+               <!-- Guest Form start -->
+                        <div class="add-guest-only-sec">
               <!-- Trigger Button -->
               <button class="hotel-btn-submit add-guest-main-btn-1" onclick="hotelPaymentOpenForm()">
                 Add Guest <span style="margin-right: 8px; font-size: 14px;">➕</span>
@@ -295,6 +287,40 @@ function formatRoomData($roomData) {
                 </div>
               </div>
             </div>
+                  <!-- Guest Form End -->
+                  <div class="d-flex justify-content-center mt-4">
+                    <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
+                      style="max-width: 500px;" name="payment_method" value="stripe" id="confirmBtn">
+                      Pay with Stripe
+                    </button>
+                     <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
+                      style="max-width: 500px;" name="payment_method" value="crypto" id="confirmBtn">
+                     Pay with Crypto
+                    </button>
+                  </div> 
+
+                  <div class="d-flex justify-content-between">
+                  <div class="total-amount-be-paid">Total Amount</div>
+                  <div class="amount-money-count-only-items">
+                      <?php
+                      $currency = get_option('travelx_required_currency');
+                      $symbol = ($currency === 'USD') ? '$' : esc_html($currency);
+                     
+                      $roomCount = 1;
+                      $nightCount = 1;
+
+                      if (isset($_GET['checkin']) && isset($_GET['checkout'])) {
+                          $checkinDate = new DateTime($_GET['checkin']);
+                          $checkoutDate = new DateTime($_GET['checkout']);
+                          $nightCount = $checkoutDate->diff($checkinDate)->days;
+                      }
+                      $basePrice = $roomPrice * $roomCount * $nightCount;
+                      $tax = get_option('travel_tax_and_service_fees');
+                      $totalAmount = $basePrice + $tax;
+                      echo $symbol .number_format($totalAmount, 2);
+                      ?>
+                  </div>
+            </div>
         </div>
       </div>
     </div>
@@ -302,14 +328,10 @@ function formatRoomData($roomData) {
     <!-- Right Column -->
     <div class="col-md-4">
         <?php
-              //  $roomData = json_decode(base64_decode($_GET['roomData']), true);
-        //$roomPrice = isset($roomData['netPrice']) ? floatval($roomData['netPrice']) : 0;
-
-        // Dummy values – dynamically replace these as needed
+        
         $roomCount = 1;
         $nightCount = 1;
 
-        // Optional: You can calculate nights based on check-in/check-out dates passed via URL
         if (isset($_GET['checkin']) && isset($_GET['checkout'])) {
             $checkinDate = new DateTime($_GET['checkin']);
             $checkoutDate = new DateTime($_GET['checkout']);
@@ -318,10 +340,6 @@ function formatRoomData($roomData) {
 
         // Total base price
         $basePrice = $roomPrice * $roomCount * $nightCount;
-
-        // Optional discount logic
-        //$discount = 20; // You can make this dynamic too
-        //$priceAfterDiscount = $basePrice - $discount;
 
         // Tax & fees (example)
         $tax = get_option('travel_tax_and_service_fees');
@@ -374,9 +392,9 @@ jQuery(document).ready(function ($) {
         let checkoutUrl = baseUrl + "/checkout.php";
 
         // Clean the visible net price and assign to hidden input
-        let netPriceText = $(".amount-money-count-only-items").text().trim();
-        let visibleNetPrice = netPriceText.replace(/[^0-9.]/g, "");
-        $("input[name='netPrice']").val(visibleNetPrice);
+        // let netPriceText = $(".amount-money-count-only-items").text().trim();
+        // let visibleNetPrice = netPriceText.replace(/[^0-9.]/g, "");
+        // $("input[name='netPrice']").val(visibleNetPrice);
 
         // Collect form inputs
         let title = $("#title").val().trim();
