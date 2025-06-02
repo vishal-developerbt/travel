@@ -223,6 +223,7 @@ if (!$results) {
         // $payment_status = $data['payment_status'];
 
         $userFlightBookingDetail = get_flight_booking_details_by_api($UniqueID);
+       // echo "<pre>"; print_r($userFlightBookingDetail); die;
         $flightDetail = $userFlightBookingDetail['TripDetailsResponse']['TripDetailsResult']['TravelItinerary'];
     ?>
     <!-- for common details -->

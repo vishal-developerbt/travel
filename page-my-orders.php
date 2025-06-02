@@ -203,6 +203,10 @@ $results = $wpdb->get_results(
                         <!-- Right Section -->
                         <div class="d-flex flex-column align-items-end">
                             <div class="d-flex gap-1 align-items-center">
+                                <span class="order-booking-id w-auto">Is Refundable :</span>
+                                <div><span class="booking-type-text fw-bold"><?php echo esc_html($booking['is_refundable']); ?></span></div>
+                            </div>
+                            <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Travel class :</span>
                                 <div><span class="booking-type-text fw-bold"><?php echo esc_html($booking['travel_class']); ?></span></div>
                             </div>
@@ -210,7 +214,7 @@ $results = $wpdb->get_results(
                                 <span class="order-booking-id w-auto">Departure date:</span>
                                 <div><span class="order-booking-date  fw-bold"><?php echo date('d-M-Y', strtotime($booking['departure_date'])); ?></span></div>
                             </div>
-                            <?php if($booking['booking_status'] =='confirmed'){ ?>
+                            <?php if(($booking['is_refundable'] =='Yes') && ($booking['booking_status'] =='confirmed')){ ?>
                             <form class="cancel-flight-booking-form" method="post">
                                 <input type="hidden" name="action" value="cancel_flight_booking">
                                 <input type="hidden" name="booking_id" value="<?= esc_attr($booking['booking_id']); ?>">

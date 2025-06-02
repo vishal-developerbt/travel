@@ -36,7 +36,7 @@ get_header();
     </script>";
     exit;
     }   
-   
+  // echo "<pre>"; print_r($fare); die;
     $isRefundable = $fare['AirItineraryFareInfo']['IsRefundable'];
     $fareType   = $fare['AirItineraryFareInfo']['FareType'];
   
@@ -63,29 +63,29 @@ get_header();
     $infants = (int) $tripArgs['infants'];
     $payingPassengers = $adults + $children;
 
-    $totalBaseFare = 0;
-    $totalTax = 0;
-    $totalFare = 0;
-    $passengerFares = [];
-    $fareBreakdowns = $fare['AirItineraryFareInfo']['FareBreakdown'] ?? [];
+$totalBaseFare = 0;
+$totalTax = 0;
+$totalFare = 0;
+$passengerFares = [];
 
-    if (!empty($fareBreakdowns[0])) {
-        $fareInfo = $fareBreakdowns[0]['PassengerFare'] ?? [];
+$itinFares = $fare['AirItineraryFareInfo']['ItinTotalFares'] ?? [];
+$fareBreakdowns = $fare['AirItineraryFareInfo']['FareBreakdown'] ?? [];
 
-        $unitBase = isset($fareInfo['BaseFare']['Amount']) ? (float)$fareInfo['BaseFare']['Amount'] : 0;
-        $unitTotal = isset($fareInfo['TotalFare']['Amount']) ? (float)$fareInfo['TotalFare']['Amount'] : 0;
-        $unitTax = $unitTotal - $unitBase;
+if (!empty($itinFares)) {
+    $unitBase = isset($itinFares['BaseFare']['Amount']) ? (float)$itinFares['BaseFare']['Amount'] : 0;
+    $unitTax = isset($itinFares['TotalTax']['Amount']) ? (float)$itinFares['TotalTax']['Amount'] : 0;
+    $unitTotal = isset($itinFares['TotalFare']['Amount']) ? (float)$itinFares['TotalFare']['Amount'] : 0;
 
-        $totalBaseFare = $unitBase * $payingPassengers;
-        $totalTax = $unitTax * $payingPassengers;
-        $totalFare = $unitTotal * $payingPassengers;
+    $totalBaseFare = $unitBase * $payingPassengers;
+    $totalTax = $unitTax * $payingPassengers;
+    $totalFare = $unitTotal * $payingPassengers;
 
-        $passengerFares[] = [
-            'type' => 'Passenger',
-            'qty' => $payingPassengers,
-            'fare' => $unitTotal,
-        ];
-    }
+    $passengerFares[] = [
+        'type' => 'Passenger',
+        'qty' => $payingPassengers,
+        'fare' => $unitTotal,
+    ];
+}
 ?>
 
 <div class="container-fluid heading-blue-booking-things"></div>
@@ -115,8 +115,9 @@ get_header();
                 $departureDateTime = date("D, d M Y", strtotime($flights[0]['FlightSegment']['DepartureDateTime']));
 
                 }else{
-                $origin = $flights['DepartureAirportLocationCode'] ?? '';
-                $destination = $flights['ArrivalAirportLocationCode'] ?? '';
+                $origin = $flights[0]['FlightSegment']['DepartureAirportLocationCode'] ?? '';
+                $destination = $flights[0]['FlightSegment']['ArrivalAirportLocationCode'] ?? '';
+                 $departureDateTime = date("D, d M Y", strtotime($flights[0]['FlightSegment']['DepartureDateTime']));
                 }
         ?>
         <section class="flight-booking-divider-section mb-5">
@@ -152,94 +153,94 @@ get_header();
 
         ?>
         <?php if ($layoverFormatted !== null && isset($previousArrival)) { ?>
-           <div class="layover-time-section mt-3 mb-3 d-flex">
-    <div class="dotted-section-flight"></div>
-    <div>
-        <div><span class="change-of-planes">Change of planes</span></div>
-        <div><strong><?php echo $layoverFormatted;?></strong> Layover in <?php echo esc_html(getCityNameByAirPortCode($origin1));?></div>
-    </div>
-</div>
+            <div class="layover-time-section mt-3 mb-3 d-flex">
+                <div class="dotted-section-flight"></div>
+                <div>
+                    <div><span class="change-of-planes">Change of planes</span></div>
+                    <div>
+                        <strong><?php echo $layoverFormatted;?></strong> Layover in <?php echo esc_html(getCityNameByAirPortCode($origin1));?>
+                    </div>
+                </div>
+            </div>
 
         <?php }
         $previousArrival = $flightrow['FlightSegment']['ArrivalDateTime']; 
         ?>
-        <section class="flight-middle-section">
-            <div class="d-flex align-items-center gap-5 mb-4 pb-3 border-bottom">
-                <div class="airline-logo">
-                    <div class="airline-inner">
-                        <img src="<?php echo esc_url(get_airline_logo_url($flightrow['FlightSegment']['MarketingAirlineCode'])); ?>" alt="">
+            <section class="flight-middle-section">
+                <div class="d-flex align-items-center gap-5 mb-4 pb-3 border-bottom">
+                    <div class="airline-logo">
+                        <div class="airline-inner">
+                            <img src="<?php echo esc_url(get_airline_logo_url($flightrow['FlightSegment']['MarketingAirlineCode'])); ?>" alt="">
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <div class="flight-no-flight-detail">
-                        <?php echo esc_html("{$airlineName} | {$flightNumber}"); ?>
+                    <div>
+                        <div class="flight-no-flight-detail">
+                            <?php echo esc_html("{$airlineName} | {$flightNumber}"); ?>
+                        </div>
+                        <div class="text-secondary-boding">
+                            Aircraft: <?php echo esc_html($flightrow['FlightSegment']['OperatingAirline']['Equipment'] ?? ''); ?>
+                        </div>
                     </div>
-                    <div class="text-secondary-boding">
-                        Aircraft: <?php echo esc_html($flightrow['FlightSegment']['OperatingAirline']['Equipment'] ?? ''); ?>
-                    </div>
-                </div>
-                <div class="ms-auto text-end">
-                    <div class="eco-sev-both"><?php echo esc_html($tripArgs['class']); ?></div>
-                </div>
-            </div>
-
-            <div class="flight-segment-wrapper d-flex align-items-start">
-                <!-- Departure -->
-                <div class="flight-time-info text-end pe-3 mt-2">
-                    <div class="flight-time fw-bold"><?php echo esc_html($departureTime); ?></div>
-                    <div class="flight-location fw-semibold">
-                        <?php echo esc_html(getCityNameByAirPortCode($origin1));?>
-                    </div>
-                    <span>
-                        <?php echo esc_html(getAirPortNameByAirPortCode($origin1));?>    
-                    </span>
-                    <div class="text-secondary-day-date-mon">
-                        Depart on - <?php echo esc_html($departureDateTime); ?>
+                    <div class="ms-auto text-end">
+                        <div class="eco-sev-both"><?php echo esc_html($tripArgs['class']); ?></div>
                     </div>
                 </div>
 
-                <!-- Duration -->
-                <div class="flight-connector d-flex flex-column align-items-center mx-3 mt-4">
-                    <div class="dot-circle"></div> <!-- Top circle -->
-                    <div class="dotted-line flex-grow-1"></div>
-                    <div class="flight-duration text-muted my-1">
-                        <?php echo esc_html($durationFormatted); ?>
+                <div class="flight-segment-wrapper d-flex align-items-start">
+                    <!-- Departure -->
+                    <div class="flight-time-info text-end pe-3 mt-2">
+                        <div class="flight-time fw-bold"><?php echo esc_html($departureTime); ?></div>
+                        <div class="flight-location fw-semibold">
+                            <?php echo esc_html(getCityNameByAirPortCode($origin1));?>
+                        </div>
+                        <span>
+                            <?php echo esc_html(getAirPortNameByAirPortCode($origin1));?>    
+                        </span>
+                        <div class="text-secondary-day-date-mon">
+                            Depart on - <?php echo esc_html($departureDateTime); ?>
+                        </div>
                     </div>
-                    <div class="dotted-line flex-grow-1"></div>
-                    <div class="dot-circle"></div> <!-- Bottom circle -->
-                </div>
+
+                    <!-- Duration -->
+                    <div class="flight-connector d-flex flex-column align-items-center mx-3 mt-4">
+                        <div class="dot-circle"></div> <!-- Top circle -->
+                        <div class="dotted-line flex-grow-1"></div>
+                        <div class="flight-duration text-muted my-1">
+                            <?php echo esc_html($durationFormatted); ?>
+                        </div>
+                        <div class="dotted-line flex-grow-1"></div>
+                        <div class="dot-circle"></div> <!-- Bottom circle -->
+                    </div>
 
 
-                <!-- Arrival -->
-                <div class="flight-time-info text-start ps-3 mt-3">
-                    <div class="flight-time fw-bold">
-                        <?php echo esc_html($arrivalTime); ?></div>
-                    <div class="flight-location fw-semibold">
-                        <?php echo esc_html(getCityNameByAirPortCode($destination1)); ?>
-                    </div>
-                    <span>
-                        <?php echo esc_html(getAirPortNameByAirPortCode($destination1));?>
-                    </span>
-                    <div class="text-secondary-day-date-mon">
-                        Arrives - <?php echo esc_html($ArrivalDateTime); ?>
+                    <!-- Arrival -->
+                    <div class="flight-time-info text-start ps-3 mt-3">
+                        <div class="flight-time fw-bold">
+                            <?php echo esc_html($arrivalTime); ?></div>
+                        <div class="flight-location fw-semibold">
+                            <?php echo esc_html(getCityNameByAirPortCode($destination1)); ?>
+                        </div>
+                        <span>
+                            <?php echo esc_html(getAirPortNameByAirPortCode($destination1));?>
+                        </span>
+                        <div class="text-secondary-day-date-mon">
+                            Arrives - <?php echo esc_html($ArrivalDateTime); ?>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="d-flex flex-wrap gap-3 small baggages-weight--check-bagger mb-2 mt-2">
-                <div class="d-flex align-items-center gap-2 mt-3">
-                    <img src="<?php echo get_template_directory_uri(); ?>/photos/items.png" alt="items" id="bag-of-items">
-                    <span class="cabin-bags-kg">Cabin Baggage: <span class="weight-only-sp"><?php echo esc_html("Cabin: {$cabinBaggage}, Checked: {$baggage}"); ?></span></span>
+                <div class="d-flex flex-wrap gap-3 small baggages-weight--check-bagger mb-2 mt-2">
+                    <div class="d-flex align-items-center gap-2 mt-3">
+                        <img src="<?php echo get_template_directory_uri(); ?>/photos/items.png" alt="items" id="bag-of-items">
+                        <span class="cabin-bags-kg">Cabin Baggage: <span class="weight-only-sp"><?php echo esc_html("Cabin: {$cabinBaggage}, Checked: {$baggage}"); ?></span></span>
+                    </div>
                 </div>
-            </div>
+            </section>
+        <?php } ?>
         </section>
-        <?php  }
-        echo "<br></section>
-        <br>";
-            }
-        ?>
-               
-            </div>
+    <?php  }  ?>
+ 
+        </div>
             <!-- Flight Details End-->
 
             <!-- Cancellation Policy -->
@@ -325,11 +326,19 @@ get_header();
                           <input type="text" class="form-control" id="passport_number" placeholder="Enter passport number" required>
                           <div class="invalid-feedback">Please enter a valid passport number.</div>
                         </div>
-                        <div class="col-md-4 mb-3 mb-md-0">
+                       <!--  <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Passport Issue Country<span class="star-section-red-color">*</span></label>
                             <input type="text" class="form-control" id="passport_issue_country" placeholder="Enter issue country (e.g., IN" required>
-                        </div>
-                       
+                        </div> -->
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label class="form-label small form-name-email-detail-all-th">
+                            Passport Issue Country <span class="star-section-red-color">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="passport_issue_country" placeholder="Enter issue country (e.g., India)" required>
+                        <input type="hidden" id="passport_issue_country_code" name="passport_issue_country_code">
+                    </div>
+
+
                         <div class="col-md-4 mb-3 mb-md-0">
                           <label for="passport_expiry_date" class="form-label small form-name-email-detail-all-th">Passport Expiry Date<span class="star-section-red-color">*</span></label>
                           <input type="date" class="form-control" id="passport_expiry_date" required>
@@ -557,7 +566,8 @@ jQuery(document).ready(function ($) {
         // Passport required validations
         if (isPassportRequired === "1") {
             let passportNumber = $("#passport_number").val().trim();
-            let passportIssueCountry = $("#passport_issue_country").val().trim();
+            //let passportIssueCountry = $("#passport_issue_country").val().trim();
+            let passportIssueCountry = $("#passport_issue_country_code").val().trim();
             let passportExpiryDate = $("#passport_expiry_date").val().trim();
 
             if (!title || !firstName || !lastName || !dob || !nationality || 
@@ -685,7 +695,7 @@ jQuery(document).ready(function ($) {
 
         if (isPassportRequired === "1") {
             requestData.passport_number = $("#passport_number").val().trim();
-            requestData.passport_issue_country = $("#passport_issue_country").val().trim();
+            requestData.passport_issue_country = $("#passport_issue_country_code").val().trim();
             requestData.passport_expiry_date = $("#passport_expiry_date").val().trim();
         }
 

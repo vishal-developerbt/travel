@@ -1680,6 +1680,9 @@ function saveMyBookings($data){
                         'transaction_id'=>$params['transaction_id'] ?? '',
                         'booking_id'=>null,
                         'fare_type' => $params['fare_type'],
+                        'passport_number' => $params['passport_number'],
+                        'passport_issue_country' => $params['passport_issue_country'],
+                        'passport_expiry_date' => $params['passport_expiry_date'],
                         'is_refundable' => $params['is_refundable'],
                         "created_at"=>current_time('mysql'),
                         "updated_at "=>current_time('mysql'),
@@ -1776,7 +1779,7 @@ function saveFlightBookingdata  ($data) {
     $query = "INSERT INTO flight_booking_details (
         customer_id, trip_type, title, first_name, last_name, phone, email, dob, nationality, passenger_type,
         destination_from, destination_to, departure_date, return_date, travel_class, adults_qty, children_qty, infants_qty,
-        session_id, fare_source_code, amount, payment_status, booking_status, transaction_id, booking_id,fare_type,is_refundable, created_at, updated_at
+        session_id, fare_source_code, amount, payment_status, booking_status, transaction_id, booking_id,fare_type, passport_number, passport_issue_country, passport_expiry_date, is_refundable, created_at, updated_at
     ) VALUES " . implode(', ', $placeholders);
 
     // Execute the query with the prepared values
@@ -2509,6 +2512,44 @@ add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
         if ($updated === false) {
             wp_send_json_error('Flight canceled via API, but DB update failed.');
         }
+
+
+        // Fetch booking details to get required information for the refund record
+        $booking_details = $wpdb->get_row(
+            $wpdb->prepare("SELECT transaction_id, email, is_refundable, trip_type FROM flight_booking_details 
+            WHERE booking_id = %s  LIMIT 1", $booking_id )
+        );
+
+        if (!$booking_details) {
+            wp_send_json_error('Booking not found.');
+        }
+
+        $inserted = $wpdb->insert(
+            'booking_refund_details',
+            [
+                'transaction_id' => $booking_details->transaction_id,
+                'customer_email' => $booking_details->email,
+                'is_refundable'  => $booking_details->is_refundable,
+                'booking_id'     => $booking_details->booking_id,
+                'status'         => 'initiate',  
+                'travel_type'    => 'flight',
+                'created_at'     => date('Y-m-d H:i:s'),
+            ],
+            [
+                '%s', // transaction_id
+                '%s', // customer_email
+                '%s', // is_refundable
+                '%s', // booking_id
+                '%s', // status
+                '%s', // travel_type
+                '%s', // created_at
+            ]
+        );
+
+        if ($inserted === false) {
+            wp_send_json_error('Failed to insert refund details.');
+        }
+
 
         wp_send_json_success([
             'api_response' => $body,
@@ -3875,5 +3916,47 @@ function validateFlightFareMethod($sessionId, $fareSourceCode) {
         'response' => $data,
     ];
 }
+
+
+// AJAX handler
+add_action('wp_ajax_search_countries', 'ajax_search_countries');
+add_action('wp_ajax_nopriv_search_countries', 'ajax_search_countries');
+
+function ajax_search_countries() {
+    global $wpdb;
+
+    $keyword = sanitize_text_field($_POST['keyword']);
+    $table_name = 'country_list';
+
+    $results = $wpdb->get_results(
+        $wpdb->prepare("SELECT country_code, country_name FROM $table_name WHERE country_name LIKE %s LIMIT 10", $keyword . '%')
+    );
+
+    $data = [];
+    foreach ($results as $row) {
+        $data[] = [
+            'label' => $row->country_name,
+            'value' => $row->country_code // This will be inserted into the input
+        ];
+    }
+
+    wp_send_json($data);
+}
+
+// Enqueue JS with ajax object
+function enqueue_country_autocomplete_script() {
+    wp_enqueue_script(
+        'country-autocomplete',
+        get_template_directory_uri() . '/js/country-autocomplete.js',
+        array('jquery', 'jquery-ui-autocomplete'),
+        null,
+        true
+    );
+
+    wp_localize_script('country-autocomplete', 'ajax_object', array(
+        'ajax_url' => admin_url('admin-ajax.php')
+    ));
+}
+add_action('wp_enqueue_scripts', 'enqueue_country_autocomplete_script');
 
 ?>
