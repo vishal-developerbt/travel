@@ -2392,73 +2392,123 @@ function get_flight_booking_details_by_api($UniqueID, ) {
     return json_decode(wp_remote_retrieve_body($response), true);
 }
 
-add_action('wp_ajax_cancel_hotel_booking', 'handle_cancel_hotel_booking');
-add_action('wp_ajax_nopriv_cancel_hotel_booking', 'handle_cancel_hotel_booking');
-add_action('wp_ajax_cancel_hotel_booking', 'handle_cancel_hotel_booking');
-add_action('wp_ajax_nopriv_cancel_hotel_booking', 'handle_cancel_hotel_booking');
+    add_action('wp_ajax_cancel_hotel_booking', 'handle_cancel_hotel_booking');
+    add_action('wp_ajax_nopriv_cancel_hotel_booking', 'handle_cancel_hotel_booking');
+    add_action('wp_ajax_cancel_hotel_booking', 'handle_cancel_hotel_booking');
+    add_action('wp_ajax_nopriv_cancel_hotel_booking', 'handle_cancel_hotel_booking');
 
-function handle_cancel_hotel_booking() {
-    check_ajax_referer('cancel_hotel_booking_nonce', 'cancel_nonce');
+    function handle_cancel_hotel_booking() {
+        check_ajax_referer('cancel_booking_nonce', 'cancel_nonce');
 
-    global $wpdb;
+        global $wpdb;
 
-    $referenceNum            = sanitize_text_field($_POST['referenceNum'] ?? '');
-    $supplierConfirmationNum = sanitize_text_field($_POST['supplierConfirmationNum'] ?? '');
-    $hotel_token_id          = sanitize_text_field($_POST['hotel_token_id'] ?? '');
-    $travelxHotelApi = get_option('travelx_hotel_api');
+        $referenceNum            = sanitize_text_field($_POST['referenceNum'] ?? '');
+        $supplierConfirmationNum = sanitize_text_field($_POST['supplierConfirmationNum'] ?? '');
+        $hotel_token_id          = sanitize_text_field($_POST['hotel_token_id'] ?? '');
+        $travelxHotelApi = get_option('travelx_hotel_api');
 
-    if (empty($referenceNum) || empty($supplierConfirmationNum) || empty($hotel_token_id)) {
-        wp_send_json_error('Missing required booking details.');
+        if (empty($referenceNum) || empty($supplierConfirmationNum) || empty($hotel_token_id)) {
+            wp_send_json_error('Missing required booking details.');
+        }
+
+        // Prepare API payload
+        $payload = [
+            "user_id" => get_option('travelx_user_id'),
+            "user_password" => get_option('travelx_user_password'),
+            "access" => get_option('travelx_access'),
+            "ip_address" => get_option('travelx_user_ip_address'),
+            'supplierConfirmationNum' => $supplierConfirmationNum,
+            'referenceNum' => $referenceNum,
+        ];
+
+        // Make API call
+        $response = wp_remote_post($travelxHotelApi.'/cancel', [
+            'headers' => ['Content-Type' => 'application/json'],
+            'body'    => json_encode($payload),
+            'timeout' => 30,
+        ]);
+
+        if (is_wp_error($response)) {
+            wp_send_json_error('API call failed: ' . $response->get_error_message());
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+     
+         if (!empty($body['status']) && $body['status'] === 'CANCELLED') {
+        $cancelReferenceNum = sanitize_text_field($body['cancelReferenceNum']);
+            //  Update local database booking_status = '0' (Failed)
+            $updated = $wpdb->update(
+                'hotel_booking_details',
+                [
+                    'booking_status' => '0',
+                    'cancelReferenceNum' => $cancelReferenceNum
+                ],
+                ['hotel_token_id' => $hotel_token_id],
+                ['%d', '%s'],
+                ['%s']
+            );
+
+            if ($updated === false) {
+                wp_send_json_error('Booking canceled, but local DB update failed.');
+            }
+
+            // Fetch booking details to get required information for the refund record
+            $booking_details = $wpdb->get_row(
+                $wpdb->prepare("SELECT transaction_id, customer_email,price, hottel_id, fare_type, referenceNum, supplierConfirmationNum, cancelReferenceNum FROM hotel_booking_details 
+                WHERE supplierConfirmationNum = %s  LIMIT 1", $supplierConfirmationNum )
+            );
+
+            if (!$booking_details) {
+                wp_send_json_error('Booking not found.');
+            }
+
+            $inserted = $wpdb->insert(
+                'booking_refund_details',
+                [
+                    'transaction_id' => $booking_details->transaction_id,
+                    'customer_email' => $booking_details->customer_email,
+                    'is_refundable'  => $booking_details->fare_type,
+                    'booking_id'     => $booking_details->hottel_id,
+                    'price'          => $booking_details->price,
+                    'hotel_reference_num' => $booking_details->referenceNum,
+                    'hotel_supplier_confirmation_num' => $booking_details->supplierConfirmationNum,
+                    'hotel_cancel_reference_num'      => $booking_details->cancelReferenceNum,
+                    'status'         => 'initiate',  
+                    'travel_type'    => 'hotel',
+                    'created_at'     => current_time('mysql'),
+                ],
+                [
+                    '%s', // transaction_id
+                    '%s', // customer_email
+                    '%s', // is_refundable
+                    '%s', // booking_id
+                    '%s', // price
+                    '%s', // hotel_reference_num
+                    '%s', // hotel_supplier_confirmation_num
+                    '%s', // hotel_cancel_reference_num
+                    '%s', // status
+                    '%s', // travel_type
+                    '%s', // created_at
+                ]
+            );
+
+            if ($inserted === false) {
+                wp_send_json_error('Failed to insert refund details.');
+            }
+        }
+
+       wp_send_json_success(['api_response' => $body, 'message' => 'Booking canceled successfully.']);
     }
 
-    // Prepare API payload
-    $payload = [
-        "user_id" => get_option('travelx_user_id'),
-        "user_password" => get_option('travelx_user_password'),
-        "access" => get_option('travelx_access'),
-        "ip_address" => get_option('travelx_user_ip_address'),
-        'supplierConfirmationNum' => $supplierConfirmationNum,
-        'referenceNum' => $referenceNum,
-    ];
+    function enqueue_cancel_hotel_booking_script() {
+        wp_enqueue_script('cancel-hotel-booking-js', get_template_directory_uri() . '/js/cancel-hotel-booking.js', [], null, true);
 
-    // Make API call
-    $response = wp_remote_post($travelxHotelApi.'/cancel', [
-        'headers' => ['Content-Type' => 'application/json'],
-        'body'    => json_encode($payload),
-        'timeout' => 30,
-    ]);
-
-    if (is_wp_error($response)) {
-        wp_send_json_error('API call failed: ' . $response->get_error_message());
+        // Pass admin-ajax URL and nonce if needed
+        wp_localize_script('cancel-hotel-booking-js', 'cancelHotelBookingAjax', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+        ]);
     }
-
-    $body = json_decode(wp_remote_retrieve_body($response), true);
-
-    // ✅ Update local database booking_status = '0' (Failed)
-    $updated = $wpdb->update(
-        'hotel_booking_details',
-        ['booking_status' => '0'],
-        ['hotel_token_id' => $hotel_token_id],
-        ['%d'],
-        ['%s']
-    );
-
-    if ($updated === false) {
-        wp_send_json_error('Booking canceled, but local DB update failed.');
-    }
-
-    wp_send_json_success(['api_response' => $body, 'message' => 'Booking canceled successfully.']);
-}
-function enqueue_cancel_hotel_booking_script() {
-    wp_enqueue_script('cancel-hotel-booking-js', get_template_directory_uri() . '/js/cancel-hotel-booking.js', [], null, true);
-
-    // Pass admin-ajax URL and nonce if needed
-    wp_localize_script('cancel-hotel-booking-js', 'cancelHotelBookingAjax', [
-        'ajax_url' => admin_url('admin-ajax.php'),
-    ]);
-}
-add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
-
+    add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
 
 
 /*=======================flight cancel code ===================*/
@@ -2516,7 +2566,7 @@ add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
 
         // Fetch booking details to get required information for the refund record
         $booking_details = $wpdb->get_row(
-            $wpdb->prepare("SELECT transaction_id, email, is_refundable, trip_type FROM flight_booking_details 
+            $wpdb->prepare("SELECT transaction_id, email, is_refundable,amount,booking_id FROM flight_booking_details 
             WHERE booking_id = %s  LIMIT 1", $booking_id )
         );
 
@@ -2531,6 +2581,7 @@ add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
                 'customer_email' => $booking_details->email,
                 'is_refundable'  => $booking_details->is_refundable,
                 'booking_id'     => $booking_details->booking_id,
+                'price'          => $booking_details->amount,
                 'status'         => 'initiate',  
                 'travel_type'    => 'flight',
                 'created_at'     => date('Y-m-d H:i:s'),
@@ -2540,6 +2591,7 @@ add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
                 '%s', // customer_email
                 '%s', // is_refundable
                 '%s', // booking_id
+                '%s', // price
                 '%s', // status
                 '%s', // travel_type
                 '%s', // created_at

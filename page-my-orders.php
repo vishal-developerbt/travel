@@ -68,7 +68,7 @@ $results = $wpdb->get_results(
                             <span class="order-booking-id w-auto">Booking date:</span>
                             <div><span class="order-booking-date  fw-bold"><?php echo date('d-M-Y', strtotime($booking['checkin'])); ?></span></div>
                         </div>
-                        <?php if($booking['booking_status']){ ?>
+                        <?php if($booking['booking_status'] && ($booking['fare_type'] =='Refundable')){ ?>
                         <form class="cancel-hotel-booking-form" method="post">
                             <input type="hidden" name="action" value="cancel_hotel_booking">
                             <input type="hidden" name="referenceNum" value="<?= esc_attr($booking['referenceNum']); ?>">

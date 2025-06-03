@@ -45,8 +45,10 @@ $sessionId = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id'
 $productId = isset($_GET['product_id']) ? sanitize_text_field($_GET['product_id']) : '';
 $tokenId = isset($_GET['token_id']) ? sanitize_text_field($_GET['token_id']) : '';
 $rateBasisId = isset($_GET['rate_basis_id']) ? sanitize_text_field($_GET['rate_basis_id']) : '';
+$fareType = isset($_GET['fare_type']) ? sanitize_text_field($_GET['fare_type']) : '';
 $roomPrice = isset($_GET['price']) ? sanitize_text_field($_GET['price']) : '';
 $hotelDetails = fetch_hotel_details_by_id($hotelId,$productId,$tokenId,$sessionId);
+//echo "<pre>"; print_r($hotelDetails); die;
 // Calculate number of nights
 $day_checkIn = new DateTime($checkin);
 $day_checkOut = new DateTime($checkout);
@@ -231,6 +233,7 @@ function formatRoomData($roomData) {
                   <input type="hidden" name="pid" value="<?php echo $productId ; ?>">
                   <input type="hidden" name="rateBasisId" value="<?php echo $rateBasisId; ?>">
                   <input type="hidden" name="netPrice" value="<?php echo $roomPrice; ?>">
+                  <input type="hidden" name="faretype" value="<?php echo $fareType; ?>">
                </form>
 
                <!-- Guest Form start -->
@@ -401,6 +404,8 @@ jQuery(document).ready(function ($) {
         let rateBasisId = $("input[name='rateBasisId']").val();
         let productId = $("input[name='pid']").val();
         let netPrice = $("input[name='netPrice']").val(); 
+        let faretype = $("input[name='faretype']").val(); 
+        
 
         // Get URL params
         let urlParams = new URLSearchParams(window.location.search);
@@ -487,6 +492,7 @@ jQuery(document).ready(function ($) {
                 productId,
                 rooms,
                 rateBasisId,
+                faretype,
                 netPrice,
                 guests: guests_ids,
                 paymentMethod

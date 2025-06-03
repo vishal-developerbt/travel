@@ -19,6 +19,7 @@ $roomforPayment = isset($_GET['rooms']) ? sanitize_text_field($_GET['rooms']) : 
 $price = isset($_GET['price']) ? sanitize_text_field($_GET['price']) : '';
 $decoded_price = $price ? base64_decode($price) : '';
 $hotelDetails = fetch_hotel_details_by_id($hotelId,$productId,$tokenId,$sessionId);
+
 $hotelReviews = [];
 $hotelDetailsforPaymentpage =['hotelImages'=>isset($hotelDetails['hotelImages']) ? $hotelDetails['hotelImages'] : [],
 'name'=>isset($hotelDetails['name']) ? $hotelDetails['name'] : '',
@@ -167,7 +168,7 @@ if (
                     <?php 
                     $roomproductId = $room['productId'] ?? '';
                     $roomprice = $room['netPrice'];
-
+                     $fareType  = $room['fareType'];
                     $rateBasisId = $room['rateBasisId'] ?? '';
                     $roomsessionId = $hotelRoomOptions['sessionId'] ?? '';
                     $roomtokenId = $hotelRoomOptions['tokenId'] ?? '';
@@ -184,6 +185,7 @@ if (
                                 '<?php echo esc_js($checkout); ?>',
                                 '<?php echo esc_js($roomforPayment); ?>', 
                                 '<?php echo esc_js($rateBasisId); ?>',
+                                '<?php echo esc_js($fareType); ?>',
                                 '<?php echo esc_js($roomprice); ?>',
                                 '<?php echo esc_js($location); ?>')">                
                                 <span class="select-room-text">Select Room</span>
@@ -290,7 +292,7 @@ if (!empty($rooms)) {
                                  <?php 
                                 $roomproductId = $room['productId'] ?? '';
                                 $roomprice = $room['netPrice'];
-
+                                $fareType  = $room['fareType'];
                                 $rateBasisId = $room['rateBasisId'] ?? '';
                                 $roomsessionId = $hotelRoomOptions['sessionId'] ?? '';
                                 $roomtokenId = $hotelRoomOptions['tokenId'] ?? '';
@@ -308,6 +310,7 @@ if (!empty($rooms)) {
                                         '<?php echo esc_js($checkout); ?>',
                                         '<?php echo esc_js($roomforPayment); ?>', 
                                         '<?php echo esc_js($rateBasisId); ?>',
+                                        '<?php echo esc_js($fareType); ?>',
                                         '<?php echo esc_js($roomprice); ?>',
                                         '<?php echo esc_js($location); ?>'
                                     )">
@@ -629,7 +632,7 @@ $(document).ready(function () {
 
 </script>
 <script type="text/javascript">
-  function redirectToPaymentPage(roomSessionId, roomTokenId, roomHotelId, roomProductId, checkin, checkout, roomforPayment,rateBasisId,roomprice,location) {
+  function redirectToPaymentPage(roomSessionId, roomTokenId, roomHotelId, roomProductId, checkin, checkout, roomforPayment,rateBasisId,fareType, roomprice,location) {
     let baseUrl = "<?php echo site_url(); ?>"; // Get the domain
     let paymentPageUrl = baseUrl + "/hotel-payment/";
 
@@ -643,10 +646,11 @@ $(document).ready(function () {
       product_id: roomProductId,
       token_id: roomTokenId,
       rate_basis_id:rateBasisId,
+      fare_type:fareType,
       price:roomprice,
       location:location
     });
-
+'<?php echo esc_js($fareType); ?>',
     // Redirect to payment page with parameters
     window.location.href = paymentPageUrl + "?" + params.toString();
   }
