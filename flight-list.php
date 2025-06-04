@@ -1014,7 +1014,6 @@ document.addEventListener('DOMContentLoaded', function() {
     allFlights = Array.from(document.querySelectorAll('.flight-card'));
     filteredFlights = [...allFlights];
     
-    //alert('hello');
     const flightCount = Array.from(document.querySelectorAll('.flight-card')).length;
 
     if (flightCount == 0) {
