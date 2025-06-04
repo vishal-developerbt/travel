@@ -1680,6 +1680,9 @@ function saveMyBookings($data){
                         'transaction_id'=>$params['transaction_id'] ?? '',
                         'booking_id'=>null,
                         'fare_type' => $params['fare_type'],
+                        'passport_number' => $params['passport_number'],
+                        'passport_issue_country' => $params['passport_issue_country'],
+                        'passport_expiry_date' => $params['passport_expiry_date'],
                         'is_refundable' => $params['is_refundable'],
                         "created_at"=>current_time('mysql'),
                         "updated_at "=>current_time('mysql'),
@@ -1776,7 +1779,7 @@ function saveFlightBookingdata  ($data) {
     $query = "INSERT INTO flight_booking_details (
         customer_id, trip_type, title, first_name, last_name, phone, email, dob, nationality, passenger_type,
         destination_from, destination_to, departure_date, return_date, travel_class, adults_qty, children_qty, infants_qty,
-        session_id, fare_source_code, amount, payment_status, booking_status, transaction_id, booking_id,fare_type,is_refundable, created_at, updated_at
+        session_id, fare_source_code, amount, payment_status, booking_status, transaction_id, booking_id,fare_type, passport_number, passport_issue_country, passport_expiry_date, is_refundable, created_at, updated_at
     ) VALUES " . implode(', ', $placeholders);
 
     // Execute the query with the prepared values
@@ -2389,73 +2392,123 @@ function get_flight_booking_details_by_api($UniqueID, ) {
     return json_decode(wp_remote_retrieve_body($response), true);
 }
 
-add_action('wp_ajax_cancel_hotel_booking', 'handle_cancel_hotel_booking');
-add_action('wp_ajax_nopriv_cancel_hotel_booking', 'handle_cancel_hotel_booking');
-add_action('wp_ajax_cancel_hotel_booking', 'handle_cancel_hotel_booking');
-add_action('wp_ajax_nopriv_cancel_hotel_booking', 'handle_cancel_hotel_booking');
+    add_action('wp_ajax_cancel_hotel_booking', 'handle_cancel_hotel_booking');
+    add_action('wp_ajax_nopriv_cancel_hotel_booking', 'handle_cancel_hotel_booking');
+    add_action('wp_ajax_cancel_hotel_booking', 'handle_cancel_hotel_booking');
+    add_action('wp_ajax_nopriv_cancel_hotel_booking', 'handle_cancel_hotel_booking');
 
-function handle_cancel_hotel_booking() {
-    check_ajax_referer('cancel_hotel_booking_nonce', 'cancel_nonce');
+    function handle_cancel_hotel_booking() {
+        check_ajax_referer('cancel_booking_nonce', 'cancel_nonce');
 
-    global $wpdb;
+        global $wpdb;
 
-    $referenceNum            = sanitize_text_field($_POST['referenceNum'] ?? '');
-    $supplierConfirmationNum = sanitize_text_field($_POST['supplierConfirmationNum'] ?? '');
-    $hotel_token_id          = sanitize_text_field($_POST['hotel_token_id'] ?? '');
-    $travelxHotelApi = get_option('travelx_hotel_api');
+        $referenceNum            = sanitize_text_field($_POST['referenceNum'] ?? '');
+        $supplierConfirmationNum = sanitize_text_field($_POST['supplierConfirmationNum'] ?? '');
+        $hotel_token_id          = sanitize_text_field($_POST['hotel_token_id'] ?? '');
+        $travelxHotelApi = get_option('travelx_hotel_api');
 
-    if (empty($referenceNum) || empty($supplierConfirmationNum) || empty($hotel_token_id)) {
-        wp_send_json_error('Missing required booking details.');
+        if (empty($referenceNum) || empty($supplierConfirmationNum) || empty($hotel_token_id)) {
+            wp_send_json_error('Missing required booking details.');
+        }
+
+        // Prepare API payload
+        $payload = [
+            "user_id" => get_option('travelx_user_id'),
+            "user_password" => get_option('travelx_user_password'),
+            "access" => get_option('travelx_access'),
+            "ip_address" => get_option('travelx_user_ip_address'),
+            'supplierConfirmationNum' => $supplierConfirmationNum,
+            'referenceNum' => $referenceNum,
+        ];
+
+        // Make API call
+        $response = wp_remote_post($travelxHotelApi.'/cancel', [
+            'headers' => ['Content-Type' => 'application/json'],
+            'body'    => json_encode($payload),
+            'timeout' => 30,
+        ]);
+
+        if (is_wp_error($response)) {
+            wp_send_json_error('API call failed: ' . $response->get_error_message());
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+     
+         if (!empty($body['status']) && $body['status'] === 'CANCELLED') {
+        $cancelReferenceNum = sanitize_text_field($body['cancelReferenceNum']);
+            //  Update local database booking_status = '0' (Failed)
+            $updated = $wpdb->update(
+                'hotel_booking_details',
+                [
+                    'booking_status' => '0',
+                    'cancelReferenceNum' => $cancelReferenceNum
+                ],
+                ['hotel_token_id' => $hotel_token_id],
+                ['%d', '%s'],
+                ['%s']
+            );
+
+            if ($updated === false) {
+                wp_send_json_error('Booking canceled, but local DB update failed.');
+            }
+
+            // Fetch booking details to get required information for the refund record
+            $booking_details = $wpdb->get_row(
+                $wpdb->prepare("SELECT transaction_id, customer_email,price, hottel_id, fare_type, referenceNum, supplierConfirmationNum, cancelReferenceNum FROM hotel_booking_details 
+                WHERE supplierConfirmationNum = %s  LIMIT 1", $supplierConfirmationNum )
+            );
+
+            if (!$booking_details) {
+                wp_send_json_error('Booking not found.');
+            }
+
+            $inserted = $wpdb->insert(
+                'booking_refund_details',
+                [
+                    'transaction_id' => $booking_details->transaction_id,
+                    'customer_email' => $booking_details->customer_email,
+                    'is_refundable'  => $booking_details->fare_type,
+                    'booking_id'     => $booking_details->hottel_id,
+                    'price'          => $booking_details->price,
+                    'hotel_reference_num' => $booking_details->referenceNum,
+                    'hotel_supplier_confirmation_num' => $booking_details->supplierConfirmationNum,
+                    'hotel_cancel_reference_num'      => $booking_details->cancelReferenceNum,
+                    'status'         => 'initiate',  
+                    'travel_type'    => 'hotel',
+                    'created_at'     => current_time('mysql'),
+                ],
+                [
+                    '%s', // transaction_id
+                    '%s', // customer_email
+                    '%s', // is_refundable
+                    '%s', // booking_id
+                    '%s', // price
+                    '%s', // hotel_reference_num
+                    '%s', // hotel_supplier_confirmation_num
+                    '%s', // hotel_cancel_reference_num
+                    '%s', // status
+                    '%s', // travel_type
+                    '%s', // created_at
+                ]
+            );
+
+            if ($inserted === false) {
+                wp_send_json_error('Failed to insert refund details.');
+            }
+        }
+
+       wp_send_json_success(['api_response' => $body, 'message' => 'Booking canceled successfully.']);
     }
 
-    // Prepare API payload
-    $payload = [
-        "user_id" => get_option('travelx_user_id'),
-        "user_password" => get_option('travelx_user_password'),
-        "access" => get_option('travelx_access'),
-        "ip_address" => get_option('travelx_user_ip_address'),
-        'supplierConfirmationNum' => $supplierConfirmationNum,
-        'referenceNum' => $referenceNum,
-    ];
+    function enqueue_cancel_hotel_booking_script() {
+        wp_enqueue_script('cancel-hotel-booking-js', get_template_directory_uri() . '/js/cancel-hotel-booking.js', [], null, true);
 
-    // Make API call
-    $response = wp_remote_post($travelxHotelApi.'/cancel', [
-        'headers' => ['Content-Type' => 'application/json'],
-        'body'    => json_encode($payload),
-        'timeout' => 30,
-    ]);
-
-    if (is_wp_error($response)) {
-        wp_send_json_error('API call failed: ' . $response->get_error_message());
+        // Pass admin-ajax URL and nonce if needed
+        wp_localize_script('cancel-hotel-booking-js', 'cancelHotelBookingAjax', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+        ]);
     }
-
-    $body = json_decode(wp_remote_retrieve_body($response), true);
-
-    // ✅ Update local database booking_status = '0' (Failed)
-    $updated = $wpdb->update(
-        'hotel_booking_details',
-        ['booking_status' => '0'],
-        ['hotel_token_id' => $hotel_token_id],
-        ['%d'],
-        ['%s']
-    );
-
-    if ($updated === false) {
-        wp_send_json_error('Booking canceled, but local DB update failed.');
-    }
-
-    wp_send_json_success(['api_response' => $body, 'message' => 'Booking canceled successfully.']);
-}
-function enqueue_cancel_hotel_booking_script() {
-    wp_enqueue_script('cancel-hotel-booking-js', get_template_directory_uri() . '/js/cancel-hotel-booking.js', [], null, true);
-
-    // Pass admin-ajax URL and nonce if needed
-    wp_localize_script('cancel-hotel-booking-js', 'cancelHotelBookingAjax', [
-        'ajax_url' => admin_url('admin-ajax.php'),
-    ]);
-}
-add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
-
+    add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
 
 
 /*=======================flight cancel code ===================*/
@@ -2509,6 +2562,46 @@ add_action('wp_enqueue_scripts', 'enqueue_cancel_hotel_booking_script');
         if ($updated === false) {
             wp_send_json_error('Flight canceled via API, but DB update failed.');
         }
+
+
+        // Fetch booking details to get required information for the refund record
+        $booking_details = $wpdb->get_row(
+            $wpdb->prepare("SELECT transaction_id, email, is_refundable,amount,booking_id FROM flight_booking_details 
+            WHERE booking_id = %s  LIMIT 1", $booking_id )
+        );
+
+        if (!$booking_details) {
+            wp_send_json_error('Booking not found.');
+        }
+
+        $inserted = $wpdb->insert(
+            'booking_refund_details',
+            [
+                'transaction_id' => $booking_details->transaction_id,
+                'customer_email' => $booking_details->email,
+                'is_refundable'  => $booking_details->is_refundable,
+                'booking_id'     => $booking_details->booking_id,
+                'price'          => $booking_details->amount,
+                'status'         => 'initiate',  
+                'travel_type'    => 'flight',
+                'created_at'     => date('Y-m-d H:i:s'),
+            ],
+            [
+                '%s', // transaction_id
+                '%s', // customer_email
+                '%s', // is_refundable
+                '%s', // booking_id
+                '%s', // price
+                '%s', // status
+                '%s', // travel_type
+                '%s', // created_at
+            ]
+        );
+
+        if ($inserted === false) {
+            wp_send_json_error('Failed to insert refund details.');
+        }
+
 
         wp_send_json_success([
             'api_response' => $body,
@@ -3403,477 +3496,515 @@ function send_custom_flight_booking_email($user_email, $user_name, $booking_id) 
     wp_mail($to, $subject, $message, $headers);
 }
 
-add_action('rest_api_init', function () {
-    register_rest_route('custom-api/v1', '/airport-suggestions', [
-        'methods'  => ['GET', 'POST'],
-        'callback' => 'rest_get_airport_suggestions',
-        'permission_callback' => '__return_true',
-        'args' => [
-            'term' => [
-                'required' => false, // Make it optional since you're manually handling fallback
-                'sanitize_callback' => 'sanitize_text_field'
+    add_action('rest_api_init', function () {
+        register_rest_route('custom-api/v1', '/airport-suggestions', [
+            'methods'  => ['GET', 'POST'],
+            'callback' => 'rest_get_airport_suggestions',
+            'permission_callback' => '__return_true',
+            'args' => [
+                'term' => [
+                    'required' => false, // Make it optional since you're manually handling fallback
+                    'sanitize_callback' => 'sanitize_text_field'
+                ]
             ]
-        ]
-    ]);
-});
+        ]);
+    });
 
 //Airport list api
-function rest_get_airport_suggestions(WP_REST_Request $request) {
-    global $wpdb;
+    function rest_get_airport_suggestions(WP_REST_Request $request) {
+        global $wpdb;
 
-    // Try to get 'term' from query or body
-    $term = sanitize_text_field($request->get_param('term'));
+        // Try to get 'term' from query or body
+        $term = sanitize_text_field($request->get_param('term'));
 
-    // If not found in params, try to get it from raw body JSON
-    if (empty($term)) {
-        $body = $request->get_body();
-        $data = json_decode($body, true);
-        if (isset($data['term'])) {
-            $term = sanitize_text_field($data['term']);
+        // If not found in params, try to get it from raw body JSON
+        if (empty($term)) {
+            $body = $request->get_body();
+            $data = json_decode($body, true);
+            if (isset($data['term'])) {
+                $term = sanitize_text_field($data['term']);
+            }
         }
-    }
 
-    // Don't search if less than 2 characters
-    if (strlen($term) < 2) {
-        return new WP_REST_Response([], 200);
-    }
+        // Don't search if less than 2 characters
+        if (strlen($term) < 2) {
+            return new WP_REST_Response([], 200);
+        }
 
-    // Query DB
-    $results = $wpdb->get_results(
-        $wpdb->prepare("
-            SELECT airport_name, airport_code, city, country, latitude, longitude
-            FROM airport_list
-            WHERE airport_name LIKE %s OR city LIKE %s OR airport_code LIKE %s
-            LIMIT 10
-        ",
-            '%' . $wpdb->esc_like($term) . '%',
-            '%' . $wpdb->esc_like($term) . '%',
-            '%' . $wpdb->esc_like($term) . '%'
-        ),
-        ARRAY_A
-    );
-
-    // Format response
-    $suggestions = array_map(function ($airport) {
-        return [
-            'label' => sprintf("%s, %s, %s, %s",
-                $airport['airport_name'],
-                $airport['airport_code'],
-                $airport['city'],
-                $airport['country']
+        // Query DB
+        $results = $wpdb->get_results(
+            $wpdb->prepare("
+                SELECT airport_name, airport_code, city, country, latitude, longitude
+                FROM airport_list
+                WHERE airport_name LIKE %s OR city LIKE %s OR airport_code LIKE %s
+                LIMIT 10
+            ",
+                '%' . $wpdb->esc_like($term) . '%',
+                '%' . $wpdb->esc_like($term) . '%',
+                '%' . $wpdb->esc_like($term) . '%'
             ),
-            'value' => $airport['airport_code'],
-            'city' => $airport['city'],
-            'country' => $airport['country'],
-            'latitude' => $airport['latitude'],
-            'longitude' => $airport['longitude']
-        ];
-    }, $results);
+            ARRAY_A
+        );
 
-    return new WP_REST_Response($suggestions, 200);
-}
+        // Format response
+        $suggestions = array_map(function ($airport) {
+            return [
+                'label' => sprintf("%s, %s, %s, %s",
+                    $airport['airport_name'],
+                    $airport['airport_code'],
+                    $airport['city'],
+                    $airport['country']
+                ),
+                'value' => $airport['airport_code'],
+                'city' => $airport['city'],
+                'country' => $airport['country'],
+                'latitude' => $airport['latitude'],
+                'longitude' => $airport['longitude']
+            ];
+        }, $results);
 
+        return new WP_REST_Response($suggestions, 200);
+    }
 
-
+/*================Hote-wishlist-api===========================*/
 /*wishlist api*/
-add_action('rest_api_init', function () {
-    register_rest_route('custom-api/v1', '/wishlist/add', [
-        'methods'  => WP_REST_Server::CREATABLE, // Better than 'POST'
-        'callback' => 'api_add_to_wishlist',
-        'permission_callback' => '__return_true',
-    ]);
-});
-add_action('rest_api_init', function () {
-    register_rest_route('custom-api/v1', '/wishlist/remove', [
-        'methods'  => 'POST',
-        'callback' => 'api_remove_from_wishlist',
-        'permission_callback' => '__return_true',
-    ]);
-});
+    add_action('rest_api_init', function () {
+        register_rest_route('custom-api/v1', '/wishlist/add', [
+            'methods'  => WP_REST_Server::CREATABLE, // Better than 'POST'
+            'callback' => 'api_add_to_wishlist',
+            'permission_callback' => '__return_true',
+        ]);
+    });
+    add_action('rest_api_init', function () {
+        register_rest_route('custom-api/v1', '/wishlist/remove', [
+            'methods'  => 'POST',
+            'callback' => 'api_remove_from_wishlist',
+            'permission_callback' => '__return_true',
+        ]);
+    });
 
+    function api_add_to_wishlist($request) {
+        global $wpdb;
+        $table = 'travel_wishlist';
+        $params = $request->get_json_params();
 
-function api_add_to_wishlist($request) {
-    global $wpdb;
-    $table = 'travel_wishlist';
+        $type = sanitize_text_field($params['type']);
+        $item_id = intval($params['hotel_id']);
+        $customer_id = intval($params['customer_id']);
+        $customer_email = sanitize_email($params['customer_email']);
+        $hotel_name = sanitize_text_field($params['hotel_name']);
 
-    $params = $request->get_json_params();
+        // Check for existing wishlist item
+        $exists = is_item_in_wishlist($customer_id, $item_id, $type, $hotel_name);
+        if ($exists) {
+            return new WP_REST_Response(['message' => 'Already in wishlist'], 200);
+        }
 
-    $type = sanitize_text_field($params['type']);
-    $item_id = intval($params['hotel_id']);
-    $customer_id = intval($params['customer_id']);
-    $customer_email = sanitize_email($params['customer_email']);
-    $hotel_name = sanitize_text_field($params['hotel_name']);
+        $data = [
+            'type' => $type,
+            'customer_id' => $customer_id,
+            'customer_email' => $customer_email,
+            'hotel_name' => $hotel_name,
+            'location' => '', // You can expand this
+            'created_at' => current_time('mysql')
+        ];
 
-    // Check for existing wishlist item
-    $exists = is_item_in_wishlist($customer_id, $item_id, $type, $hotel_name);
-    if ($exists) {
-        return new WP_REST_Response(['message' => 'Already in wishlist'], 200);
+        if ($type === 'hotel') {
+            $data['hotel_id'] = $item_id;
+        } else {
+            $data['flight_id'] = $item_id;
+        }
+
+        $wpdb->insert($table, $data);
+
+        return new WP_REST_Response(['message' => 'Added to wishlist'], 200);
     }
 
-    $data = [
-        'type' => $type,
-        'customer_id' => $customer_id,
-        'customer_email' => $customer_email,
-        'hotel_name' => $hotel_name,
-        'location' => '', // You can expand this
-        'created_at' => current_time('mysql')
-    ];
+    function api_remove_from_wishlist($request) {
+        global $wpdb;
+        $table = 'travel_wishlist';
 
-    if ($type === 'hotel') {
-        $data['hotel_id'] = $item_id;
-    } else {
-        $data['flight_id'] = $item_id;
+        $params = $request->get_json_params();
+
+        $type = sanitize_text_field($params['type']);
+        $item_id = intval($params['hotel_id']);
+        $customer_id = intval($params['customer_id']);
+
+        if ($type === 'hotel') {
+            $wpdb->delete($table, ['customer_id' => $customer_id, 'hotel_id' => $item_id]);
+        } else {
+            $wpdb->delete($table, ['customer_id' => $customer_id, 'flight_id' => $item_id]);
+        }
+
+        return new WP_REST_Response(['message' => 'Removed from wishlist'], 200);
     }
 
-    $wpdb->insert($table, $data);
+    function api_get_wishlist_by_customer($request) {
+        global $wpdb;
+        $table = 'travel_wishlist';
 
-    return new WP_REST_Response(['message' => 'Added to wishlist'], 200);
-}
+        $customer_id = intval($request['customer_id']);
 
-function api_remove_from_wishlist($request) {
-    global $wpdb;
-    $table = 'travel_wishlist';
+        if (!$customer_id) {
+            return new WP_REST_Response(['message' => 'Invalid customer ID'], 400);
+        }
 
-    $params = $request->get_json_params();
+        $results = $wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM $table WHERE customer_id = %d", $customer_id),
+            ARRAY_A
+        );
 
-    $type = sanitize_text_field($params['type']);
-    $item_id = intval($params['hotel_id']);
-    $customer_id = intval($params['customer_id']);
-
-    if ($type === 'hotel') {
-        $wpdb->delete($table, ['customer_id' => $customer_id, 'hotel_id' => $item_id]);
-    } else {
-        $wpdb->delete($table, ['customer_id' => $customer_id, 'flight_id' => $item_id]);
+        return new WP_REST_Response([
+            'message' => 'Wishlist fetched',
+            'data'    => $results
+        ], 200);
     }
 
-    return new WP_REST_Response(['message' => 'Removed from wishlist'], 200);
-}
-function api_get_wishlist_by_customer($request) {
-    global $wpdb;
-    $table = 'travel_wishlist';
+    add_action('rest_api_init', function () {
+        register_rest_route('custom-api/v1', '/wishlist/list/(?P<customer_id>\d+)', [
+            'methods'             => 'GET',
+            'callback'            => 'api_get_wishlist_by_customer',
+            'permission_callback' => '__return_true',
+        ]);
+    });
 
-    $customer_id = intval($request['customer_id']);
-
-    if (!$customer_id) {
-        return new WP_REST_Response(['message' => 'Invalid customer ID'], 400);
+    function register_my_menus() {
+      register_nav_menus(
+        array(
+          'primary' => __('Primary Menu'),
+          'footer' => __('Footer Menu')
+        )
+      );
     }
-
-    $results = $wpdb->get_results(
-        $wpdb->prepare("SELECT * FROM $table WHERE customer_id = %d", $customer_id),
-        ARRAY_A
-    );
-
-    return new WP_REST_Response([
-        'message' => 'Wishlist fetched',
-        'data'    => $results
-    ], 200);
-}
-
-add_action('rest_api_init', function () {
-    register_rest_route('custom-api/v1', '/wishlist/list/(?P<customer_id>\d+)', [
-        'methods'             => 'GET',
-        'callback'            => 'api_get_wishlist_by_customer',
-        'permission_callback' => '__return_true',
-    ]);
-});
-
-function register_my_menus() {
-  register_nav_menus(
-    array(
-      'primary' => __('Primary Menu'),
-      'footer' => __('Footer Menu')
-    )
-  );
-}
-add_action('init', 'register_my_menus');
+    add_action('init', 'register_my_menus');
 
 
 /*=================================For Car Rental Code Start==============================================*/
 // Handle car destination suggestion request
-add_action('wp_ajax_get_car_rental_suggestions', 'get_car_rental_suggestions');
-add_action('wp_ajax_nopriv_get_car_rental_suggestions', 'get_car_rental_suggestions');
+    add_action('wp_ajax_get_car_rental_suggestions', 'get_car_rental_suggestions');
+    add_action('wp_ajax_nopriv_get_car_rental_suggestions', 'get_car_rental_suggestions');
 
-function get_car_rental_suggestions() {
-    global $wpdb;
+    function get_car_rental_suggestions() {
+        global $wpdb;
 
-    $term = isset($_GET['term']) ? sanitize_text_field($_GET['term']) : '';
+        $term = isset($_GET['term']) ? sanitize_text_field($_GET['term']) : '';
 
-    if (strlen($term) < 2) {
-        wp_send_json([]);
+        if (strlen($term) < 2) {
+            wp_send_json([]);
+            wp_die();
+        }
+
+        $like = '%' . $wpdb->esc_like($term) . '%';
+
+        $results = $wpdb->get_results(
+            $wpdb->prepare("
+                SELECT id, location_name, location_code, city, country_code
+                FROM car_destination
+                WHERE location_name LIKE %s OR city LIKE %s OR location_code LIKE %s
+                ORDER BY location_name
+                LIMIT 10
+            ", $like, $like, $like),
+            ARRAY_A
+        );
+
+        $suggestions = [];
+        foreach ($results as $row) {
+            $label = sprintf('%s, %s, %s', $row['location_name'], $row['city'], $row['country_code']);
+            $suggestions[] = [
+                'label' => $label,
+                'value' => $label,
+                'id' => $row['id'],
+            ];
+        }
+
+        wp_send_json($suggestions);
         wp_die();
     }
 
-    $like = '%' . $wpdb->esc_like($term) . '%';
 
-    $results = $wpdb->get_results(
-        $wpdb->prepare("
-            SELECT id, location_name, location_code, city, country_code
-            FROM car_destination
-            WHERE location_name LIKE %s OR city LIKE %s OR location_code LIKE %s
-            ORDER BY location_name
-            LIMIT 10
-        ", $like, $like, $like),
-        ARRAY_A
-    );
+    function enqueue_car_rental_autocomplete_script() {
+        wp_enqueue_script('jquery-ui-autocomplete');
+        wp_enqueue_script(
+            'car-rental-autocomplete',
+            get_template_directory_uri() . '/js/car-rental-autocomplete.js',
+            ['jquery', 'jquery-ui-autocomplete'],
+            null,
+            true
+        );
 
-    $suggestions = [];
-    foreach ($results as $row) {
-        $label = sprintf('%s, %s, %s', $row['location_name'], $row['city'], $row['country_code']);
-        $suggestions[] = [
-            'label' => $label,
-            'value' => $label,
-            'id' => $row['id'],
+        wp_localize_script('car-rental-autocomplete', 'airportSearch', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+        ]);
+    }
+    add_action('wp_enqueue_scripts', 'enqueue_car_rental_autocomplete_script');
+
+
+    function getsearchCarRentalList($carPickupLocation, $carDropoffLocation, $pickupTime, $dropoffTime, $pickupDate, $dropoffDate, $selectedRatings = [], $sortBy = '') {
+        // Prepare API payload
+        $payload = [
+            "user_id"       => get_option('travelx_user_id'),
+            "user_password" => get_option('travelx_user_password'),
+            "access"        => get_option('travelx_access'),
+            "ip_address"    => get_option('travelx_user_ip_address'),
+            'pickup_id'     => $carPickupLocation,
+            'dropoff_id'    => $carDropoffLocation,
+            'pickup_date'   => $pickupDate,
+            'pickup_time'   => $pickupTime,
+            'dropoff_date'  => $dropoffDate,
+            'dropoff_time'  => $dropoffTime,
+            'driver_age'    => "25",
+            'country_res'   => "IN",
+            'currency'      => get_option('travelx_required_currency'),
+            'ratings'       => $selectedRatings, // Send selected ratings as an array
+            'sort_by'       => $sortBy, // Sorting criteria (e.g., price-low-high, rating-high-low)
+        ];
+
+        // Send API request
+        $response = wp_remote_post('https://travelnext.works/api/carsv3-test/search', [
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body' => json_encode($payload),
+            'timeout' => 15,
+        ]);
+
+        // Handle request errors
+        if (is_wp_error($response)) {
+            error_log('TravelNext API Error: ' . $response->get_error_message());
+            return new WP_Error('api_error', 'Unable to reach TravelNext API', [
+                'status' => 500,
+                'details' => $response->get_error_message()
+            ]);
+        }
+
+        // Extract body and decode
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        // Validate decoded response
+        if (json_last_error() !== JSON_ERROR_NONE || empty($data) || !is_array($data)) {
+            error_log('TravelNext API returned invalid JSON or empty data.');
+            return new WP_Error('api_error', 'Invalid response from TravelNext API', ['status' => 502]);
+        }
+
+        // Optionally sort and filter the data if not handled by the API
+        if ($sortBy) {
+            usort($data['data'], function($a, $b) use ($sortBy) {
+                switch ($sortBy) {
+                    case 'price-low-high':
+                        return $a['fees']['rateTotalAmount'] - $b['fees']['rateTotalAmount'];
+                    case 'price-high-low':
+                        return $b['fees']['rateTotalAmount'] - $a['fees']['rateTotalAmount'];
+                    case 'rating-low-high':
+                        return round($a['vendor']['reviewsOverall']) - round($b['vendor']['reviewsOverall']);
+                    case 'rating-high-low':
+                        return round($b['vendor']['reviewsOverall']) - round($a['vendor']['reviewsOverall']);
+                    default:
+                        return 0; // No sorting
+                }
+            });
+        }
+
+        if (!empty($selectedRatings)) {
+            $data['data'] = array_filter($data['data'], function($car) use ($selectedRatings) {
+                $rating = round($car['vendor']['reviewsOverall']);
+                return in_array($rating, $selectedRatings);
+            });
+        }
+
+        // Return the filtered and sorted response
+        return $data;
+    }
+
+    function getCarRentalDetail($session_id, $reference_id){
+
+        $payload = [
+       
+            'session_id' => $session_id,
+            'reference_id'=> $reference_id,
+        ];
+
+         $response = wp_remote_post('https://travelnext.works/api/carsv3-test/rental_condition_details', [
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body' => json_encode($payload),
+        ]);
+
+         if (is_wp_error($response)) {
+            return new WP_Error('api_error', 'Unable to reach travelnext API', ['status' => 500]);
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+     return !empty($data) ? $data : ['error' => 'Invalid API response'];
+
+    }
+
+    /*for car api*/
+    add_action('rest_api_init', function () {
+        register_rest_route('custom/v1', '/car-rental-search', [
+            'methods'  => 'POST',
+            'callback' => 'custom_car_rental_search',
+            'permission_callback' => '__return_true', // Allow public access; secure this if needed
+        ]);
+    });
+
+    function custom_car_rental_search($request) {
+        $params = $request->get_json_params();
+
+        $payload = [
+            "user_id"       => "bookatravel_testAPI",
+            "user_password" => "bookatravelTest@2025",
+            "ip_address"    => "106.219.165.128",
+            "access"        => "Test",
+            "pickup_id"     => $params['pickup_id'] ?? '',
+            "dropoff_id"    => $params['dropoff_id'] ?? '',
+            "pickup_date"   => $params['pickup_date'] ?? '',
+            "pickup_time"   => $params['pickup_time'] ?? '',
+            "dropoff_date"  => $params['dropoff_date'] ?? '',
+            "dropoff_time"  => $params['dropoff_time'] ?? '',
+            "driver_age"    => $params['driver_age'] ?? '25',
+            "country_res"   => $params['country_res'] ?? 'IN',
+            "currency"      => $params['currency'] ?? 'USD',
+        ];
+
+        $response = wp_remote_post('https://travelnext.works/api/carsv3-test/search', [
+            'headers' => ['Content-Type' => 'application/json'],
+            'body'    => wp_json_encode($payload),
+            'timeout' => 20,
+        ]);
+
+        if (is_wp_error($response)) {
+            return new WP_Error('api_error', $response->get_error_message(), ['status' => 500]);
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $code = wp_remote_retrieve_response_code($response);
+        $data = json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || empty($data)) {
+            return new WP_Error('invalid_response', 'Invalid response from TravelNext API', [
+                'status' => $code,
+                'raw' => $body,
+            ]);
+        }
+
+        return rest_ensure_response($data);
+    }
+
+/*==============================For Car Rental Code End=====================================*/
+    function getCityNameByAirPortCode($airportCode) {
+        global $wpdb;
+
+        // Sanitize the input
+        $airportCode = strtoupper(trim($airportCode));
+
+        // Replace with your actual table name if it uses a prefix
+        $table_name = 'airport_list';
+
+        // Query the database
+        $city = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT city FROM {$table_name} WHERE airport_code = %s LIMIT 1",
+                $airportCode
+            )
+        );
+
+        return $city ?: '';
+    }
+
+    function getAirPortNameByAirPortCode($airportCode) {
+        global $wpdb;
+
+        // Sanitize the input
+        $airportCode = strtoupper(trim($airportCode));
+
+        // Replace with your actual table name if it uses a prefix
+        $table_name = 'airport_list';
+
+        // Query the database
+        $airportName = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT airport_name FROM {$table_name} WHERE airport_code = %s LIMIT 1",
+                $airportCode
+            )
+        );
+
+        return $airportName ?: 'Unknown Airport Name';
+    }
+
+    function validateFlightFareMethod($sessionId, $fareSourceCode) {
+        $url = 'https://travelnext.works/api/aeroVE5/revalidate';
+
+        $body = [
+            'session_id' => $sessionId,
+            'fare_source_code' => $fareSourceCode,
+        ];
+
+        $response = wp_remote_post($url, [
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body' => wp_json_encode($body),
+            'timeout' => 15,
+        ]);
+
+        if (is_wp_error($response)) {
+            return ['error' => $response->get_error_message()];
+        }
+
+        $code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        return [
+            'status' => $code,
+            'response' => $data,
         ];
     }
 
-    wp_send_json($suggestions);
-    wp_die();
-}
 
+    // AJAX handler
+    add_action('wp_ajax_search_countries', 'ajax_search_countries');
+    add_action('wp_ajax_nopriv_search_countries', 'ajax_search_countries');
 
-function enqueue_car_rental_autocomplete_script() {
-    wp_enqueue_script('jquery-ui-autocomplete');
-    wp_enqueue_script(
-        'car-rental-autocomplete',
-        get_template_directory_uri() . '/js/car-rental-autocomplete.js',
-        ['jquery', 'jquery-ui-autocomplete'],
-        null,
-        true
-    );
+    function ajax_search_countries() {
+        global $wpdb;
 
-    wp_localize_script('car-rental-autocomplete', 'airportSearch', [
-        'ajax_url' => admin_url('admin-ajax.php'),
-    ]);
-}
-add_action('wp_enqueue_scripts', 'enqueue_car_rental_autocomplete_script');
+        $keyword = sanitize_text_field($_POST['keyword']);
+        $table_name = 'country_list';
 
+        $results = $wpdb->get_results(
+            $wpdb->prepare("SELECT country_code, country_name FROM $table_name WHERE country_name LIKE %s LIMIT 10", $keyword . '%')
+        );
 
-function getsearchCarRentalList($carPickupLocation, $carDropoffLocation, $pickupTime, $dropoffTime, $pickupDate, $dropoffDate, $selectedRatings = [], $sortBy = '') {
-    // Prepare API payload
-    $payload = [
-        "user_id"       => get_option('travelx_user_id'),
-        "user_password" => get_option('travelx_user_password'),
-        "access"        => get_option('travelx_access'),
-        "ip_address"    => get_option('travelx_user_ip_address'),
-        'pickup_id'     => $carPickupLocation,
-        'dropoff_id'    => $carDropoffLocation,
-        'pickup_date'   => $pickupDate,
-        'pickup_time'   => $pickupTime,
-        'dropoff_date'  => $dropoffDate,
-        'dropoff_time'  => $dropoffTime,
-        'driver_age'    => "25",
-        'country_res'   => "IN",
-        'currency'      => get_option('travelx_required_currency'),
-        'ratings'       => $selectedRatings, // Send selected ratings as an array
-        'sort_by'       => $sortBy, // Sorting criteria (e.g., price-low-high, rating-high-low)
-    ];
+        $data = [];
+        foreach ($results as $row) {
+            $data[] = [
+                'label' => $row->country_name,
+                'value' => $row->country_code // This will be inserted into the input
+            ];
+        }
 
-    // Send API request
-    $response = wp_remote_post('https://travelnext.works/api/carsv3-test/search', [
-        'headers' => [
-            'Content-Type' => 'application/json',
-        ],
-        'body' => json_encode($payload),
-        'timeout' => 15,
-    ]);
-
-    // Handle request errors
-    if (is_wp_error($response)) {
-        error_log('TravelNext API Error: ' . $response->get_error_message());
-        return new WP_Error('api_error', 'Unable to reach TravelNext API', [
-            'status' => 500,
-            'details' => $response->get_error_message()
-        ]);
+        wp_send_json($data);
     }
 
-    // Extract body and decode
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
+    // Enqueue JS with ajax object
+    function enqueue_country_autocomplete_script() {
+        wp_enqueue_script(
+            'country-autocomplete',
+            get_template_directory_uri() . '/js/country-autocomplete.js',
+            array('jquery', 'jquery-ui-autocomplete'),
+            null,
+            true
+        );
 
-    // Validate decoded response
-    if (json_last_error() !== JSON_ERROR_NONE || empty($data) || !is_array($data)) {
-        error_log('TravelNext API returned invalid JSON or empty data.');
-        return new WP_Error('api_error', 'Invalid response from TravelNext API', ['status' => 502]);
+        wp_localize_script('country-autocomplete', 'ajax_object', array(
+            'ajax_url' => admin_url('admin-ajax.php')
+        ));
     }
-
-    // Optionally sort and filter the data if not handled by the API
-    if ($sortBy) {
-        usort($data['data'], function($a, $b) use ($sortBy) {
-            switch ($sortBy) {
-                case 'price-low-high':
-                    return $a['fees']['rateTotalAmount'] - $b['fees']['rateTotalAmount'];
-                case 'price-high-low':
-                    return $b['fees']['rateTotalAmount'] - $a['fees']['rateTotalAmount'];
-                case 'rating-low-high':
-                    return round($a['vendor']['reviewsOverall']) - round($b['vendor']['reviewsOverall']);
-                case 'rating-high-low':
-                    return round($b['vendor']['reviewsOverall']) - round($a['vendor']['reviewsOverall']);
-                default:
-                    return 0; // No sorting
-            }
-        });
-    }
-
-    if (!empty($selectedRatings)) {
-        $data['data'] = array_filter($data['data'], function($car) use ($selectedRatings) {
-            $rating = round($car['vendor']['reviewsOverall']);
-            return in_array($rating, $selectedRatings);
-        });
-    }
-
-    // Return the filtered and sorted response
-    return $data;
-}
-
-function getCarRentalDetail($session_id, $reference_id){
-
-    $payload = [
-   
-        'session_id' => $session_id,
-        'reference_id'=> $reference_id,
-    ];
-
-     $response = wp_remote_post('https://travelnext.works/api/carsv3-test/rental_condition_details', [
-        'headers' => [
-            'Content-Type' => 'application/json',
-        ],
-        'body' => json_encode($payload),
-    ]);
-
-     if (is_wp_error($response)) {
-        return new WP_Error('api_error', 'Unable to reach travelnext API', ['status' => 500]);
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-
-// echo "<pre>"; print_r($data); die;
-
- return !empty($data) ? $data : ['error' => 'Invalid API response'];
-
-
-}
-
-/*for car api*/
-add_action('rest_api_init', function () {
-    register_rest_route('custom/v1', '/car-rental-search', [
-        'methods'  => 'POST',
-        'callback' => 'custom_car_rental_search',
-        'permission_callback' => '__return_true', // Allow public access; secure this if needed
-    ]);
-});
-
-function custom_car_rental_search($request) {
-    $params = $request->get_json_params();
-
-    $payload = [
-        "user_id"       => "bookatravel_testAPI",
-        "user_password" => "bookatravelTest@2025",
-        "ip_address"    => "106.219.165.128",
-        "access"        => "Test",
-        "pickup_id"     => $params['pickup_id'] ?? '',
-        "dropoff_id"    => $params['dropoff_id'] ?? '',
-        "pickup_date"   => $params['pickup_date'] ?? '',
-        "pickup_time"   => $params['pickup_time'] ?? '',
-        "dropoff_date"  => $params['dropoff_date'] ?? '',
-        "dropoff_time"  => $params['dropoff_time'] ?? '',
-        "driver_age"    => $params['driver_age'] ?? '25',
-        "country_res"   => $params['country_res'] ?? 'IN',
-        "currency"      => $params['currency'] ?? 'USD',
-    ];
-
-    $response = wp_remote_post('https://travelnext.works/api/carsv3-test/search', [
-        'headers' => ['Content-Type' => 'application/json'],
-        'body'    => wp_json_encode($payload),
-        'timeout' => 20,
-    ]);
-
-    if (is_wp_error($response)) {
-        return new WP_Error('api_error', $response->get_error_message(), ['status' => 500]);
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    $code = wp_remote_retrieve_response_code($response);
-    $data = json_decode($body, true);
-
-    if (json_last_error() !== JSON_ERROR_NONE || empty($data)) {
-        return new WP_Error('invalid_response', 'Invalid response from TravelNext API', [
-            'status' => $code,
-            'raw' => $body,
-        ]);
-    }
-
-    return rest_ensure_response($data);
-}
-
-/*==============================For Car Rental Code End=====================================*/
-function getCityNameByAirPortCode($airportCode) {
-    global $wpdb;
-
-    // Sanitize the input
-    $airportCode = strtoupper(trim($airportCode));
-
-    // Replace with your actual table name if it uses a prefix
-    $table_name = 'airport_list';
-
-    // Query the database
-    $city = $wpdb->get_var(
-        $wpdb->prepare(
-            "SELECT city FROM {$table_name} WHERE airport_code = %s LIMIT 1",
-            $airportCode
-        )
-    );
-
-    return $city ?: '';
-}
-function getAirPortNameByAirPortCode($airportCode) {
-    global $wpdb;
-
-    // Sanitize the input
-    $airportCode = strtoupper(trim($airportCode));
-
-    // Replace with your actual table name if it uses a prefix
-    $table_name = 'airport_list';
-
-    // Query the database
-    $airportName = $wpdb->get_var(
-        $wpdb->prepare(
-            "SELECT airport_name FROM {$table_name} WHERE airport_code = %s LIMIT 1",
-            $airportCode
-        )
-    );
-
-    return $airportName ?: 'Unknown Airport Name';
-}
-
-function validateFlightFareMethod($sessionId, $fareSourceCode) {
-    $url = 'https://travelnext.works/api/aeroVE5/revalidate';
-
-    $body = [
-        'session_id' => $sessionId,
-        'fare_source_code' => $fareSourceCode,
-    ];
-
-    $response = wp_remote_post($url, [
-        'headers' => [
-            'Content-Type' => 'application/json',
-        ],
-        'body' => wp_json_encode($body),
-        'timeout' => 15,
-    ]);
-
-    if (is_wp_error($response)) {
-        return ['error' => $response->get_error_message()];
-    }
-
-    $code = wp_remote_retrieve_response_code($response);
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-
-    return [
-        'status' => $code,
-        'response' => $data,
-    ];
-}
+    add_action('wp_enqueue_scripts', 'enqueue_country_autocomplete_script');
 
 ?>

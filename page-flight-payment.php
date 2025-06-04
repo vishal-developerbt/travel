@@ -23,7 +23,6 @@ get_header();
     $fareSourceCode = $_GET['fareSourceCode'] ?? '';
     $sessionId = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
     $validateFlightData = validateFlightFareMethod($sessionId, $fareSourceCode);
-
     $IsValid =$validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['IsValid'];
     if($IsValid){
         $flightData = $validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['FareItineraries'];
@@ -33,10 +32,10 @@ get_header();
          echo "<script>
         alert('Response not getting from validateFlightFareMethod Api');
         window.history.back();
-    </script>";
-    exit;
+        </script>";
+        exit;
     }   
-   
+
     $isRefundable = $fare['AirItineraryFareInfo']['IsRefundable'];
     $fareType   = $fare['AirItineraryFareInfo']['FareType'];
   
@@ -67,14 +66,14 @@ get_header();
     $totalTax = 0;
     $totalFare = 0;
     $passengerFares = [];
+
+    $itinFares = $fare['AirItineraryFareInfo']['ItinTotalFares'] ?? [];
     $fareBreakdowns = $fare['AirItineraryFareInfo']['FareBreakdown'] ?? [];
 
-    if (!empty($fareBreakdowns[0])) {
-        $fareInfo = $fareBreakdowns[0]['PassengerFare'] ?? [];
-
-        $unitBase = isset($fareInfo['BaseFare']['Amount']) ? (float)$fareInfo['BaseFare']['Amount'] : 0;
-        $unitTotal = isset($fareInfo['TotalFare']['Amount']) ? (float)$fareInfo['TotalFare']['Amount'] : 0;
-        $unitTax = $unitTotal - $unitBase;
+    if (!empty($itinFares)) {
+        $unitBase = isset($itinFares['BaseFare']['Amount']) ? (float)$itinFares['BaseFare']['Amount'] : 0;
+        $unitTax = isset($itinFares['TotalTax']['Amount']) ? (float)$itinFares['TotalTax']['Amount'] : 0;
+        $unitTotal = isset($itinFares['TotalFare']['Amount']) ? (float)$itinFares['TotalFare']['Amount'] : 0;
 
         $totalBaseFare = $unitBase * $payingPassengers;
         $totalTax = $unitTax * $payingPassengers;
@@ -115,23 +114,23 @@ get_header();
                 $departureDateTime = date("D, d M Y", strtotime($flights[0]['FlightSegment']['DepartureDateTime']));
 
                 }else{
-                $origin = $flights['DepartureAirportLocationCode'] ?? '';
-                $destination = $flights['ArrivalAirportLocationCode'] ?? '';
+                $origin = $flights[0]['FlightSegment']['DepartureAirportLocationCode'] ?? '';
+                $destination = $flights[0]['FlightSegment']['ArrivalAirportLocationCode'] ?? '';
+                 $departureDateTime = date("D, d M Y", strtotime($flights[0]['FlightSegment']['DepartureDateTime']));
                 }
         ?>
         <section class="flight-booking-divider-section mb-5">
-
-        <div class="d-flex align-items-center gap-2 mb-3">
-              <div class="border-section-main"></div>
-            <img src="<?php echo get_template_directory_uri(); ?>/photos/flight.png" alt="flight">
-            <div class="flight-dustination-into-travelling-fl">
-            <?php 
-                $stopsText = !empty($totalStops) ? "{$totalStops} Stop(s)" : "Non Stop";
-                $originCity = getCityNameByAirPortCode($origin);
-                $destinationCity = getCityNameByAirPortCode($destination);
-                echo esc_html("{$originCity} → {$destinationCity} | {$departureDateTime} | {$stopsText}"); ?>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                  <div class="border-section-main"></div>
+                <img src="<?php echo get_template_directory_uri(); ?>/photos/flight.png" alt="flight">
+                <div class="flight-dustination-into-travelling-fl">
+                <?php 
+                    $stopsText = !empty($totalStops) ? "{$totalStops} Stop(s)" : "Non Stop";
+                    $originCity = getCityNameByAirPortCode($origin);
+                    $destinationCity = getCityNameByAirPortCode($destination);
+                    echo esc_html("{$originCity} → {$destinationCity} | {$departureDateTime} | {$stopsText}"); ?>
+                </div>
             </div>
-        </div>
         
         <?php
         foreach($flights as $flightrow){
@@ -152,94 +151,94 @@ get_header();
 
         ?>
         <?php if ($layoverFormatted !== null && isset($previousArrival)) { ?>
-           <div class="layover-time-section mt-3 mb-3 d-flex">
-    <div class="dotted-section-flight"></div>
-    <div>
-        <div><span class="change-of-planes">Change of planes</span></div>
-        <div><strong><?php echo $layoverFormatted;?></strong> Layover in <?php echo esc_html(getCityNameByAirPortCode($origin1));?></div>
-    </div>
-</div>
+            <div class="layover-time-section mt-3 mb-3 d-flex">
+                <div class="dotted-section-flight"></div>
+                <div>
+                    <div><span class="change-of-planes">Change of planes</span></div>
+                    <div>
+                        <strong><?php echo $layoverFormatted;?></strong> Layover in <?php echo esc_html(getCityNameByAirPortCode($origin1));?>
+                    </div>
+                </div>
+            </div>
 
         <?php }
         $previousArrival = $flightrow['FlightSegment']['ArrivalDateTime']; 
         ?>
-        <section class="flight-middle-section">
-            <div class="d-flex align-items-center gap-5 mb-4 pb-3 border-bottom">
-                <div class="airline-logo">
-                    <div class="airline-inner">
-                        <img src="<?php echo esc_url(get_airline_logo_url($flightrow['FlightSegment']['MarketingAirlineCode'])); ?>" alt="">
+            <section class="flight-middle-section">
+                <div class="d-flex align-items-center gap-5 mb-4 pb-3 border-bottom">
+                    <div class="airline-logo">
+                        <div class="airline-inner">
+                            <img src="<?php echo esc_url(get_airline_logo_url($flightrow['FlightSegment']['MarketingAirlineCode'])); ?>" alt="">
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <div class="flight-no-flight-detail">
-                        <?php echo esc_html("{$airlineName} | {$flightNumber}"); ?>
+                    <div>
+                        <div class="flight-no-flight-detail">
+                            <?php echo esc_html("{$airlineName} | {$flightNumber}"); ?>
+                        </div>
+                        <div class="text-secondary-boding">
+                            Aircraft: <?php echo esc_html($flightrow['FlightSegment']['OperatingAirline']['Equipment'] ?? ''); ?>
+                        </div>
                     </div>
-                    <div class="text-secondary-boding">
-                        Aircraft: <?php echo esc_html($flightrow['FlightSegment']['OperatingAirline']['Equipment'] ?? ''); ?>
-                    </div>
-                </div>
-                <div class="ms-auto text-end">
-                    <div class="eco-sev-both"><?php echo esc_html($tripArgs['class']); ?></div>
-                </div>
-            </div>
-
-            <div class="flight-segment-wrapper d-flex align-items-start">
-                <!-- Departure -->
-                <div class="flight-time-info text-end pe-3 mt-2">
-                    <div class="flight-time fw-bold"><?php echo esc_html($departureTime); ?></div>
-                    <div class="flight-location fw-semibold">
-                        <?php echo esc_html(getCityNameByAirPortCode($origin1));?>
-                    </div>
-                    <span>
-                        <?php echo esc_html(getAirPortNameByAirPortCode($origin1));?>    
-                    </span>
-                    <div class="text-secondary-day-date-mon">
-                        Depart on - <?php echo esc_html($departureDateTime); ?>
+                    <div class="ms-auto text-end">
+                        <div class="eco-sev-both"><?php echo esc_html($tripArgs['class']); ?></div>
                     </div>
                 </div>
 
-                <!-- Duration -->
-                <div class="flight-connector d-flex flex-column align-items-center mx-3 mt-4">
-                    <div class="dot-circle"></div> <!-- Top circle -->
-                    <div class="dotted-line flex-grow-1"></div>
-                    <div class="flight-duration text-muted my-1">
-                        <?php echo esc_html($durationFormatted); ?>
+                <div class="flight-segment-wrapper d-flex align-items-start">
+                    <!-- Departure -->
+                    <div class="flight-time-info text-end pe-3 mt-2">
+                        <div class="flight-time fw-bold"><?php echo esc_html($departureTime); ?></div>
+                        <div class="flight-location fw-semibold">
+                            <?php echo esc_html(getCityNameByAirPortCode($origin1));?>
+                        </div>
+                        <span>
+                            <?php echo esc_html(getAirPortNameByAirPortCode($origin1));?>    
+                        </span>
+                        <div class="text-secondary-day-date-mon">
+                            Depart on - <?php echo esc_html($departureDateTime); ?>
+                        </div>
                     </div>
-                    <div class="dotted-line flex-grow-1"></div>
-                    <div class="dot-circle"></div> <!-- Bottom circle -->
-                </div>
+
+                    <!-- Duration -->
+                    <div class="flight-connector d-flex flex-column align-items-center mx-3 mt-4">
+                        <div class="dot-circle"></div> <!-- Top circle -->
+                        <div class="dotted-line flex-grow-1"></div>
+                        <div class="flight-duration text-muted my-1">
+                            <?php echo esc_html($durationFormatted); ?>
+                        </div>
+                        <div class="dotted-line flex-grow-1"></div>
+                        <div class="dot-circle"></div> <!-- Bottom circle -->
+                    </div>
 
 
-                <!-- Arrival -->
-                <div class="flight-time-info text-start ps-3 mt-3">
-                    <div class="flight-time fw-bold">
-                        <?php echo esc_html($arrivalTime); ?></div>
-                    <div class="flight-location fw-semibold">
-                        <?php echo esc_html(getCityNameByAirPortCode($destination1)); ?>
-                    </div>
-                    <span>
-                        <?php echo esc_html(getAirPortNameByAirPortCode($destination1));?>
-                    </span>
-                    <div class="text-secondary-day-date-mon">
-                        Arrives - <?php echo esc_html($ArrivalDateTime); ?>
+                    <!-- Arrival -->
+                    <div class="flight-time-info text-start ps-3 mt-3">
+                        <div class="flight-time fw-bold">
+                            <?php echo esc_html($arrivalTime); ?></div>
+                        <div class="flight-location fw-semibold">
+                            <?php echo esc_html(getCityNameByAirPortCode($destination1)); ?>
+                        </div>
+                        <span>
+                            <?php echo esc_html(getAirPortNameByAirPortCode($destination1));?>
+                        </span>
+                        <div class="text-secondary-day-date-mon">
+                            Arrives - <?php echo esc_html($ArrivalDateTime); ?>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="d-flex flex-wrap gap-3 small baggages-weight--check-bagger mb-2 mt-2">
-                <div class="d-flex align-items-center gap-2 mt-3">
-                    <img src="<?php echo get_template_directory_uri(); ?>/photos/items.png" alt="items" id="bag-of-items">
-                    <span class="cabin-bags-kg">Cabin Baggage: <span class="weight-only-sp"><?php echo esc_html("Cabin: {$cabinBaggage}, Checked: {$baggage}"); ?></span></span>
+                <div class="d-flex flex-wrap gap-3 small baggages-weight--check-bagger mb-2 mt-2">
+                    <div class="d-flex align-items-center gap-2 mt-3">
+                        <img src="<?php echo get_template_directory_uri(); ?>/photos/items.png" alt="items" id="bag-of-items">
+                        <span class="cabin-bags-kg">Cabin Baggage: <span class="weight-only-sp"><?php echo esc_html("Cabin: {$cabinBaggage}, Checked: {$baggage}"); ?></span></span>
+                    </div>
                 </div>
-            </div>
+            </section>
+        <?php } ?>
         </section>
-        <?php  }
-        echo "<br></section>
-        <br>";
-            }
-        ?>
-               
-            </div>
+    <?php  }  ?>
+ 
+        </div>
             <!-- Flight Details End-->
 
             <!-- Cancellation Policy -->
@@ -318,34 +317,37 @@ get_header();
                     </div>
                     <?php if($isPassportMandatory){ ?>
 
-                 
                      <div class="row mb-3">
                         <div class="col-md-4 mb-3 mb-md-0">
-                          <label for="passport_number" class="form-label small form-name-email-detail-all-th">Passport Number<span class="star-section-red-color">*</span></label>
-                          <input type="text" class="form-control" id="passport_number" placeholder="Enter passport number" required>
-                          <div class="invalid-feedback">Please enter a valid passport number.</div>
+                            <label for="passport_number" class="form-label small form-name-email-detail-all-th">Passport Number<span class="star-section-red-color">*</span></label>
+                            <input type="text" class="form-control" id="passport_number" placeholder="Enter passport number" required>
+                            <div class="invalid-feedback">Please enter a valid passport number.</div>
                         </div>
+
                         <div class="col-md-4 mb-3 mb-md-0">
-                            <label class="form-label small form-name-email-detail-all-th">Passport Issue Country<span class="star-section-red-color">*</span></label>
-                            <input type="text" class="form-control" id="passport_issue_country" placeholder="Enter issue country (e.g., IN" required>
+                            <label class="form-label small form-name-email-detail-all-th">
+                                Passport Issue Country <span class="star-section-red-color">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="passport_issue_country" placeholder="Enter issue country (e.g., India)" required>
+                            <input type="hidden" id="passport_issue_country_code" name="passport_issue_country_code">
                         </div>
-                       
+
                         <div class="col-md-4 mb-3 mb-md-0">
-                          <label for="passport_expiry_date" class="form-label small form-name-email-detail-all-th">Passport Expiry Date<span class="star-section-red-color">*</span></label>
-                          <input type="date" class="form-control" id="passport_expiry_date" required>
-                          <div class="invalid-feedback">Please enter a valid future expiry date.</div>
+                            <label for="passport_expiry_date" class="form-label small form-name-email-detail-all-th">Passport Expiry Date<span class="star-section-red-color">*</span></label>
+                            <input type="date" class="form-control" id="passport_expiry_date" required>
+                            <div class="invalid-feedback">Please enter a valid future expiry date.</div>
                         </div>
                     </div>
-                     <?php   } ?>
-                     <input type="hidden" name="isPassportRequired" id="isPassportRequired" value="<?php echo esc_attr($isPassportMandatory); ?>">
-                     <input type="hidden" name="isRefundable" id="isRefundable" value="<?php echo esc_attr($isRefundable); ?>">
+                    <?php   } ?>
+                        <input type="hidden" name="isPassportRequired" id="isPassportRequired" value="<?php echo esc_attr($isPassportMandatory); ?>">
+                        <input type="hidden" name="isRefundable" id="isRefundable" value="<?php echo esc_attr($isRefundable); ?>">
                      
-                <!-- Hidden inputs to pass selected flight & trip args -->
-                    <input type="hidden" name="tripArgsEncoded" id="tripArgsEncoded" value="<?php echo esc_attr(base64_encode(json_encode($tripArgs))); ?>">
-                    <input type="hidden" name="netPrice" id="netPrice" value="<?php echo esc_attr($totalFare); ?>">
-                    <input type="hidden" name="fareType" id="fareType" value="<?php echo esc_attr($fareType); ?>">
-                    
+                    <!-- Hidden inputs to pass selected flight & trip args -->
+                        <input type="hidden" name="tripArgsEncoded" id="tripArgsEncoded" value="<?php echo esc_attr(base64_encode(json_encode($tripArgs))); ?>">
+                        <input type="hidden" name="netPrice" id="netPrice" value="<?php echo esc_attr($totalFare); ?>">
+                        <input type="hidden" name="fareType" id="fareType" value="<?php echo esc_attr($fareType); ?>">
                 </form>
+
                 <div class="impo-ticket-sms-text-secondary">
                     Your ticket will be delivered through WhatsApp, SMS, phone calls, email, and other available
                     channels
@@ -367,81 +369,80 @@ get_header();
                         <span class="hotel-payment-close-btn" onclick="hotelPaymentCloseForm()">&times;</span>
                         <h4>Add Guest for Flight Booking</h4>
                            <form id="hotelPaymentForm">
-                        <div class="row">
-                            <div class="col-12 col-md-6">
+                                <div class="row">
+                                    <div class="col-12 col-md-6">
 
-                                 <div class="hotel-payment-form-group">
-                                    <label>Guest Type<span class="star-section-red-color">*</span></label>
-                                    <select class="form-select" id="guest_type" required>
-                                        <option value="" selected disabled>Select</option>
-                                        <option value="adult">Adult</option>
-                                        <option value="child">Child</option>
-                                        <option value="infant">Infants</option>
-                                    </select>
-                                </div>
-                            </div>
-                             <div class="col-12 col-md-6">
-                                 <div class="hotel-payment-form-group">
-                                    <label>Title (Mr, Mrs)<span class="star-section-red-color">*</span></label>
-                                    <select id="guest_title" class="hotel-payment-form-control">
-                                        <option value="">Select</option> <!-- Default empty option -->
-                                        <option value="Mr">Mr</option>
-                                        <option value="Mrs">Mrs</option>
-                                        <option value="Master">Boy (Master)</option>
-                                        <option value="Miss">Girl (Mis)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="hotel-payment-form-group">
-                                    <label>First Name<span class="star-section-red-color">*</span></label>
-                                    <input type="text" id="first_name"   placeholder="Enter First Name" class="hotel-payment-form-control" required />
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="hotel-payment-form-group">
-                                    <label>Last Name<span class="star-section-red-color">*</span> </label>
-                                    <input type="text" id="last_name"  placeholder="Enter Last Name" class="hotel-payment-form-control" required />
-                                </div>
-                            </div>
-                             <div class="col-12 col-md-6">
-                                <div class="hotel-payment-form-group">
-                                    <label>Date of Birth<span class="star-section-red-color">*</span> </label>
-                                    <input type="date" id="guestDob" class="hotel-payment-form-control" required />
-                                   
-                                </div>
-                            </div>
-                             <div class="col-12 col-md-6">
-                                <div class="hotel-payment-form-group">
-                                    <label>Nationality<span class="star-section-red-color">*</span></label>
-                                    <input type="text" id="guestNationality" placeholder="e.g., Indian"  class="hotel-payment-form-control" required />
-                                </div>
-                            </div>
+                                         <div class="hotel-payment-form-group">
+                                            <label>Guest Type<span class="star-section-red-color">*</span></label>
+                                            <select class="form-select" id="guest_type" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="adult">Adult</option>
+                                                <option value="child">Child</option>
+                                                <option value="infant">Infants</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                     <div class="col-12 col-md-6">
+                                         <div class="hotel-payment-form-group">
+                                            <label>Title (Mr, Mrs)<span class="star-section-red-color">*</span></label>
+                                            <select id="guest_title" class="hotel-payment-form-control">
+                                                <option value="">Select</option> <!-- Default empty option -->
+                                                <option value="Mr">Mr</option>
+                                                <option value="Mrs">Mrs</option>
+                                                <option value="Master">Boy (Master)</option>
+                                                <option value="Miss">Girl (Mis)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="hotel-payment-form-group">
+                                            <label>First Name<span class="star-section-red-color">*</span></label>
+                                            <input type="text" id="first_name"   placeholder="Enter First Name" class="hotel-payment-form-control" required />
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="hotel-payment-form-group">
+                                            <label>Last Name<span class="star-section-red-color">*</span> </label>
+                                            <input type="text" id="last_name"  placeholder="Enter Last Name" class="hotel-payment-form-control" required />
+                                        </div>
+                                    </div>
+                                     <div class="col-12 col-md-6">
+                                        <div class="hotel-payment-form-group">
+                                            <label>Date of Birth<span class="star-section-red-color">*</span> </label>
+                                            <input type="date" id="guestDob" class="hotel-payment-form-control" required />
+                                           
+                                        </div>
+                                    </div>
+                                     <div class="col-12 col-md-6">
+                                        <div class="hotel-payment-form-group">
+                                            <label>Nationality<span class="star-section-red-color">*</span></label>
+                                            <input type="text" id="guestNationality" placeholder="e.g., Indian"  class="hotel-payment-form-control" required />
+                                        </div>
+                                    </div>
 
-                            <?php if($isPassportMandatory){ ?>
-
-                            <div class="col-12 col-md-6">
-                                 <div class="hotel-payment-form-group">
-                                    <label>Passport Number<span class="star-section-red-color">*</span></label>
-                                    <input type="text" id="guest_passport_number"  placeholder="Enter passport number" class="hotel-payment-form-control" required />
-                                     <div class="invalid-feedback">Please enter a valid passport number.</div>
-                                </div>
-                            </div>
-                             <div class="col-12 col-md-6">
-                                 <div class="hotel-payment-form-group">
-                                    <label>Passport Issue Country<span class="star-section-red-color">*</span></label>
-                                    <input type="text" id="guest_issue_country" placeholder="Enter issue country (e.g., IN" class="hotel-payment-form-control" required />
-                                </div>
-                            </div>
-                           <div class="col-12 col-md-6">
-                                <div class="hotel-payment-form-group">
-                                    <label> Passport Expiry Date<span class="star-section-red-color">*</span></label>
-                                    <input type="date" id="guest_passport_expiry" class="hotel-payment-form-control" required />
-                                    <div class="invalid-feedback">Please enter a valid future expiry date.</div>
-                                </div>
-                            </div>
-                         <?php }?>
-                        </div> 
+                                    <?php if($isPassportMandatory){ ?>
+                                    <div class="col-12 col-md-6">
+                                        <div class="hotel-payment-form-group">
+                                            <label>Passport Number<span class="star-section-red-color">*</span></label>
+                                            <input type="text" id="guest_passport_number"  placeholder="Enter passport number" class="hotel-payment-form-control" required />
+                                             <div class="invalid-feedback">Please enter a valid passport number.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="hotel-payment-form-group">
+                                            <label>Passport Issue Country<span class="star-section-red-color">*</span></label>
+                                            <input type="text" id="guest_issue_country" placeholder="Enter issue country (e.g., IN" class="hotel-payment-form-control" required />
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="hotel-payment-form-group">
+                                            <label> Passport Expiry Date<span class="star-section-red-color">*</span></label>
+                                            <input type="date" id="guest_passport_expiry" class="hotel-payment-form-control" required />
+                                            <div class="invalid-feedback">Please enter a valid future expiry date.</div>
+                                        </div>
+                                    </div>
+                                    <?php }?>
+                                </div> 
                             <?php 
                               if ( is_user_logged_in() ) {  $current_user_id= get_current_user_id(); ?>
                                 <input type="hidden" id="user_id" value="<?php echo esc_attr($current_user_id); ?>" 
@@ -557,7 +558,8 @@ jQuery(document).ready(function ($) {
         // Passport required validations
         if (isPassportRequired === "1") {
             let passportNumber = $("#passport_number").val().trim();
-            let passportIssueCountry = $("#passport_issue_country").val().trim();
+            //let passportIssueCountry = $("#passport_issue_country").val().trim();
+            let passportIssueCountry = $("#passport_issue_country_code").val().trim();
             let passportExpiryDate = $("#passport_expiry_date").val().trim();
 
             if (!title || !firstName || !lastName || !dob || !nationality || 
@@ -685,7 +687,7 @@ jQuery(document).ready(function ($) {
 
         if (isPassportRequired === "1") {
             requestData.passport_number = $("#passport_number").val().trim();
-            requestData.passport_issue_country = $("#passport_issue_country").val().trim();
+            requestData.passport_issue_country = $("#passport_issue_country_code").val().trim();
             requestData.passport_expiry_date = $("#passport_expiry_date").val().trim();
         }
 
