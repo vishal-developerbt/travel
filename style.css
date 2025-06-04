@@ -14,6 +14,32 @@ body {
   font-family: Arial, sans-serif;
   font-family: "Inter", sans-serif;
 }
+form.user-registration-form.user-registration-form-login.login span.user-registration-login-title {
+    font-weight: 600;
+    font-size: 24px ! IMPORTANT;
+    line-height: 45px;
+    letter-spacing: 0%;
+    color: #141823;
+}
+div#loginFormContainer div#ur-frontend-form {
+    padding: 10px 42px;
+}
+div#registerFormContainer span.user-registration-registration-title {
+    font-family: Inter;
+    font-weight: 600;
+    font-size: 24px ! IMPORTANT;
+    line-height: 45px;
+    letter-spacing: 0%;
+    color: #141823;
+}
+div#loginFormContainer span.user-registration-login-title {
+    font-family: Inter;
+    font-weight: 600;
+    font-size: 24px ! IMPORTANT;
+    line-height: 45px;
+    letter-spacing: 0%;
+    color: #141823;
+}
 .filters-container.flight-listing-section .price-range-slider {
   position: relative;
   width: 100%;
@@ -1209,7 +1235,7 @@ span.order-booking-date.text-primary.fw-bold {
   overflow-y: auto;
   overflow-x: hidden;
 
-  /* 👇 Hide scrollbars in all browsers */
+  /* ðŸ‘‡ Hide scrollbars in all browsers */
   scrollbar-width: none;
   /* Firefox */
   -ms-overflow-style: none;
@@ -2874,6 +2900,7 @@ div#user-registration-form-214 {
   margin: 0px !important;
   padding: 0px !important;
   overflow: hidden;
+    gap: 0px !important;
   flex-direction: column;
 }
 
@@ -4360,6 +4387,30 @@ div#search-flights select.select-section-home-page {
 }
 
 @media (max-width: 768px) {
+div#registerFormContainer input#phone {
+    border: 1px solid #e7e6e6 !important;
+}
+div#registerFormContainer input#user_confirm_password {
+    border: 1px solid #e7e6e6 !important;
+}
+div#loginFormContainer ul.user-registration-error {
+    font-size: 12px;
+}
+    div#registerFormContainer .ur-frontend-form .ur-form-row .ur-form-grid {
+        width: 100% !important;
+        display: grid !important;
+        gap: 4px!important;
+        grid-template-columns: repeat(2, 2fr) !important;
+    }
+div#registerFormContainer label.ur-label {
+    font-size: 12px !important;
+}div#registerFormContainer label#first_name-error, label#user_email-error, label#user_pass-error, label#last_name-error, label#user_login-error, label#phone-error, label#user_confirm_password-error {
+    font-size: 12px;
+}
+div#loginFormContainer div#ur-frontend-form {
+  padding: 0px 1px !important;
+        box-shadow: none;
+}
     main.container.py-4.flight-booking-section-container .col-md-4.redfund-section {
     width: auto;
 }
@@ -4384,11 +4435,9 @@ form#filterForm #price-range {
     width: 100%;
 }
 .flatpickr-innerContainer {
-    overflow-x: scroll;
+   overflow-x: scroll ! IMPORTANT;
 }
-div#loginFormContainer div#ur-frontend-form {
-    padding: 8px 23px;
-}
+
     section.car-renatal-listing-page .d-flex.gap-2.align-items-center.mb-1 {
         gap: 3px !important;
         flex-direction: column;
@@ -4444,11 +4493,7 @@ h2.booking-title-of-hotel-uh.mb-4 {
     margin: 0 2px !important;
   }
 
-  .travel-login-user-form-section .ur-frontend-form .ur-form-row {
-    display: flex;
-    gap: 0px !important;
-    margin: 0px !important;
-  }
+
 
   section.container.my-2.special-offer-section img.alignnone.size-medium.wp-image-144 {
     width: 100% !important;
@@ -6689,9 +6734,7 @@ margin-top: 11px;
     width: 100% !important;
   }
 
-  .modal-dialog.travel-login-user-form-section .ur-frontend-form .ur-form-row .ur-form-grid .ur-field-item {
-    margin-bottom: 20px;
-  }
+  
   .modal-dialog.travel-login-user-form-section div#user-registration-form-214 {
     padding: 0px !important;
   }
@@ -6801,8 +6844,9 @@ end css 09-05-2025 */
   }
 
   div#loginModal {
-    padding-left: 28px !important;
-    padding-right: 0px !important;
+  transform: translateX(14px);
+        padding-left: 12px !important;
+        padding-right: 0px !important;
   }
 
   .page-template-flight-list div#loginModal {
@@ -7551,6 +7595,7 @@ margin-bottom: 20px;
 
 /* Mobile (320px - 767px) */
 @media screen and (max-width: 768px) {
+
   .container {
     max-width: 100%;
   }
@@ -8331,13 +8376,14 @@ margin-bottom: 20px;
   .flight-select-section button.btn.modify-search-btn.w-100 {
             width: 100% ! IMPORTANT;
     margin-left: 0px;
-        margin-top: 24px;
+   margin-top: 10px;
     background: #ffffff;
     background: #ffffff;
     height: 60px;
     top: 92px;
     left: 1205px;
     border-radius: 8px;
+margin-bottom: 0px !important;
   }
 
   .navbar-collapse span.login-sinup-button {
@@ -10326,6 +10372,9 @@ section.hotel-detail-paragraph-section {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+div#registerFormContainer .ur-frontend-form .ur-form-row .ur-form-grid .ur-field-item {
+    margin-bottom: 0px !important;
+}
   .search-button-home-page-banner {
     margin-top: 17px;
     width: 100%;
@@ -10465,7 +10514,7 @@ div#flights-container .alert.alert-warning {
 
   button.modify-btn.search-flight {
     width: 100% !important;
-    margin-bottom: 20px;
+ margin-bottom: 8px;
   }
 
   .flight-list-page button .modify-btn.search-flight {
@@ -11482,7 +11531,11 @@ section.hotel-detail-paragraph-section li.car {
     vertical-align: middle;
 }
 @media (max-width: 768px) {
- 
+.flight-select-section.mt-4 div#roomsDropdownContainer {
+height:60px;}
+ div#user-registration div#ur-frontend-form {
+    padding: 10px 20px;
+}
     .car-renatl-car-main-sections .d-flex.gap-3.car-flex-section {
         gap: 0px ! IMPORTANT;}
     .car-rental-wrapper.car-main-section .car-thumbnail-section.mt-2.hotel-thumbnails {
@@ -11651,3 +11704,39 @@ section.flight-booking-divider-section.mb-5 .d-flex.align-items-center.gap-5.mb-
     gap: 71px ! IMPORTANT;
 }
 
+.success-icon.bokking-failed {
+    background: red;
+    box-shadow: 1px 8px 4px gray;
+}
+
+/*4-june*/
+.noUi-handle:after, .noUi-handle:before{
+  display: none  !important;
+}
+.container.mt-4.properties-in-france-section .noUi-connect {
+    height: 8px;
+}
+.container.mt-4.properties-in-france-section form#filterForm .noUi-tooltip {
+    border: none;}
+    .container.mt-4.properties-in-france-section .noUi-connects {
+    border-radius: 3px;
+    background: #d8d8d8;
+    height: 8px;
+    border-radius: 8px;
+}
+.container.mt-4.properties-in-france-section .noUi-horizontal .noUi-handle {
+    width: 12px;
+    height: 12px;
+    right: -7px;
+    top: -2px;
+    background: #0d6efd;
+    border-radius: 50%;
+    box-shadow: none;
+}
+.container.mt-4.properties-in-france-section form#filterForm #price-range {
+    margin: 20px 0;
+    width: 283px;
+    margin-top: 57px;
+    border: none;
+    box-shadow: none;
+}
