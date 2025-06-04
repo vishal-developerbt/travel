@@ -41,7 +41,7 @@ $results = $wpdb->get_results(
                         <div class="d-flex gap-1 align-items-center">
                             <span class="order-booking-id w-auto">Booking ID:</span>
                             <div> <a href="<?php echo esc_url( home_url( '/travel/order-view/?hotel_id=' . $booking['transaction_id'] ) ); ?>">
-                            <span class="booking serial-number text-primary fw-bold"><?php echo esc_html($booking['referenceNum']); ?></span></a></div>
+                            <span class="booking serial-number text-primary fw-bold"><?php echo esc_html(!empty($booking['referenceNum']) ? $booking['referenceNum'] : 'N/A'); ?></span></a></div>
                         </div>
                         <div class="d-flex gap-1 align-items-center">
                             <span class="order-booking-id w-auto">Total amount:</span>

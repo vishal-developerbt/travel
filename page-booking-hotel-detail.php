@@ -7,39 +7,39 @@
 
 get_header(); ?>
 <?php
-$hotelId = isset($_GET['hotelId']) ? sanitize_text_field($_GET['hotelId']) : '';
-$sessionId = isset($_GET['sessionId']) ? sanitize_text_field($_GET['sessionId']) : '';
-$productId = isset($_GET['productId']) ? sanitize_text_field($_GET['productId']) : '';
-$tokenId = isset($_GET['tokenId']) ? sanitize_text_field($_GET['tokenId']) : '';
-$location = isset($_GET['location']) ? sanitize_text_field($_GET['location']) : '';
-$checkin = isset($_GET['checkin']) ? sanitize_text_field($_GET['checkin']) : '';
-$checkout = isset($_GET['checkout']) ? sanitize_text_field($_GET['checkout']) : '';
-$rooms = isset($_GET['rooms']) ? sanitize_text_field($_GET['rooms']) : '';
-$roomforPayment = isset($_GET['rooms']) ? sanitize_text_field($_GET['rooms']) : '';
-$price = isset($_GET['price']) ? sanitize_text_field($_GET['price']) : '';
-$decoded_price = $price ? base64_decode($price) : '';
-$hotelDetails = fetch_hotel_details_by_id($hotelId,$productId,$tokenId,$sessionId);
+    $hotelId = isset($_GET['hotelId']) ? sanitize_text_field($_GET['hotelId']) : '';
+    $sessionId = isset($_GET['sessionId']) ? sanitize_text_field($_GET['sessionId']) : '';
+    $productId = isset($_GET['productId']) ? sanitize_text_field($_GET['productId']) : '';
+    $tokenId = isset($_GET['tokenId']) ? sanitize_text_field($_GET['tokenId']) : '';
+    $location = isset($_GET['location']) ? sanitize_text_field($_GET['location']) : '';
+    $checkin = isset($_GET['checkin']) ? sanitize_text_field($_GET['checkin']) : '';
+    $checkout = isset($_GET['checkout']) ? sanitize_text_field($_GET['checkout']) : '';
+    $rooms = isset($_GET['rooms']) ? sanitize_text_field($_GET['rooms']) : '';
+    $roomforPayment = isset($_GET['rooms']) ? sanitize_text_field($_GET['rooms']) : '';
+    $price = isset($_GET['price']) ? sanitize_text_field($_GET['price']) : '';
+    $decoded_price = $price ? base64_decode($price) : '';
+    $hotelDetails = fetch_hotel_details_by_id($hotelId,$productId,$tokenId,$sessionId);
 
-$hotelReviews = [];
-$hotelDetailsforPaymentpage =['hotelImages'=>isset($hotelDetails['hotelImages']) ? $hotelDetails['hotelImages'] : [],
-'name'=>isset($hotelDetails['name']) ? $hotelDetails['name'] : '',
-'locality' => isset($hotelDetails['locality']) ? $hotelDetails['locality'] : '',
-'city' => isset($hotelDetails['city']) ? $hotelDetails['city'] : '',
-'country' => isset($hotelDetails['country']) ? $hotelDetails['country'] : '',
-'hotelRating' => isset($hotelDetails['hotelRating']) ? $hotelDetails['hotelRating'] : '',
-];
-if (
-    isset($hotelDetails['hotel_review']) &&
-    isset($hotelDetails['hotel_review']['reviews']) &&
-    is_array($hotelDetails['hotel_review']['reviews'])
-) {
-    $hotelReviews = $hotelDetails['hotel_review']['reviews'];
-}
+    $hotelReviews = [];
+    $hotelDetailsforPaymentpage =['hotelImages'=>isset($hotelDetails['hotelImages']) ? $hotelDetails['hotelImages'] : [],
+    'name'=>isset($hotelDetails['name']) ? $hotelDetails['name'] : '',
+    'locality' => isset($hotelDetails['locality']) ? $hotelDetails['locality'] : '',
+    'city' => isset($hotelDetails['city']) ? $hotelDetails['city'] : '',
+    'country' => isset($hotelDetails['country']) ? $hotelDetails['country'] : '',
+    'hotelRating' => isset($hotelDetails['hotelRating']) ? $hotelDetails['hotelRating'] : '',
+    ];
+    if (
+        isset($hotelDetails['hotel_review']) &&
+        isset($hotelDetails['hotel_review']['reviews']) &&
+        is_array($hotelDetails['hotel_review']['reviews'])
+    ) {
+        $hotelReviews = $hotelDetails['hotel_review']['reviews'];
+    }
 
- $location_parts = array_filter([$hotelDetails['locality'] ?? '',
+    $location_parts = array_filter([$hotelDetails['locality'] ?? '',
     $hotelDetails['city'] ?? '', $hotelDetails['country'] ?? '' ]);
  
- $hotelRating = isset($hotelDetails['hotelRating']) && !empty($hotelDetails['hotelRating']) ? floatval($hotelDetails['hotelRating']) : 0;
+    $hotelRating = isset($hotelDetails['hotelRating']) && !empty($hotelDetails['hotelRating']) ? floatval($hotelDetails['hotelRating']) : 0;
                         
     if ($hotelRating >= 1.0 && $hotelRating <= 2.4) {
         $ratingLabel = "Good";
@@ -95,8 +95,8 @@ if (
                             <span class="rating-badge"><?php echo in_array($hotelDetails['hotelRating'], $skipRatings) ? 0 : $hotelDetails['hotelRating'];?></span>
                         </div>
                     </div>
-                </div> <!-- not -->
-            </div> <!-- not -->
+                </div> 
+            </div> 
     <!-- Hotel Grid Layout -->
     <div class="hotel-grid">
         <div class="swiper-container main-slider">  
@@ -131,7 +131,6 @@ if (
         <div class="hotel-info">
             <?php 
             $hotelRoomOptions = fetch_room_option_for_hotel_details_page($hotelId, $productId, $tokenId, $sessionId);
-            //echo "<pre>"; print_r($hotelRoomOptions); 
             $rooms = $hotelRoomOptions['roomRates']['perBookingRates'] ?? [];
 
             foreach (array_slice($rooms, 0, 1) as $index => $room) {   
@@ -328,7 +327,7 @@ if (!empty($rooms)) {
                                      <input type="hidden" name="rateBasisId" value="<?php echo $room['rateBasisId']; ?>">
                                     <input type="hidden" name="netPrice" value="<?php echo esc_html(number_format($room['netPrice'], 2)); ?>">
                         </div>
-                    </div><!-- not added -->
+                    </div>
                 </section>
             </div>
         </div>
@@ -540,8 +539,8 @@ if (!empty($rooms)) {
                 </div>
             </div>
         </section>
-    </div><!-- not -->
-</div><!-- not -->
+    </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -566,8 +565,7 @@ if (!empty($rooms)) {
         });
     });
 </script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 <script>
 $(document).ready(function () {
     $(".book-now-button-detail-page").click(function () {
@@ -580,7 +578,6 @@ $(document).ready(function () {
         let netPrice = roomContainer.find("input[name='netPrice']").val();
          let pid = roomContainer.find("input[name='pid']").val();
         
-
         // Get values from URL
         let urlParams = new URLSearchParams(window.location.search);
         let location = urlParams.get("location") || "";
@@ -590,14 +587,12 @@ $(document).ready(function () {
         let hotelId = urlParams.get("hotelId") || "";
         let tokenId = urlParams.get("tokenId") || "";
         let sessionId = urlParams.get("sessionId") || "";
-       // let productId = urlParams.get("productId") || "";
-
+      
         // Ensure required values are not empty
         if (!rateBasisId || !netPrice) {
             alert("Error: Missing room details. Please try again.");
             return;
         }
-       // alert(rateBasisId); alert(netPrice);
 
         $.ajax({
             url: checkoutUrl,

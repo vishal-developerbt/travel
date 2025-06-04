@@ -3,7 +3,6 @@
  * Template Name: Hotel payment Page
  * Description: A custom page template for special layouts.
  */
-
 get_header(); ?>
 
 <?php
@@ -14,64 +13,62 @@ if (!is_user_logged_in()) {
 }
 
 // Required URL parameters
-$required_params = ['checkin', 'checkout', 'rooms', 'hotel_id',
-'session_id','product_id','token_id','rate_basis_id','price'];
-$missing_params = false;
+  $required_params = ['checkin', 'checkout', 'rooms', 'hotel_id','session_id','product_id','token_id','rate_basis_id','price'];
+  $missing_params = false;
 
-foreach ($required_params as $param) {
+  foreach ($required_params as $param) {
     if (empty($_GET[$param])) {
         echo "<p style='color:red;'>Missing or empty: $param</p>";
         $missing_params = true;
     }
-}
+  }
 
-if ($missing_params) {
-    echo '<div style="padding: 20px; margin: 20px auto; background: #ffe8e8; border: 1px solid #ff0000; color: #b30000; max-width: 600px; font-weight: bold; text-align: center;">
-        ⚠️ Please search for a hotel first.
-    </div>';
-    return; 
-}
+  if ($missing_params) {
+      echo '<div style="padding: 20px; margin: 20px auto; background: #ffe8e8; border: 1px solid #ff0000; color: #b30000; max-width: 600px; font-weight: bold; text-align: center;">
+           Please search for a hotel first.
+      </div>';
+      return; 
+  }
+
+  $checkin = isset($_GET['checkin']) ? sanitize_text_field($_GET['checkin']) : '';
+  $checkout = isset($_GET['checkout']) ? sanitize_text_field($_GET['checkout']) : '';
+  $dateObject = new DateTime($checkin);
+  $checkoutdateObject = new DateTime($checkout);
+  $checkinDate = $dateObject->format('D, d M, Y');
+  $checkoutDate = $checkoutdateObject->format('D, d M, Y');
+  $roomData = isset($_GET['rooms']) ? sanitize_text_field($_GET['rooms']) : '';
+  $hotelId = isset($_GET['hotel_id']) ? sanitize_text_field($_GET['hotel_id']) : '';
+  $sessionId = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
+  $productId = isset($_GET['product_id']) ? sanitize_text_field($_GET['product_id']) : '';
+  $tokenId = isset($_GET['token_id']) ? sanitize_text_field($_GET['token_id']) : '';
+  $rateBasisId = isset($_GET['rate_basis_id']) ? sanitize_text_field($_GET['rate_basis_id']) : '';
+  $fareType = isset($_GET['fare_type']) ? sanitize_text_field($_GET['fare_type']) : '';
+  $roomPrice = isset($_GET['price']) ? sanitize_text_field($_GET['price']) : '';
+  $hotelDetails = fetch_hotel_details_by_id($hotelId,$productId,$tokenId,$sessionId);
+
+  // Calculate number of nights
+  $day_checkIn = new DateTime($checkin);
+  $day_checkOut = new DateTime($checkout);
+  $interval = $day_checkIn->diff($day_checkOut);
+  $nightCount = $interval->days;
+  $nightText = $nightCount == 1 ? "1 Night" : "$nightCount Nights";
+
+  // Room formatting
+  function formatRoomData($roomData) {
+      $parts = explode('-', $roomData);
+      $rooms = $parts[0];
+      $adults = $parts[1];
+      $children = $parts[2];
+
+      $output = $rooms == 1 ? "1 Room" : "$rooms Rooms";
+      $output .= $adults == 1 ? ", 1 Adult" : ", $adults Adults";
+
+      if ($children > 0) {
+          $output .= $children == 1 ? ", 1 Child" : ", $children Children";
+      }
+      return $output;
+  }
 ?>
-<?php
-$checkin = isset($_GET['checkin']) ? sanitize_text_field($_GET['checkin']) : '';
-$checkout = isset($_GET['checkout']) ? sanitize_text_field($_GET['checkout']) : '';
-$dateObject = new DateTime($checkin);
-$checkoutdateObject = new DateTime($checkout);
-$checkinDate = $dateObject->format('D, d M, Y');
-$checkoutDate = $checkoutdateObject->format('D, d M, Y');
-$roomData = isset($_GET['rooms']) ? sanitize_text_field($_GET['rooms']) : '';
-$hotelId = isset($_GET['hotel_id']) ? sanitize_text_field($_GET['hotel_id']) : '';
-$sessionId = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
-$productId = isset($_GET['product_id']) ? sanitize_text_field($_GET['product_id']) : '';
-$tokenId = isset($_GET['token_id']) ? sanitize_text_field($_GET['token_id']) : '';
-$rateBasisId = isset($_GET['rate_basis_id']) ? sanitize_text_field($_GET['rate_basis_id']) : '';
-$fareType = isset($_GET['fare_type']) ? sanitize_text_field($_GET['fare_type']) : '';
-$roomPrice = isset($_GET['price']) ? sanitize_text_field($_GET['price']) : '';
-$hotelDetails = fetch_hotel_details_by_id($hotelId,$productId,$tokenId,$sessionId);
-//echo "<pre>"; print_r($hotelDetails); die;
-// Calculate number of nights
-$day_checkIn = new DateTime($checkin);
-$day_checkOut = new DateTime($checkout);
-$interval = $day_checkIn->diff($day_checkOut);
-$nightCount = $interval->days;
-$nightText = $nightCount == 1 ? "1 Night" : "$nightCount Nights";
-
-// Room formatting
-function formatRoomData($roomData) {
-    $parts = explode('-', $roomData);
-    $rooms = $parts[0];
-    $adults = $parts[1];
-    $children = $parts[2];
-
-    $output = $rooms == 1 ? "1 Room" : "$rooms Rooms";
-    $output .= $adults == 1 ? ", 1 Adult" : ", $adults Adults";
-
-    if ($children > 0) {
-        $output .= $children == 1 ? ", 1 Child" : ", $children Children";
-    }
-    return $output;
-}
- ?>
 
 <!-- Confirmation Bar -->
 <div class="container-fluid confirmation-bar-wrapper confirmation-bar"></div>
@@ -89,7 +86,6 @@ function formatRoomData($roomData) {
           <div class="tour-card-body card-body d-flex gap-4">
             <div class="tour-image-wrapper tour-image">
               <?php
-
                 $hotelImages = isset($hotelDetails['hotelImages']) ? $hotelDetails['hotelImages'] : [];
                 foreach (array_slice($hotelImages, 0, 1) as $hotelImage) {
                   $imageUrl = isset($hotelImage['url']) ? esc_url($hotelImage['url']) : '';
