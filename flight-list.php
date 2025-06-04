@@ -29,7 +29,7 @@ get_header(); ?>
 
     $flights = get_flight_availability($args);
     if (!empty($flights['AirSearchResponse']['session_id'])) {
-        $session_id = $flights['AirSearchResponse']['ession_id'];
+        $session_id = $flights['AirSearchResponse']['session_id'];
        
     }
 ?>
