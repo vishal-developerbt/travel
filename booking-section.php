@@ -510,13 +510,21 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        
+         document.getElementById("departure_airport").addEventListener("click", function () {
+              this.select();
+         });
+
+         document.getElementById("flight_location").addEventListener("click", function () {
+              this.select();
+         });
+
         document.body.addEventListener("click", function (e) {
             const searchBtn = e.target.closest("#search-flights .search-btn");
             if (!searchBtn) return;
 
             e.preventDefault();
             console.log("✈️ Flight search triggered!");
-
             // Trip type
             const tripType = document.querySelector('input[name="tripType"]:checked')?.id === 'oneWay' ? 'OneWay' : 'Return';
 
