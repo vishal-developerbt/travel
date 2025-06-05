@@ -153,11 +153,12 @@ $('#hotelPaymentForm').on('submit', function (e) {
     let li = `
       <li data-id="${guest.id}">
         <label style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-          <div>
+          <div class="selected-guest-section">
             <input type="checkbox" name="selected_guest[]" value="${guest.id}" />
+             <strong class="guest-strong-section">${guest.title} ${guest.first_name} ${guest.last_name}</strong>
             <span>
-              <strong>${guest.title} ${guest.first_name} ${guest.last_name}</strong><br>
-              ${guest.nationality} | ${guest.guest_type}
+             
+              <div class="guest-flight-type">${guest.nationality} | ${guest.guest_type}</div>
             </span>
           </div>
           <div>

@@ -471,7 +471,7 @@
         const adults = parseInt(document.getElementById("roomSelector1_adultsCount").textContent);
         const children = parseInt(document.getElementById("roomSelector1_childrenCount").textContent);
 
-        const displayText = `${rooms} Room${rooms > 1 ? 's' : ''} · ${adults} Adult${adults > 1 ? 's' : ''} · ${children} Child${children !== 1 ? 'ren' : ''}`;
+        const displayText = `${rooms} Room${rooms > 1 ? 's' : ''} , ${adults} Adult${adults > 1 ? 's' : ''} , ${children} Child${children !== 1 ? 'ren' : ''}`;
         roomsToggleBtn.innerHTML = `${displayText} <i class="fa-solid fa-caret-down"></i>`;
         roomsDropdown.style.display = "none";
 

@@ -45,7 +45,7 @@ get_header();
     $segment = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'] ?? [];
     $segment1 = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'] ?? [];
     $segmentU = $fare['OriginDestinationOptions'] ?? [];
-
+   
     // STEP 2: Baggage & Penalty (use first FareBreakdown for reference)
     $fareBreakdown = $fare['AirItineraryFareInfo']['FareBreakdown'][0] ?? [];
     $baggage = $fareBreakdown['Baggage'][0] ?? '0PC';
@@ -99,7 +99,7 @@ get_header();
         <?php
                 
             foreach($segmentU as $index =>  $flightdata){ 
-
+                $totalDurationMinutes = 0;
                 $previousArrival = null;
                 $totalStops = $flightdata['TotalStops'];
                 $flights    = $flightdata['OriginDestinationOption'];
@@ -142,13 +142,22 @@ get_header();
             $ArrivalDateTime = date("D, d M Y h:i A", strtotime($flightrow['FlightSegment']['ArrivalDateTime']));
             $duration = $flightrow['FlightSegment']['JourneyDuration'] ?? 0;
             $durationFormatted = sprintf("%02dh %02dm", floor($duration / 60), $duration % 60);
-            $origin1 =$flightrow['FlightSegment']['DepartureAirportLocationCode'];
+            $origin1 = $flightrow['FlightSegment']['DepartureAirportLocationCode'];
             $destination1 =$flightrow['FlightSegment']['ArrivalAirportLocationCode'];
+            $flightDuration = $flightrow['FlightSegment']['JourneyDuration']; // in minutes
+            $totalDurationMinutes += $flightDuration;
             if (isset($previousArrival)) {
                 $layoverSeconds = strtotime($flightrow['FlightSegment']['DepartureDateTime']) - strtotime($previousArrival);
-                $layoverFormatted = sprintf("%02dh %02dm", floor($layoverSeconds / 3600), ($layoverSeconds % 3600) / 60);
+                $layoverMinutes = round($layoverSeconds / 60);
+                $totalDurationMinutes += $layoverMinutes;
+               // $layoverFormatted = sprintf("%02dh %02dm", floor($layoverSeconds / 3600), ($layoverSeconds % 3600) / 60);
+                $layoverFormatted = sprintf("%02dh %02dm", floor($layoverMinutes / 60), $layoverMinutes % 60);
+
+            }else {
+                $layoverFormatted = null;
             }
 
+           
         ?>
         <?php if ($layoverFormatted !== null && isset($previousArrival)) { ?>
             <div class="layover-time-section mt-3 mb-3 d-flex">
@@ -234,7 +243,14 @@ get_header();
                     </div>
                 </div>
             </section>
-        <?php } ?>
+        <?php } 
+            $totalHours = floor($totalDurationMinutes / 60);
+            $totalMinutes = $totalDurationMinutes % 60;
+            $totalTimeFormatted = sprintf("%02dh %02dm", $totalHours, $totalMinutes);?>
+            <!-- Display total travel time -->
+            <div class="total-travel-time mt-4">
+                <strong>Total Travel Time: <?php echo $totalTimeFormatted; ?></strong>
+            </div>
         </section>
     <?php  }  ?>
  
