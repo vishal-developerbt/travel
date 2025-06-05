@@ -195,25 +195,25 @@ if (!is_user_logged_in()) {
                       <label class="form-label small form-name-email-detail-all-th">First Name<span class="star-section-red-color">*</span></label>
                       <input type="text" class="form-control" id="firstName" value="<?php echo $first_name; ?>"required>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mt-3">
                       <label class="form-label small form-name-email-detail-all-th">Last Name<span class="star-section-red-color">*</span></label>
                       <input type="text" class="form-control" id="lastName" value="<?php echo $last_name; ?>" required>
                     </div>
                
 
                   
-                    <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="col-md-6 mb-3 mb-md-0 mt-3">
                       <label class="form-label small form-name-email-detail-all-th">Phone Number<span class="star-section-red-color">*</span></label>
                       <input type="tel" class="form-control" id="phone" value="<?php echo $phone; ?>" required>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mt-3">
                       <label class="form-label small form-name-email-detail-all-th">Email Address<span class="star-section-red-color">*</span></label>
                       <input type="email" class="form-control" id="email" value="<?php echo $email; ?>" required>
                     </div>
 
                 
 
-                  <div class="col-md-6 special-requests-wrapper mb-4">
+                  <div class="col-md-6 special-requests-wrapper mb-4 mt-4">
                     <label class="form-name-email-detail-all-th">Special requests to hotel</label>
                     <input type="text" class="form-control requests-input ">
                     <!-- <textarea class="requests-input form-control" rows="4"></textarea> -->
