@@ -296,8 +296,16 @@ get_header(); ?>
                                 $fareSourceCode= $fare['AirItineraryFareInfo']['FareSourceCode'];
 
                                 $totalsegments = count($fare['OriginDestinationOptions'][0]['OriginDestinationOption']);
+                                //echo "<pre/>"; print_r($fareItem);
 
                                 $returnfare = $fareItem['FareItinerary']['DirectionInd'];
+
+                                $counttotalstop = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['TotalStops'];
+                                if($counttotalstop==0){
+
+                                    //This is for non stop//
+                                    $firstDepartureDateTime = date("H:i", strtotime($fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment']['DepartureDateTime']));
+                                }
 
                                 for($i=0;$i<$totalsegments;$i++){
 
@@ -308,6 +316,8 @@ get_header(); ?>
                                 if($i==0){
 
                                     $firstDepartureDateTime = date("H:i", strtotime($fare['OriginDestinationOptions'][0]['OriginDestinationOption'][$i]['FlightSegment']['DepartureDateTime']));
+                                    $firstArrivalDateTime = date("H:i", strtotime($fare['OriginDestinationOptions'][0]['OriginDestinationOption'][$i]['FlightSegment']['ArrivalDateTime']));
+
                                     $firstDepartureAirportLocationCode = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][$i]['FlightSegment']['DepartureAirportLocationCode'];  
 
                                     $segment_one = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][$i]['FlightSegment']['JourneyDuration'];
@@ -330,6 +340,7 @@ get_header(); ?>
                                 $origin = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][$i]['FlightSegment']['DepartureAirportLocationCode'] ?? 'XXX';
                                 $destination = $$fare['OriginDestinationOptions'][0]['OriginDestinationOption'][$i]['FlightSegment']['ArrivalAirportLocationCode'] ?? 'YYY';
                                 $departureTime = date("H:i", strtotime($fare['OriginDestinationOptions'][0]['OriginDestinationOption'][$i]['FlightSegment']['DepartureDateTime']));
+                                $arrivalTime = date("H:i", strtotime($fare['OriginDestinationOptions'][0]['OriginDestinationOption'][$i]['FlightSegment']['ArrivalDateTime']));
 
                                 if($i==1){
 
@@ -437,7 +448,8 @@ get_header(); ?>
                                     <div class="col-md-1 d-flex flex-column justify-content-center time-place-flight">
     <div class="place-time-flight-th">
         <div class="departure-time"><?php echo esc_html($firstDepartureDateTime); ?></div>
-        <div class="departure-city"><?php echo esc_html(getCityNameByAirPortCode($firstDepartureAirportLocationCode)); ?></div>
+        <div class="departure-city"><?php 
+        echo esc_html(getCityNameByAirPortCode($firstDepartureAirportLocationCode)); ?></div>
     </div>  
                                 </div>
                                 <div class="col-md-3 flight-dustination-duration">
@@ -477,8 +489,8 @@ get_header(); ?>
                                 }else{
                                     ?>
                                 <div class="col-md-1 d-flex flex-column justify-content-center time-place-flight">
-                                    <div class="place-time-flight-th">
-                                        <div class="departure-time"><?php echo esc_html($departureTime); ?></div>
+                                    <div class="place-time-flight-thsss">
+    <div class="departure-time"><?php echo esc_html($departureTime); ?></div>
                                         <div class="departure-city"><?php echo esc_html(getCityNameByAirPortCode($origin)); ?></div>
                                     </div>  
                                 </div>
@@ -491,8 +503,8 @@ get_header(); ?>
                                 </div>
 
                                 <div class="col-md-1 d-flex flex-column justify-content-center">
-                                    <div class="delhi-flight-time">
-                                        <div class="arrival-time"><?php echo esc_html($arrivalTime); ?></div>
+                                    <div class="delhi-flight-timesss">
+    <div class="arrival-time"><?php echo esc_html($arrivalTime); ?></div>
                                         <div class="arrival-city"><?php echo esc_html(getCityNameByAirPortCode($destination)); ?></div>
                                     </div>
                                 </div>
@@ -534,10 +546,10 @@ get_header(); ?>
                     <?php
                     endforeach;
                     } else {
-                        echo '<div class="alert alert-warning" id="message">No flights found for your search.</div>';
+                        echo '<div class="alert alert-warning" id="message"><center>No flights found for your search.</center></div>';
                     } ?>
                 </div> <!-- ✅ END of #flights-container -->
-                    <button id="show-more-flights" class="btn btn-outline-primary d-block mx-auto mt-4">
+                    <button id="show-more-flights" class="btn btn-outline-primary mx-auto mt-4">
                     Show More Flights
                     </button>
             </div> <!-- .col-md-9 -->
@@ -595,6 +607,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const segment = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[0]?.FlightSegment || {};
 
                     const getreturntype = flightData.FareItinerary.DirectionInd;
+
                     const totalstopsegment = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption;
 
                     //To get return flight detail//
@@ -623,7 +636,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
 
-                    //Get flight data for only return trip//
+                    //Get flight data for only one way trip//
+                    if (getreturntype == 'OneWay') {
+                        for (let i = 0; i < totalstopsegment.length; i++) {
+                            if (i == 0) {
+
+                                tocode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i]?.FlightSegment.ArrivalAirportLocationCode;
+
+                                citynamebyTocode = getCityNameByAirPortCode(tocode);
+                                console.log(citynamebyTocode);
+                            }
+                        }
+                    }
+
                     if (getreturntype == 'Return') {
                         
                         //for departure flight//
@@ -631,11 +656,35 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (i == 0) {
 
                                 fromcode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i]?.FlightSegment.DepartureAirportLocationCode;
-                                tocode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i + 2]?.FlightSegment.ArrivalAirportLocationCode;
+                                tocode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i + 1]?.FlightSegment.ArrivalAirportLocationCode;
+
+                                citynamebyTocode = getCityNameByAirPortCode(tocode);
+
+                                //this is for one stop//
+                                totalstop = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.TotalStops;
+                                if(totalstop==1){
+
+                                    tocode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i + 1]?.FlightSegment.ArrivalAirportLocationCode;
+
+                                    citynamebyTocode = getCityNameByAirPortCode(tocode);
+
+                                }
+
+                                //for non stop//
+                                if(totalstop==0){
+
+                                    tocode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i]?.FlightSegment.ArrivalAirportLocationCode;
+
+                                    citynamebyTocode = getCityNameByAirPortCode(tocode);
+                                }
+
+                                
+                                //for two stop//
+                                towaycode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i + 2]?.FlightSegment.ArrivalAirportLocationCode;
+
                                 arrivaldatetime  = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i + 2]?.FlightSegment.ArrivalDateTime;
 
                                 citynamebycode = getCityNameByAirPortCode(fromcode);
-                                citynamebyTocode = getCityNameByAirPortCode(tocode);
                             }
                         }
                         //for arrival flight//
@@ -644,7 +693,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                 returndepartdatetime  = flightData.FareItinerary?.OriginDestinationOptions?.[1]?.OriginDestinationOption?.[j]?.FlightSegment.DepartureDateTime;
 
-                                console.log(returndepartdatetime);
                                 returnarrivaldatetime  = flightData.FareItinerary?.OriginDestinationOptions?.[1]?.OriginDestinationOption?.[j + 2]?.FlightSegment.ArrivalDateTime;
                             }
                         }
@@ -655,10 +703,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (i == 0) {
 
                                 fromcode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i]?.FlightSegment.DepartureAirportLocationCode;
-                                tocode = flightData.FareItinerary?.OriginDestinationOptions?.[0]?.OriginDestinationOption?.[i + 1]?.FlightSegment.ArrivalAirportLocationCode;
-
                                 citynamebycode = getCityNameByAirPortCode(fromcode);
-                                citynamebyTocode = getCityNameByAirPortCode(tocode);
                             }
                         }
                     }
@@ -725,8 +770,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
         ${getreturntype === 'Return' ? `
         <div class="tab-pane fade" id="return-trip-details-${tabIdSuffix}" role="tabpanel">
-             <p><strong>From:</strong> ${citynamebyTocode}(${(tocode)}) at ${returndepartdatetime.replace('T', ' ')}</p>
-            <p><strong>To:</strong> ${citynamebycode}(${(fromcode)}) at ${returnarrivaldatetime.replace('T', ' ')}</p>
+             <p><strong>From:</strong> ${citynamebyTocode}(${(tocode)}) at ${returndepartdatetime}</p>
+            <p><strong>To:</strong> ${citynamebycode}(${(fromcode)}) at ${returnarrivaldatetime}</p>
                                 <p><strong>Flight:</strong> ${segment.MarketingAirlineName} ${segment.FlightNumber}</p>
                                 <p><strong>Duration:</strong> ${formattedDuration}</p>
         </div>
@@ -742,7 +787,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
                             <div class="tab-pane fade" id="cancellation-${tabIdSuffix}" role="tabpanel">
                                 <p><strong>Refundable:</strong> ${refund}</p>
-                                <p><strong>Change Fee:</strong> $${changeAmount}</p>
+                                <p><strong>Cancellation Fee:</strong> $${changeAmount}</p>
                             </div>
                         </div>
                     `;
@@ -1014,9 +1059,8 @@ document.addEventListener('DOMContentLoaded', function() {
     allFlights = Array.from(document.querySelectorAll('.flight-card'));
     filteredFlights = [...allFlights];
     
-    const flightCount = Array.from(document.querySelectorAll('.flight-card')).length;
+    if(filteredFlights.length === 0) {
 
-    if (flightCount == 0) {
       document.getElementById('show-more-flights').style.display = 'none !important';
     } else {
       document.getElementById('show-more-flights').style.display = 'block';

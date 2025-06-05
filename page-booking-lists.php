@@ -216,10 +216,11 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                     <input type="hidden" name="rooms" value="<?php echo $rooms ?>" id="rooms">
                 </form>
                 <hr>
-
+               
                 <link href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css" rel="stylesheet">
              
                 <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
+
                 <script>
                   const slider = document.getElementById('price-range');
                   const priceDisplay = document.getElementById('price-values');
@@ -268,13 +269,15 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                     const form = document.getElementById('filterForm');
                     const formData = new FormData(form);
                     const ajaxBaseUrl = "<?php echo esc_url(site_url('/filter_hotels.php')); ?>";
+                    document.querySelector('.loader').style.display = 'block';
 
                     fetch(ajaxBaseUrl, {
                       method: 'POST',
                       body: formData
                     })
                     .then(res => res.text())
-                    .then(data => {
+                    .then(data => {  
+                      document.querySelector('.loader').style.display = 'none';
                       document.getElementById('hotelResults').innerHTML = data;
                     });
                   }
@@ -297,11 +300,6 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
 
         <!-- Hotel Listings -->
         <div class="col-md-9">
-            <h5 class="france-section-text">
-                <?php echo $totalHotels; ?> Properties in
-                <?php echo esc_html(isset($location) && !empty($location) ? $location : 'this location'); ?>
-            </h5>
-
             <?php if (!$hotels) {
                 $hotels_paginated = [];
                 $current_page = '';
@@ -325,7 +323,7 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                 $hotels_paginated = array_slice($hotels, $offset, $per_page);
             } ?>
             <!-- Hotel Card -->
-            <div id="hotelResults" > <div class="loader"></div></div>
+            <div id="hotelResults"><div class="loader" style="display:none;"></div></div>
         </div>
     </div>
 </div>
@@ -336,6 +334,19 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
 document.addEventListener("DOMContentLoaded", function () {
     const urlParams = new URLSearchParams(window.location.search);
     const roomsParam = urlParams.get("rooms");
+
+    function showLoader() {
+      document.querySelectorAll('.loader').forEach(el => {
+        el.style.display = 'block';
+      });
+    }
+
+    function hideLoader() {
+      document.querySelectorAll('.loader').forEach(el => {
+        el.style.display = 'none';
+      });
+    }
+
 
     if (roomsParam) {
         const [rooms, adults, children] = roomsParam.split("-").map(Number);
@@ -445,5 +456,36 @@ flatpickr("#check-in, #check-out", {
         }
     }
 });
+</script>
+<script>
+    function fetchHotels() {
+  const form = document.getElementById('filterForm');
+  const formData = new FormData(form);
+  const ajaxBaseUrl = "<?php echo esc_url(site_url('/filter_hotels.php')); ?>";
+
+  // Show loader, hide hotel section
+  document.querySelector('.loader').style.display = 'block';
+  document.querySelector('.hotels-booking-section-main-page').style.display = 'none';
+
+  fetch(ajaxBaseUrl, {
+    method: 'POST',
+    body: formData
+  })
+    .then(res => res.text())
+    .then(data => {
+      // Insert data
+      document.querySelector('.hotels-booking-section-main-page').innerHTML = data;
+
+      // Hide loader, show hotel section
+      document.querySelector('.loader').style.display = 'none';
+      document.querySelector('.hotels-booking-section-main-page').style.display = 'block';
+    })
+    .catch(error => {
+      console.error('Fetch error:', error);
+      document.querySelector('.loader').style.display = 'none';
+      document.querySelector('.hotels-booking-section-main-page').style.display = 'block';
+    });
+}
+
 </script>
 <?php get_footer(); ?>

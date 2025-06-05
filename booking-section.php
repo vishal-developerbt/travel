@@ -33,7 +33,7 @@
                             <label class="fw-bold loaction-text-homepage">
                                 <i class="fa-solid fa-location-dot"></i> Locations
                             </label>
-                            <input type="text" name="location" class="form-control search-city-property"
+                            <input type="text" name="location" id="search_city_from" class="form-control search-city-property"
                                 placeholder="Search City, Locations" required>
                         </div>
 
@@ -510,7 +510,10 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        
+         
+         document.getElementById("search_city_from").addEventListener("click", function () {
+              this.select();
+         });
          document.getElementById("departure_airport").addEventListener("click", function () {
               this.select();
          });
