@@ -294,11 +294,9 @@ get_header(); ?>
                                
                                 $fare = $fareItem['FareItinerary'];
                                 $fareSourceCode= $fare['AirItineraryFareInfo']['FareSourceCode'];
-                                 $fareBreakdown = current($fare['AirItineraryFareInfo']['FareBreakdown']);
-                                 $penaltyDetails = $fareBreakdown['PenaltyDetails'];
+                                $fareBreakdown = current($fare['AirItineraryFareInfo']['FareBreakdown']);
+                                $penaltyDetails = $fareBreakdown['PenaltyDetails'];
                                 $totalsegments = count($fare['OriginDestinationOptions'][0]['OriginDestinationOption']);
-                               // echo "<pre/>"; print_r(($penaltyDetails)); die;
-
                                 $returnfare = $fareItem['FareItinerary']['DirectionInd'];
 
                                 $counttotalstop = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['TotalStops'];
