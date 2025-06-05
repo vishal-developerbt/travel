@@ -17,10 +17,16 @@ get_header();
         'infants' => $_GET['infants'] ?? 0,
         'session_id' => $_GET['session_id'] ?? '',
         'fare_source_code' => $_GET['fareSourceCode'] ?? '',
+        'refund_penalty_amount' => $_GET['refund_penalty_amount'] ?? '',
+        'change_allowed' => $_GET['change_allowed'] ?? '',
+        'change_penalty_amount' => $_GET['change_penalty_amount'] ?? '',
         
     ];
 
     $fareSourceCode = $_GET['fareSourceCode'] ?? '';
+    // $refundPenaltyAmount = $_GET['refund_penalty_amount'] ?? '';
+    // $changeAllowed = $_GET['change_allowed'] ?? '';
+    // $changePenaltyAmount = $_GET['change_penalty_amount'] ?? '';
     $sessionId = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : '';
     $validateFlightData = validateFlightFareMethod($sessionId, $fareSourceCode);
     $IsValid =$validateFlightData['response']['AirRevalidateResponse']['AirRevalidateResult']['IsValid'];
@@ -45,7 +51,7 @@ get_header();
     $segment = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['FlightSegment'] ?? [];
     $segment1 = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'] ?? [];
     $segmentU = $fare['OriginDestinationOptions'] ?? [];
-   
+    //echo "<pre>"; print_r($fare); die;
     // STEP 2: Baggage & Penalty (use first FareBreakdown for reference)
     $fareBreakdown = $fare['AirItineraryFareInfo']['FareBreakdown'][0] ?? [];
     $baggage = $fareBreakdown['Baggage'][0] ?? '0PC';
@@ -355,6 +361,16 @@ get_header();
                         </div>
                     </div>
                     <?php   } ?>
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label small form-name-email-detail-all-th">Area Code<span class="star-section-red-color">*</span></label>
+                            <input type="text" class="form-control" id="area_code" placeholder="e.g., 080" required>
+                        </div>
+                         <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label small form-name-email-detail-all-th">Post Code<span class="star-section-red-color">*</span></label>
+                            <input type="text" class="form-control" id="post_code" placeholder="e.g., 560061" required>
+                        </div>
+                    </div>
                         <input type="hidden" name="isPassportRequired" id="isPassportRequired" value="<?php echo esc_attr($isPassportMandatory); ?>">
                         <input type="hidden" name="isRefundable" id="isRefundable" value="<?php echo esc_attr($isRefundable); ?>">
                      
@@ -570,6 +586,8 @@ jQuery(document).ready(function ($) {
         let nationality = $("#nationality").val().trim();
         let isPassportRequired = $("#isPassportRequired").val().trim();
         let isRefundable = $("#isRefundable").val().trim();
+        let postCode = $("#post_code").val();
+        let areaCode = $("#area_code").val();
 
         // Passport required validations
         if (isPassportRequired === "1") {
@@ -579,7 +597,7 @@ jQuery(document).ready(function ($) {
             let passportExpiryDate = $("#passport_expiry_date").val().trim();
 
             if (!title || !firstName || !lastName || !dob || !nationality || 
-                !passportNumber || !passportIssueCountry || !passportExpiryDate) {
+                !passportNumber || !passportIssueCountry || !passportExpiryDate || !postCode || !areaCode ) {
                 alert("Please fill in all required fields.");
                 return;
             }
@@ -609,7 +627,7 @@ jQuery(document).ready(function ($) {
             }
 
         } else {
-            if (!title || !firstName || !lastName || !dob || !nationality) {
+            if (!title || !firstName || !lastName || !dob || !nationality || !postCode || !areaCode) {
                 alert("Please fill in all required fields.");
                 return;
             }
@@ -698,7 +716,9 @@ jQuery(document).ready(function ($) {
             guests: selectedGuests,
             paymentMethod: paymentMethod,
             isRefundable: isRefundable,
-            fareType: fareType
+            fareType: fareType,
+            postCode: postCode,
+            areaCode: areaCode
         };
 
         if (isPassportRequired === "1") {
