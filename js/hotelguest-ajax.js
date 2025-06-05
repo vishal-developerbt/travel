@@ -72,8 +72,10 @@ jQuery(document).ready(function ($) {
         <label style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
           <div>
             <input type="checkbox" name="selected_guest[]" value="${guest.guest_type}_${guest.id}" />
+             <strong class="guest-selct-sections-hotel">${guest.guest_title} ${guest.first_name} ${guest.last_name} </strong>
             <span>
-              <strong>${guest.guest_title} ${guest.first_name} ${guest.last_name} ${guest.guest_type}</strong>
+             
+              <div class="guest-section">${guest.guest_type}</div>
             </span>
           </div>
           <div>

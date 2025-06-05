@@ -2582,6 +2582,8 @@ function get_flight_booking_details_by_api($UniqueID, ) {
                 'is_refundable'  => $booking_details->is_refundable,
                 'booking_id'     => $booking_details->booking_id,
                 'price'          => $booking_details->amount,
+                'refund_penalty_amount'    => $booking_details->refund_penalty_amount,
+                'change_penalty_amount'    => $booking_details->change_penalty_amount,
                 'status'         => 'initiate',  
                 'travel_type'    => 'flight',
                 'created_at'     => date('Y-m-d H:i:s'),
@@ -2592,6 +2594,8 @@ function get_flight_booking_details_by_api($UniqueID, ) {
                 '%s', // is_refundable
                 '%s', // booking_id
                 '%s', // price
+                '%s', // refund_penalty_amount
+                '%s', // change_penalty_amount
                 '%s', // status
                 '%s', // travel_type
                 '%s', // created_at

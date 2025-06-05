@@ -294,10 +294,9 @@ get_header(); ?>
                                
                                 $fare = $fareItem['FareItinerary'];
                                 $fareSourceCode= $fare['AirItineraryFareInfo']['FareSourceCode'];
-
+                                $fareBreakdown = current($fare['AirItineraryFareInfo']['FareBreakdown']);
+                                $penaltyDetails = $fareBreakdown['PenaltyDetails'];
                                 $totalsegments = count($fare['OriginDestinationOptions'][0]['OriginDestinationOption']);
-                                //echo "<pre/>"; print_r($fareItem);
-
                                 $returnfare = $fareItem['FareItinerary']['DirectionInd'];
 
                                 $counttotalstop = $fare['OriginDestinationOptions'][0]['OriginDestinationOption'][0]['TotalStops'];
@@ -519,17 +518,14 @@ get_header(); ?>
                                 </div>
 
                                 <div class="col-md-2 d-flex flex-column justify-content-center align-items-center">
-                                <?php
-                                    $flightCardId = 'flight-' . uniqid();
-                                    // $flightDataJson = json_encode($fareItem); // full $fareItem
-                                    // $encodedFlightData = base64_encode($flightDataJson);
-                                    $currentQueryString = $_SERVER['QUERY_STRING']; // original search
+                            <?php
+                                $flightCardId = 'flight-' . uniqid();
+                    
+                                $currentQueryString = $_SERVER['QUERY_STRING']; // original search
 
-                                   // $paymentUrl = site_url('/flight-payment/') . "?{$currentQueryString}&session_id=" . urlencode($session_id) . "&flightData=" . urlencode($encodedFlightData);
+                                $paymentUrl = site_url('/flight-payment/') . "?{$currentQueryString}&session_id=" . urlencode($session_id) . "&fareSourceCode=" . urlencode($fareSourceCode) . "&refund_penalty_amount=" . urlencode($penaltyDetails['RefundPenaltyAmount']) . "&change_allowed=" . urlencode($penaltyDetails['ChangeAllowed']) . "&change_penalty_amount=" . urlencode($penaltyDetails['ChangePenaltyAmount']);
 
-                                    $paymentUrl = site_url('/flight-payment/') . "?{$currentQueryString}&session_id=" . urlencode($session_id) . "&fareSourceCode=" . urlencode($fareSourceCode);
-
-                                    ?>
+                                ?>
                                 
                                 
                                 <a href="<?php echo esc_url($paymentUrl); ?>">
