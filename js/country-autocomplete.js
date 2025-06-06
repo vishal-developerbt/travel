@@ -24,4 +24,29 @@ jQuery(document).ready(function($) {
             return false;
         }
     });
+
+
+    $('#guest_issue_country').autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: ajax_object.ajax_url,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    action: 'search_countries',
+                    keyword: request.term
+                },
+                success: function(data) {
+                    response(data); // format: [{ label: 'India', value: 'IN' }, ...]
+                }
+            });
+        },
+        minLength: 2,
+        select: function(event, ui) {
+            $('#guest_issue_country').val(ui.item.label); // visible field
+            $('#guest_issue_country_code').val(ui.item.value); // hidden field
+            return false;
+        }
+    });
+
 });

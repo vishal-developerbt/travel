@@ -30,7 +30,7 @@ $results = $wpdb->get_results(
     <div class="card-dsection-orer-min">
         <div class="profile-card order-maintain-section">
             <div class="profile-card-inner-section order-inner-section">
-                <h4 class="user-name-text mx-3 pt-2">UpComming Hotel Booking</h4>
+                <h4 class="user-name-text mx-3 pt-2">Upcoming Hotel Booking</h4>
             </div>
             <div class="order-detail-section">
             <?php if (!empty($results)) : ?>
@@ -82,7 +82,7 @@ $results = $wpdb->get_results(
                 </div>
                 <?php endforeach; ?>
                 <?php else : ?>
-                    <p>No bookings found for your account.</p>
+                    <p class="no-booking-text">No bookings found for your account.</p>
                 <?php endif; ?>
             </div>
 
@@ -147,13 +147,13 @@ $results = $wpdb->get_results(
                     </div>
                 <?php endforeach; ?>
             <?php else : ?>
-                <p>No bookings found for your account.</p>
+                <p class="no-booking-text  mt-3" style="padding-left: 26px;">No bookings found for your account.</p>
             <?php endif; ?>
             <!-- past hotelsssss -->               
         </div>
 
         <div class="profile-card order-maintain-section">
-            <h4 class="user-name-text mx-3 pt-2">UpComming Flight Booking</h4>
+            <h4 class="user-name-text mx-3 pt-2">Upcoming Flight Booking</h4>
             <?php
 
             $upcommingFlightResult = $wpdb->get_results(
@@ -227,7 +227,7 @@ $results = $wpdb->get_results(
                     </div>
                 <?php endforeach; ?>
                 <?php else : ?>
-                    <p>No bookings found for your account.</p>
+                    <p class="no-booking-text">No bookings found for your account.</p>
                 <?php endif; ?>
             </div>
             <!-- for past orders -->
@@ -297,7 +297,7 @@ $results = $wpdb->get_results(
                     </div>
                 <?php endforeach; ?>
                 <?php else : ?>
-                    <p>No bookings found for your account.</p>
+                    <p style="padding-left: 14px;">No bookings found for your account.</p>
                 <?php endif; ?>
             </div>      
         </div>
