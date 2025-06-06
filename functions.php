@@ -2566,9 +2566,7 @@ function get_flight_booking_details_by_api($UniqueID, ) {
 
         // Fetch booking details to get required information for the refund record
         $booking_details = $wpdb->get_row(
-            $wpdb->prepare("SELECT transaction_id, email, is_refundable,amount,booking_id FROM flight_booking_details 
-            WHERE booking_id = %s  LIMIT 1", $booking_id )
-        );
+            $wpdb->prepare("SELECT transaction_id, email, is_refundable,amount,booking_id, refund_penalty_amount, change_penalty_amount FROM flight_booking_details  WHERE booking_id = %s  LIMIT 1", $booking_id ));
 
         if (!$booking_details) {
             wp_send_json_error('Booking not found.');

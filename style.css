@@ -14,7 +14,58 @@ body {
   font-family: Arial, sans-serif;
   font-family: "Inter", sans-serif;
 }
+p.no-booking-text {
+    padding-left: 11px;
+}
+.form-group.mb-0.text-start.depature-test-home-page.position-relative.travel-x-scetion {
+    max-width: 320px;
+}
+.flight-list-page div#passengerDropdown {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 14px;
+    max-width: 319px;
+    z-index: 1000;
+    width: 375px;
+}
+.flight-list-page div#passengerDropdown {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 14px;
+    max-width: 375px;
+    z-index: 1000;
+    width: 319px;
+}
 
+
+.flight-select-section.mt-4 .rooms-popup {
+    display: none;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 326px;
+    z-index: 1000;
+    width: 415px;
+}
+button#toggleDropdown i.fa-solid.fa-caret-down {
+    margin-left: 17px;
+}
 .rounded.p-4.Traveller-details-in-booking-sec strong.guest-selct-sections-hotel {
     padding-left: 6px;
 }
@@ -3388,16 +3439,17 @@ div#roomsDropdownContainer span.rooms-home-page-text-main {
 }
 
 .flight-list-page .form-group {
-  height: 60px;
-  max-width: 220px;
-  background: white;
-  border-radius: 8px;
-  padding: 0px 9px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  border: 2px solid transparent;
-  transition: border-color 0.3s, box-shadow 0.3s;
+    height: 60px;
+    max-width: 157px;
+    background: white;
+    border-radius: 8px;
+    padding: 0px 9px;
+    display: flex
+;
+    flex-direction: column;
+    gap: 3px;
+    border: 2px solid transparent;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .card-body a {
@@ -3440,7 +3492,7 @@ section.hotels-booking-section-main-page .view-button {
 
 .flight-select-section.mt-4 div#roomsDropdownContainer {
   /* background: white; */
-  height: 64px;
+  height: 60px;
   background: white;
   border-radius: 8px;
   padding: 8px 12px;
@@ -4419,6 +4471,12 @@ div#search-flights select.select-section-home-page {
 }
 
 @media (max-width: 768px) {
+    .flatpickr-innerContainer {
+    overflow-x: scroll !important;
+}
+    .row.g-3.search-container-booking div#passengerDropdown {
+        left: 0px !important;
+    }
 div#registerFormContainer input#phone {
     border: 1px solid #e7e6e6 !important;
 }
@@ -7036,6 +7094,9 @@ margin-bottom: 20px;
 }
 
 @media screen and (min-width: 1024px) and (max-width: 1400px) {
+    .search-container-booking button#toggleDropdown {
+        font-size: 15px;
+    }
   .hotel-pricing {
     margin-top: 41px;
   }
@@ -7138,6 +7199,12 @@ margin-bottom: 20px;
 }
 
 @media screen and (min-width: 768px) and (max-width: 1023px) {
+    .form-group.mb-0.text-start.depature-test-home-page.position-relative.travel-x-scetion {
+    max-width: 225px;
+}
+    .flight-list-page .form-group {
+   
+    max-width: 220px;}
 .container.mt-4.properties-in-france-section section.hotels-booking-section-main-page .col-md-4 {
     width: 100%;
 }
@@ -7463,8 +7530,9 @@ margin-bottom: 20px;
   }
 
   .flight-select-section.mt-4 .location-box.mt-2 {
-        min-width: 136px;
-    width: 100% !important;
+         min-width: 136px;
+        width: 100% !important;
+        margin-top: 10px ! IMPORTANT;
   }
 
   .flight-select-section.mt-4 .row.g-2.align-items-center {
@@ -11247,6 +11315,20 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
+
+.flight-select-section.mt-4 .rooms-popup {
+    display: none;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 237px;
+    z-index: 1000;
+    width: 415px;
+}
 .flight-select-section button.btn.modify-search-btn.w-100{
 margin-left:0px !important;
         min-width: 147px;}
@@ -11564,7 +11646,7 @@ section.hotel-detail-paragraph-section li.car {
 }
 @media (max-width: 768px) {
 .flight-select-section.mt-4 div#roomsDropdownContainer {
-height:60px;}
+height:60px !important;}
  div#user-registration div#ur-frontend-form {
     padding: 10px 20px;
 }
@@ -11771,4 +11853,33 @@ section.flight-booking-divider-section.mb-5 .d-flex.align-items-center.gap-5.mb-
     margin-top: 57px;
     border: none;
     box-shadow: none;
+}
+
+.search-container-booking.flight-section-search-sections .rooms-popup {
+ 
+    position: absolute;
+    top: 76px;
+    right: 30px !important;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 321px;
+    z-index: 1000;
+    width: 274px;
+}
+.row.g-3.search-container-booking div#passengerDropdown {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 86px;
+  left: -91px;
+    background: white;
+    und: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 14px;
+    max-width: 275px;
+    z-index: 1000;
+    width: 373px;
 }

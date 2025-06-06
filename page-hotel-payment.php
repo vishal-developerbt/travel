@@ -181,7 +181,7 @@ if (!is_user_logged_in()) {
         <!-- User Form -->
           <div class="rounded p-4 Traveller-details-in-booking-sec">
               <div class="rounded Traveller-details-in-booking-sec">
-                <h2 class="fs-5 fw-bold mb-3 details-fare-det-tra-offert">Traveller Details</h2>
+                <h2 class="fs-5 fw-bold mb-3 details-fare-det-tra-offert">Booking Guest Information</h2>
                 <form id="travelerForm">
                   <div class="row mb-3">
                     <div class="col-md-6 mb-3 mb-md-0">
@@ -193,18 +193,19 @@ if (!is_user_logged_in()) {
                     </div>
                     <div class="col-md-6 mb-3 mb-md-0">
                       <label class="form-label small form-name-email-detail-all-th">First Name<span class="star-section-red-color">*</span></label>
-                      <input type="text" class="form-control" id="firstName" value="<?php echo $first_name; ?>"required>
+                      <input type="text" class="form-control" placeholder="Enter First Name" id="firstName" value="<?php echo $first_name; ?>"required>
                     </div>
                     <div class="col-md-6 mt-3">
                       <label class="form-label small form-name-email-detail-all-th">Last Name<span class="star-section-red-color">*</span></label>
-                      <input type="text" class="form-control" id="lastName" value="<?php echo $last_name; ?>" required>
+                      <input type="text" class="form-control" placeholder="Enter Last Name" id="lastName" value="<?php echo $last_name; ?>" required>
                     </div>
                
-
-                  
                     <div class="col-md-6 mb-3 mb-md-0 mt-3">
                       <label class="form-label small form-name-email-detail-all-th">Phone Number<span class="star-section-red-color">*</span></label>
-                      <input type="tel" class="form-control" id="phone" value="<?php echo $phone; ?>" required>
+                      <input type="tel" class="form-control" placeholder="Enter phone number" value="<?php echo $phone; ?>" id="phone" name="phone" required  pattern="[0-9]{10,15}"    >
+                        <div class="invalid-feedback">
+                          Please enter a valid phone number (10 to 15 digits).
+                        </div>
                     </div>
                     <div class="col-md-6 mt-3">
                       <label class="form-label small form-name-email-detail-all-th">Email Address<span class="star-section-red-color">*</span></label>
@@ -394,6 +395,7 @@ jQuery(document).ready(function ($) {
         let firstName = $("#firstName").val().trim();
         let lastName = $("#lastName").val().trim();
         let phone = $("#phone").val().trim();
+        let phoneRegex = /^[0-9]{10,15}$/;
         let email = $("#email").val().trim();
         let specialRequests = $(".requests-input").val().trim();
         let termsAccepted = $("#terms").is(":checked");
@@ -417,6 +419,12 @@ jQuery(document).ready(function ($) {
         if (!firstName || !lastName || !phone || !email) {
             alert("Please fill in all required fields.");
             return;
+        }
+
+        if (!phoneRegex.test(phone)) {
+            e.preventDefault();
+            alert("Please enter a valid phone number (10 to 15 digits).");
+            return; 
         }
 
         if (!termsAccepted) {

@@ -354,11 +354,14 @@ get_header();
                             <input type="hidden" id="passport_issue_country_code" name="passport_issue_country_code">
                         </div>
 
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <label for="passport_expiry_date" class="form-label small form-name-email-detail-all-th">Passport Expiry Date<span class="star-section-red-color">*</span></label>
+                       <div class="col-md-4 mb-3 mb-md-0">
+                            <label for="passport_expiry_date" class="form-label small form-name-email-detail-all-th">
+                                Passport Expiry Date<span class="star-section-red-color">*</span>
+                            </label>
                             <input type="date" class="form-control" id="passport_expiry_date" required>
-                            <div class="invalid-feedback">Please enter a valid future expiry date.</div>
+                            <div class="invalid-feedback" style="display: none;">Please enter a valid future expiry date.</div>
                         </div>
+
                     </div>
                     <?php   } ?>
                     <div class="row mb-3">
@@ -460,10 +463,21 @@ get_header();
                                              <div class="invalid-feedback">Please enter a valid passport number.</div>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-6">
+                                   <!--  <div class="col-12 col-md-6">
                                         <div class="hotel-payment-form-group">
                                             <label>Passport Issue Country<span class="star-section-red-color">*</span></label>
                                             <input type="text" id="guest_issue_country" placeholder="Enter issue country (e.g., IN" class="hotel-payment-form-control" required />
+                                        </div>
+                                    </div> -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="hotel-payment-form-group">
+                                            <label>Passport Issue Country<span class="star-section-red-color">*</span>
+                                            </label>
+                                            <input type="text" id="guest_issue_country" placeholder="Enter issue country (e.g., IN)" class="hotel-payment-form-control" required autocomplete="off" />
+                                            <input type="hidden" id="guest_issue_country_code">
+                                            <div class="invalid-feedback" style="display: none;">
+                                                Please select a valid country from the suggestions.
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -619,10 +633,10 @@ jQuery(document).ready(function ($) {
                 sixMonthsLater.setMonth(today.getMonth() + 6);
 
                 if (expiry <= sixMonthsLater) {
-                    $("#passport_expiry_date").addClass('is-invalid');
+                    $("#passport_expiry_date").next(".invalid-feedback").show();  // 👈 Show error
                     valid = false;
                 } else {
-                    $("#passport_expiry_date").removeClass('is-invalid');
+                    $("#passport_expiry_date").next(".invalid-feedback").hide();  // 👈 Hide error
                 }
             }
 
@@ -782,5 +796,18 @@ jQuery(document).ready(function ($) {
     });
   });
 </script>
-
+<style>.ui-autocomplete {
+    z-index: 9999 !important; /* ensure it's above your modal */
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.ui-autocomplete {
+    position: fixed !important;
+    z-index: 9999 !important;
+}
+</style>
 <?php get_footer(); ?>
