@@ -5,8 +5,15 @@
  * Description: A custom page template for special layouts.
  */
 
-get_header(); ?>
+get_header(); 
+
+?>
 <?php 
+//Redirect if user is not logged in
+if (!is_user_logged_in()) {
+    wp_redirect(home_url('/my-account/'));
+    exit;
+}
 $current_user = wp_get_current_user();
 $user_id = $current_user->ID;
 global $wpdb;
@@ -49,7 +56,7 @@ $results = $wpdb->get_results(
                         </div>
                         <div class="d-flex gap-1 align-items-center">
                             <span class="order-booking-id w-auto">Booking Status:</span>
-                            <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['booking_status'] ?? '0') == '1' ? 'Confirmed' : 'CANCELLED'; ?></span></div>
+                            <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['booking_status'] ?? '0') == '1' ? 'Confirmed' : 'Cancelled'; ?></span></div>
                         </div>
 
                         <div class="d-flex gap-1 align-items-center">
@@ -124,7 +131,7 @@ $results = $wpdb->get_results(
                             </div>
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Booking Status:</span>
-                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['booking_status'] ?? '0') == '1' ? 'Confirmed' : 'CANCELLED'; ?></span></div>
+                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['booking_status'] ?? '0') == '1' ? 'Confirmed' : 'Cancelled'; ?></span></div>
                             </div>
 
                             <div class="d-flex gap-1 align-items-center">
