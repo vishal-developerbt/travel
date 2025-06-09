@@ -1,17 +1,17 @@
 jQuery(document).ready(function ($) {
   // ✅ OPEN form popup
-  function hotelPaymentOpenForm() {
-    $('#hotelPaymentPopupForm').css('display', 'flex');
+  function flightPaymentOpenForm() {
+    $('#flightPaymentPopupForm').css('display', 'flex');
   }
 
   // ✅ CLOSE form popup
-  function hotelPaymentCloseForm() {
-    $('#hotelPaymentPopupForm').hide();
-    resetGuestForm();
+  function flightPaymentCloseForm() {
+    $('#flightPaymentPopupForm').hide();
+    flightresetGuestForm();
   }
 
   // ✅ FORM VALIDATION
-  function hotelPaymentValidateForm() {
+  function flightPaymentValidateForm() {
     const requiredFields = ['#guest_title', '#first_name', '#last_name', '#guest_type', '#guestDob', '#guestNationality'];
     for (let selector of requiredFields) {
       if (!$(selector).val().trim()) {
@@ -23,17 +23,18 @@ jQuery(document).ready(function ($) {
   }
 
   // ✅ RESET form fields
-  function resetGuestForm() {
-    $('#hotelPaymentForm')[0].reset();
+  function flightresetGuestForm() {
+    $('#flightPaymentForm')[0].reset();
     $('#g_id').val('');
   }
   
 
 // ✅ Submit Guest Form Start
-$('#hotelPaymentForm').on('submit', function (e) {
+$('#flightPaymentForm').on('submit', function (e) {
+
   e.preventDefault();
 
-  if (!hotelPaymentValidateForm()) return;
+  if (!flightPaymentValidateForm()) return;
 
   let guestType = $('#guest_type').val();
   const dob = $('#guestDob').val();
@@ -83,33 +84,39 @@ $('#hotelPaymentForm').on('submit', function (e) {
     }
   }
 
-  // ✅ Passport validation
-  const passportNumber = $('#guest_passport_number').val().trim();
-  const passportExpiry = $('#guest_passport_expiry').val().trim();
-  const passportNumberPattern = /^[a-zA-Z0-9]{8,9}$/;
 
-  $('#guest_passport_number, #guest_passport_expiry').removeClass('is-invalid');
+   const guest_passport_required = $('#guest_passport_required').val();
+     let passportNumber = '';
+let passportExpiry = '';
 
-  if (!passportNumberPattern.test(passportNumber)) {
-    $('#guest_passport_number').addClass('is-invalid');
-    valid = false;
-  }
+  if (guest_passport_required) {
+    passportNumber = $('#guest_passport_number').val();
+    passportExpiry = $('#guest_passport_expiry').val();
+    const passportNumberPattern = /^[a-zA-Z0-9]{8,9}$/;
 
-  if (passportExpiry) {
-    const expiry = new Date(passportExpiry);
-    const today = new Date();
-    const sixMonthsFromNow = new Date();
-    sixMonthsFromNow.setMonth(today.getMonth() + 6);
+    $('#guest_passport_number, #guest_passport_expiry').removeClass('is-invalid');
 
-    if (expiry <= sixMonthsFromNow) {
+    if (!passportNumberPattern.test(passportNumber)) {
+      $('#guest_passport_number').addClass('is-invalid');
+      valid = false;
+    }
+
+    if (passportExpiry) {
+      const expiry = new Date(passportExpiry);
+      const today = new Date();
+      const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setMonth(today.getMonth() + 6);
+
+      if (expiry <= sixMonthsFromNow) {
+        $('#guest_passport_expiry').addClass('is-invalid');
+        valid = false;
+      }
+    } else {
       $('#guest_passport_expiry').addClass('is-invalid');
       valid = false;
     }
-  } else {
-    $('#guest_passport_expiry').addClass('is-invalid');
-    valid = false;
   }
-
+  
   if (!valid) {
     return;
   }
@@ -134,8 +141,8 @@ $('#hotelPaymentForm').on('submit', function (e) {
 
   $.post(guestAjax.ajax_url, guestData, function (response) {
     if (response.success) {
-      resetGuestForm();
-      hotelPaymentCloseForm();
+      flightresetGuestForm();
+      flightPaymentCloseForm();
 
       const li = $(`li[data-id="${response.data.id}"]`);
       if (li.length) li.remove();
@@ -212,7 +219,7 @@ $('#hotelPaymentForm').on('submit', function (e) {
   // ✅ Edit Guest Form Start(Load into Form)
   $(document).on('click', '.editGuestBtn', function () {
     const guestId = $(this).data('id');
-    resetGuestForm(); // clear before loading
+    flightresetGuestForm(); // clear before loading
     $.post(guestAjax.ajax_url, {
       action: 'get_guest_by_id',
       nonce: guestAjax.nonce,
@@ -230,7 +237,7 @@ $('#hotelPaymentForm').on('submit', function (e) {
         $('#guest_issue_country').val(g.guest_issue_country);
         $('#guest_passport_expiry').val(g.guest_passport_expiry);
         $('#g_id').val(g.id);
-        hotelPaymentOpenForm();
+        flightPaymentOpenForm();
       } else {
         alert("Failed to load guest info.");
       }
@@ -239,7 +246,7 @@ $('#hotelPaymentForm').on('submit', function (e) {
   // ✅ Edit Guest Form End(Load into Form)
 
   // ✅ Make open/close functions globally accessible (if needed outside)
-  window.hotelPaymentOpenForm = hotelPaymentOpenForm;
-  window.hotelPaymentCloseForm = hotelPaymentCloseForm;
+  window.flightPaymentOpenForm = flightPaymentOpenForm;
+  window.flightPaymentCloseForm = flightPaymentCloseForm;
 });
 

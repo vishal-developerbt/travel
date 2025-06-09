@@ -7,10 +7,10 @@ get_header(); ?>
 
 <?php
 // Redirect if user is not logged in
-if (!is_user_logged_in()) {
-    wp_redirect(home_url('/my-account/'));
-    exit;
-}
+// if (!is_user_logged_in()) {
+//     wp_redirect(home_url('/my-account/'));
+//     exit;
+// }
 
 // Required URL parameters
   $required_params = ['checkin', 'checkout', 'rooms', 'hotel_id','session_id','product_id','token_id','rate_basis_id','price'];
@@ -199,10 +199,10 @@ if (!is_user_logged_in()) {
                       <label class="form-label small form-name-email-detail-all-th">Last Name<span class="star-section-red-color">*</span></label>
                       <input type="text" class="form-control" placeholder="Enter Last Name" id="lastName" value="<?php echo $last_name; ?>" required>
                     </div>
-               
+                    
                     <div class="col-md-6 mb-3 mb-md-0 mt-3">
                       <label class="form-label small form-name-email-detail-all-th">Phone Number<span class="star-section-red-color">*</span></label>
-                      <input type="tel" class="form-control" placeholder="Enter phone number" value="<?php echo $phone; ?>" id="phone" name="phone" required  pattern="[0-9]{10,15}"    >
+                      <input type="tel" class="form-control" placeholder="Enter phone number" value="<?php echo $phone; ?>" id="c_phone" name="c_phone" required  pattern="[0-9]{10,15}"    >
                         <div class="invalid-feedback">
                           Please enter a valid phone number (10 to 15 digits).
                         </div>
@@ -394,7 +394,7 @@ jQuery(document).ready(function ($) {
         let title = $("#title").val().trim();
         let firstName = $("#firstName").val().trim();
         let lastName = $("#lastName").val().trim();
-        let phone = $("#phone").val().trim();
+        let phone = $("#c_phone").val().trim();
         let phoneRegex = /^[0-9]{10,15}$/;
         let email = $("#email").val().trim();
         let specialRequests = $(".requests-input").val().trim();
@@ -415,16 +415,16 @@ jQuery(document).ready(function ($) {
         let tokenId = urlParams.get("token_id") || "";
         let sessionId = urlParams.get("session_id") || "";
 
-        // Validate basic fields
-        if (!firstName || !lastName || !phone || !email) {
-            alert("Please fill in all required fields.");
-            return;
-        }
-
-        if (!phoneRegex.test(phone)) {
+         if (!phoneRegex.test(phone)) {
             e.preventDefault();
             alert("Please enter a valid phone number (10 to 15 digits).");
             return; 
+        }
+
+        // Validate basic fields
+        if (!firstName || !lastName || !phone || !email) {
+            alert("Please fill in all required fieldsaa .");
+            return;
         }
 
         if (!termsAccepted) {

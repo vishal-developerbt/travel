@@ -334,7 +334,7 @@ get_header();
                         </div>
                         <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Email Address<span class="star-section-red-color">*</span></label>
-                            <input type="email" class="form-control" id="email" value="<?php echo $email; ?>" required>
+                            <input type="email" class="form-control" id="email" placeholder="Email is required"  value="<?php echo $email; ?>" required>
                         </div>
                     </div>
                     <?php if($isPassportMandatory){ ?>
@@ -391,7 +391,7 @@ get_header();
    
                 <!-- Traveller Guest Details Start-->
                 <div class="add-guest-only-sec">
-                    <button class="hotel-btn-submit add-guest-main-btn-1" onclick="hotelPaymentOpenForm()">
+                    <button class="hotel-btn-submit add-guest-main-btn-1" onclick="flightPaymentOpenForm()">
                       Add Guest <span style="margin-right: 8px; font-size: 14px;">➕</span>
                     </button>
                     <div id="guestNameDisplay" class="appear-guest-name"></div>
@@ -399,11 +399,11 @@ get_header();
                         <ul id="guestList" style="list-style: none; padding: 0;"></ul>
                     </div>
                     <!-- Popup Form -->
-                    <div id="hotelPaymentPopupForm" class="hotel-payment-popup-form-container">
+                    <div id="flightPaymentPopupForm" class="hotel-payment-popup-form-container">
                         <div class="hotel-payment-popup-form-content">
-                        <span class="hotel-payment-close-btn" onclick="hotelPaymentCloseForm()">&times;</span>
+                        <span class="hotel-payment-close-btn" onclick="flightPaymentCloseForm()">&times;</span>
                         <h4>Add Guest for Flight Booking</h4>
-                           <form id="hotelPaymentForm">
+                           <form id="flightPaymentForm">
                                 <div class="row">
                                     <div class="col-12 col-md-6">
 
@@ -454,7 +454,7 @@ get_header();
                                             <input type="text" id="guestNationality" placeholder="e.g., Indian"  class="hotel-payment-form-control" required />
                                         </div>
                                     </div>
-
+                                     <input type="hidden" name="guest_passport_required" id="guest_passport_required" value="<?php echo esc_attr($isPassportMandatory); ?>">
                                     <?php if($isPassportMandatory){ ?>
                                     <div class="col-12 col-md-6">
                                         <div class="hotel-payment-form-group">

@@ -297,7 +297,7 @@ if (!empty($rooms)) {
                                 $roomtokenId = $hotelRoomOptions['tokenId'] ?? '';
                                 $roomhotelId = $hotelRoomOptions['hotelId'] ?? '';
 
-                                if ( is_user_logged_in() ) {  
+                              //  if ( is_user_logged_in() ) {  
                                 ?>
                                 <button class="btn btn-primary select-room-buttons" 
                                     onclick="redirectToPaymentPage(
@@ -315,13 +315,13 @@ if (!empty($rooms)) {
                                     )">
                                         <span class="select-room-text">Select Room</span>
                                     </button><?php
-                                    } else {?>
-                                    <a href="<?php echo get_site_url() . '/my-account/';?>">
+                                  //  } else {?>
+                                    <!-- <a href="<?php //echo get_site_url() . '/my-account/';?>">
                                         <button class="btn btn-primary" >
                                             <span class="select-room-text">Select Room</span>
                                         </button>
-                                    </a>
-                                  <?php  }?>
+                                    </a> -->
+                                  <?php//  }?>
 
                                     <input type="hidden" name="pid" value="<?php echo $room['productId']; ?>">
                                      <input type="hidden" name="rateBasisId" value="<?php echo $room['rateBasisId']; ?>">
