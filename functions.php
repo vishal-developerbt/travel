@@ -811,6 +811,7 @@ function get_flight_booking_guests_callback() {
 }
 
 add_action('wp_ajax_delete_guest', 'delete_guest_callback');
+add_action('wp_ajax_nopriv_delete_guest', 'delete_guest_callback');
 
 function delete_guest_callback() {
     check_ajax_referer('hotelguest_nonce', 'nonce');
@@ -819,12 +820,12 @@ function delete_guest_callback() {
         wp_send_json_error('Guest ID is required.');
     }
 
-    $guest_id = intval($_POST['guest_id']);
+    $guest_id = $_POST['guest_id'];
     $user_id = get_current_user_id();
 
-    if (!$user_id) {
-        wp_send_json_error('User not authenticated.');
-    }
+    // if (!$user_id) {
+    //     wp_send_json_error('User not authenticated.');
+    // }
 
     global $wpdb;
     $table = 'hotel_booking_guest_details';
@@ -914,16 +915,18 @@ function enqueue_hotel_guest_ajax_script() {
 }
 add_action('wp_enqueue_scripts', 'enqueue_hotel_guest_ajax_script');
 add_action('wp_ajax_save_hotel_guest_data', 'save_hotel_guest_data_callback');
+add_action('wp_ajax_nopriv_save_hotel_guest_data', 'save_hotel_guest_data_callback');
 
 function save_hotel_guest_data_callback() {
     check_ajax_referer('hotelguest_nonce', 'nonce');
+
     global $wpdb;
     $table = 'hotel_booking_guest_details';
 
     $g_id = isset($_POST['g_id']) && !empty($_POST['g_id']) ? intval($_POST['g_id']) : 0;
 
     $data = array(
-        'parent_user_id' => intval($_POST['user_id']),
+        'parent_user_id' => sanitize_text_field($_POST['user_id']),
         'guest_type'     => sanitize_text_field($_POST['guest_type']),
         'guest_title'     => sanitize_text_field($_POST['guest_title']),
         'first_name'     => sanitize_text_field($_POST['first_name']),
@@ -985,6 +988,8 @@ function get_hotel_booking_guests_callback() {
 
 
 add_action('wp_ajax_get_hotel_guest_by_id', 'get_hotel_guest_by_id_callback');
+add_action('wp_ajax_nopriv_get_hotel_guest_by_id', 'get_hotel_guest_by_id_callback');
+
 function get_hotel_guest_by_id_callback() {
     check_ajax_referer('hotelguest_nonce', 'nonce');
 

@@ -264,7 +264,7 @@ get_header(); ?>
                     </div>
                      <div class="hotel-payment-form-group">
                       <label>Title (Mr, Mrs):</label>
-                      <select id="guest_title" class="hotel-payment-form-control">
+                      <select id="guest_title" class="hotel-payment-form-control" required>
                           <option value="">Select</option> <!-- Default empty option -->
                           <option value="Mr">Mr</option>
                           <option value="Mrs">Mrs</option>
@@ -274,14 +274,15 @@ get_header(); ?>
                     </div>
                     <div class="hotel-payment-form-group">
                       <label>First Name:</label>
-                      <input type="text" id="first_name" name="first_name" class="hotel-payment-form-control" required />
+                      <input type="text" id="h_guest_first_name" placeholder="Enter first name" name="first_name" class="hotel-payment-form-control" required />
                     </div>
                     <div class="hotel-payment-form-group">
                       <label>Last Name:</label>
-                      <input type="text" id="last_name" name="last_name" class="hotel-payment-form-control" required />
+                      <input type="text" id="h_guest_last_name" placeholder="Enter last name" name="last_name" class="hotel-payment-form-control" required />
                     </div>
                     <input type="hidden" id="user_id" value="<?php echo esc_attr(get_current_user_id()); ?>" />
                     <input type="hidden" id="g_id" value="" />
+                     <input type="hidden" id="g_email" value="" />
                     <button type="submit" class="hotel-payment-btn-submit">Submit</button>
                   </form>
                 </div>

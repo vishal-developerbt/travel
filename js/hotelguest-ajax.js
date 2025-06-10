@@ -12,7 +12,7 @@ jQuery(document).ready(function ($) {
 
   // Validate form fields
   function hotelGuestValidateForm() {
-    const requiredFields = ['#guest_type', '#guest_title', '#first_name', '#last_name'];
+    const requiredFields = ['#guest_type', '#guest_title', '#h_guest_first_name', '#h_guest_last_name'];
     for (let selector of requiredFields) {
       const value = $(selector).val();
       if (!value || !value.trim()) {
@@ -32,19 +32,38 @@ jQuery(document).ready(function ($) {
 
   // Submit form
   $('#hotelGuestForm').on('submit', function (e) {
+    //for guest user check start
+
+      const user_id = $('#user_id').val();
+      const guest_email = $('#email').val().trim();
+
+      if (user_id == 0) {
+          const email = $('#email').val().trim();
+           $('#g_email').val(email); // set it into the hidden field
+
+          if (!email) {
+            console.log('Showing alert'); // Debugging
+            alert('Please enter your email before submitting.');
+            return false; // Changed to return false to ensure form doesn't submit
+          }
+      }
+
+    //for guest user check end
     e.preventDefault();
     if (!hotelGuestValidateForm()) return;
 
     $('.hotel-payment-btn-submit').prop('disabled', true).text('Submitting...');
+
 
     let guestData = {
       action: 'save_hotel_guest_data',
       nonce: hotelguestAjax.nonce,
       guest_type: $('#guest_type').val(),
       guest_title: $('#guest_title').val(),
-      first_name: $('#first_name').val(),
-      last_name: $('#last_name').val(),
-      user_id: $('#user_id').val(),
+      first_name: $('#h_guest_first_name').val(),
+      last_name: $('#h_guest_last_name').val(),
+      user_id: user_id == 0 ? guest_email : user_id, 
+      //user_id: $('#user_id').val(),
       g_id: $('#g_id').val() || ''
     };
 
@@ -126,7 +145,6 @@ jQuery(document).ready(function ($) {
   $(document).on('click', '.edithotelGuestBtn', function () {
     const guestId = $(this).data('id');
     resetGuestForm();
-
     $.post(hotelguestAjax.ajax_url, {
       action: 'get_hotel_guest_by_id',
       nonce: hotelguestAjax.nonce,
@@ -136,8 +154,8 @@ jQuery(document).ready(function ($) {
         const g = response.data;
         $('#guest_type').val(g.guest_type);
         $('#guest_title').val(g.guest_title);
-        $('#first_name').val(g.first_name);
-        $('#last_name').val(g.last_name);
+        $('#h_guest_first_name').val(g.first_name);
+        $('#h_guest_last_name').val(g.last_name);
         $('#g_id').val(g.id);
         hotelPaymentOpenForm();
       } else {
