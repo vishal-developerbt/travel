@@ -75,7 +75,7 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                 <!-- Check-in Date -->
                 <div class="col-md-2">
                     <div class="date-box">
-                        <label class="date-label">Check-in</label>
+                        <label class="date-label">Check-In</label>
                         <input type="date" name="checkin" id="check-in" 
                             value="<?php echo isset($_GET['checkin']) ? esc_attr($_GET['checkin']) : ''; ?>" 
                             class="form-control date-input" placeholder="Check-in Date">
@@ -85,7 +85,7 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                 <!-- Check-out Date -->
                 <div class="col-md-2">
                     <div class="date-box">
-                        <label class="date-label">Check-out</label>
+                        <label class="date-label">Check-Out</label>
                         <input type="date" name="checkout" id="check-out" 
                             value="<?php echo isset($_GET['checkout']) ? esc_attr($_GET['checkout']) : ''; ?>" 
                             class="form-control date-input" placeholder="Check-out Date">

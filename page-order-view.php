@@ -4,10 +4,18 @@
  * Description: A custom page template for special layouts.
  */
 
-get_header(); ?>
+// If download requested, generate PDF and exit
+require_once get_template_directory() . '/fpdf.php';
+
+
+get_header(); 
+?>
+<?php
+$current_url = $_SERVER['REQUEST_URI'];
+$separator = (strpos($current_url, '?') !== false) ? '&' : '?';
+?>
 
 <?php
-
     // Check if user is logged in
     if (!is_user_logged_in()) {
         wp_redirect(home_url('/login')); // Redirect to login if not logged in
@@ -210,20 +218,20 @@ get_header(); ?>
 
     <div class="container mt-5">
         <h2 class="mb-4">Flight Booking Details</h2>
-
+        <div><a href="<?php echo htmlspecialchars($current_url . $separator . 'download=1'); ?>" class="button">Download PDF</a></div>
         <?php
+
             $data = $results[0];
             $UniqueID = $data['booking_id'];
             $transactionId = $data['transaction_id'];
             $paymentStatus = $data['payment_status'];
              
-            // $supplierConfirmationNum = $data['supplierConfirmationNum'];
-            // $transaction_id = $data['transaction_id'];
-            // $payment_status = $data['payment_status'];
-
             $userFlightBookingDetail = get_flight_booking_details_by_api($UniqueID);
-            echo "<pre>"; print_r($userFlightBookingDetail); die;
+            //echo "<pre>"; print_r($userFlightBookingDetail); die;
             $flightDetail = $userFlightBookingDetail['TripDetailsResponse']['TripDetailsResult']['TravelItinerary'];
+
+            //echo "<pre/>"; print_r($flightCustomerDetail); die;
+            
         ?>
         <!-- for common details -->
         <?php if (!empty($flightDetail)) : ?>
@@ -235,6 +243,9 @@ get_header(); ?>
                 </div>
                 <div class="col-md-6">
                     <strong>Booking ID:</strong> <?= esc_html($flightDetail['UniqueID'] ?? ''); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>Ticket Status:</strong> <?= esc_html($flightDetail['TicketStatus'] ?? ''); ?>
                 </div>
             </div>
 
@@ -251,31 +262,46 @@ get_header(); ?>
             <!-- Airports -->
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <strong>Origin:</strong> <?= esc_html($flightDetail['Origin'] ?? ''); ?>
+                    <strong>Origin:</strong> <?= esc_html(getCityNameByAirPortCode(($flightDetail['Origin'] ?? ''))); ?>
                 </div>
                 <div class="col-md-6">
-                    <strong>Destination:</strong> <?= esc_html($flightDetail['Destination'] ?? ''); ?>
+                    <strong>Destination:</strong> <?= esc_html(getCityNameByAirPortCode($flightDetail['Destination'] ?? '')); ?>
                 </div>
             </div>
 
+           
             <!-- Flight Segment -->
             <?php
             $flight = $flightDetail['ItineraryInfo']['ReservationItems'][0]['ReservationItem'] ?? null;
-            if ($flight) : ?>
+            if ($flight) :?>
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Flight Number:</strong> <?= esc_html($flight['MarketingAirlineCode'] . ' ' . $flight['FlightNumber']); ?>
                     </div>
                     <div class="col-md-6">
-                        <strong>Departure:</strong> <?= esc_html($flight['DepartureAirportLocationCode'] . ' — ' . $flight['DepartureDateTime']); ?>
+                        <strong>DepartureCity:</strong> 
+                        <?= esc_html(getCityNameByAirPortCode($flight['DepartureAirportLocationCode']));?>
+                    </div>
+                     <div class="col-md-6">
+                        <strong>DepartureTime:</strong> 
+                        <?= $flight['DepartureDateTime'];?>
                     </div>
                 </div>
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <strong>Arrival:</strong> <?= esc_html($flight['ArrivalAirportLocationCode'] . ' — ' . $flight['ArrivalDateTime']); ?>
+                        <strong>ArrivalCity:</strong> 
+                        <?= esc_html(getCityNameByAirPortCode($flight['ArrivalAirportLocationCode']));?>
                     </div>
                     <div class="col-md-6">
+                        <strong>ArrivalTime:</strong> 
+                        <?= esc_html($flight['ArrivalDateTime']);?>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                     <div class="col-md-6">
+                         <div class="col-md-6">
                         <strong>Baggage:</strong> <?= esc_html($flight['Baggage'] ?? 'N/A'); ?>
+                    </div>
                     </div>
                 </div>
             <?php endif; ?>
@@ -294,13 +320,128 @@ get_header(); ?>
                     </div>
                 </div>
             <?php endif; ?>
-            
+
+            <?php
+
+            //Start of download file as pdf//
+            if (isset($_GET['download']) && $_GET['download'] == '1') {
+    
+            if (ob_get_length()) {
+                ob_end_clean();
+            }
+
+            // --- Determine Filename based on current date and time ---
+
+            $currentDateTime = date('Y-m-d_H-i');
+            $pdfFileName = 'flight_booking_details_' . $currentDateTime . '.pdf';
+            $departTime = esc_html($flight['DepartureAirportLocationCode'] . ' — ' . $flight['DepartureDateTime']);
+        
+            $bookingDetails = [
+                'Booking Status' => esc_html($flightDetail['BookingStatus'] ?? ''),
+                'Booking ID' => esc_html($flightDetail['UniqueID'] ?? ''),
+                'Payment Status' => esc_html($paymentStatus ?? ''),
+                'Transaction ID' => esc_html($transactionId ?? ''),
+                'Origin'=>esc_html(getCityNameByAirPortCode($flightDetail['Origin'] ?? '')),
+                'Destination' => esc_html($flightDetail['Destination'] ?? ''),
+                'Flight Number' => esc_html($flight['MarketingAirlineCode'] . ' ' . $flight['FlightNumber']),
+                'DepartureCity' => esc_html(getCityNameByAirPortCode($flight['DepartureAirportLocationCode'])),
+                'DepartureTime' => esc_html(str_replace('T', ' ', $flight['DepartureDateTime'])),
+                'ArrivalCity' => esc_html(getCityNameByAirPortCode($flight['ArrivalAirportLocationCode'])),
+                'ArrivalTime' => esc_html(str_replace('T', ' ', $flight['ArrivalDateTime'])),
+                'Baggage' => esc_html($flight['Baggage'] ?? 'N/A'), // Added sample baggage detail
+                'Total Fare' => esc_html($fare['Amount']) . ' ' . esc_html($fare['CurrencyCode']),
+                'Fare Type' => esc_html($flightDetail['FareType'] ?? '')
+            ];
+    // --- End of Flight Booking Details ---
+
+    // Create a new FPDF instance
+    $pdf = new FPDF();
+    $pdf->AddPage();
+    $pdf->SetMargins(10, 10, 10); // Set margins for better layout
+
+    // --- Title ---
+    $pdf->SetFont('Arial', 'B', 20);
+    $pdf->Cell(0, 15, 'Flight Booking Details', 0, 1, 'C');
+    $pdf->Ln(6); // Add some space
+
+    // --- Display Booking Details ---
+    $pdf->SetFont('Arial', '', 12); // Regular font for details
+
+    foreach ($bookingDetails as $label => $value) {
+        $pdf->SetFont('Arial', 'B', 12); // Bold for label
+        $pdf->Cell(50, 8, $label . ':', 0, 0, 'R'); // Label column (fixed width)
+        $pdf->SetFont('Arial', '', 12); // Regular for value
+        $pdf->MultiCell(0, 8, $value, 0, 'L'); // Value column (multicell for wrapping, 0 width for remaining space)
+    }
+
+    // --- Title ---
+    $pdf->SetFont('Arial', 'B', 20);
+    $pdf->Cell(0, 15, 'Guest Booking Details', 0, 1, 'C'); // Centered title, new line
+    $pdf->Ln(6); // Add some space
+
+    // --- Display Booking Details ---
+    $pdf->SetFont('Arial', '', 12); // Regular font for details
+
+     foreach ($results as $booking){
+        //echo "<pre/>"; print_r($booking);
+
+            $guestDetailsData = [
+                    'firstname' => esc_html($booking['first_name']),
+                    'lastname' => esc_html($booking['last_name']),
+                    'guestemail' => esc_html($booking['email']),
+                    'guestcontact' => esc_html($booking['phone']),
+                    'passengertype'=>esc_html($booking['passenger_type']),
+                    'dateofbirth' => esc_html($booking['dob'])
+                ];
+     }
+
+    //THis is for guest detail//
+    $guestDetails = [
+        'First Name' => esc_html($guestDetailsData['firstname'] ?? ''),
+        'Last Name' => esc_html($guestDetailsData['lastname'] ?? ''),
+        'Email' => esc_html($guestDetailsData['guestemail'] ?? ''),
+        'Phone' => esc_html($guestDetailsData['guestcontact'] ?? ''),
+        'Passenger Type'=>esc_html($guestDetailsData['passengertype'] ?? ''),
+        'DOB' => esc_html($guestDetailsData['dateofbirth'] ?? '')
+    ];
+
+    foreach ($guestDetails as $label => $value) {
+        $pdf->SetFont('Arial', 'B', 12); // Bold for label
+        $pdf->Cell(50, 8, $label . ':', 0, 0, 'R'); // Label column (fixed width)
+        $pdf->SetFont('Arial', '', 12); // Regular for value
+        $pdf->MultiCell(0, 8, $value, 0, 'L'); // Value column (multicell for wrapping, 0 width for remaining space)
+    }
+
+    // Add a footer or other information if needed
+    $pdf->Ln(10);   
+    $pdf->SetFont('Arial', 'I', 10);
+    $pdf->Cell(0, 10, 'Generated on ' . date('Y-m-d H:i:s'), 0, 0, 'R');
+
+     // Set the filename directly in the Content-Disposition header.
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="' . $pdfFileName . '"');
+    header('Cache-Control: private, max-age=0, must-revalidate');
+    header('Pragma: public');
+
+    // Output the PDF, forcing a download ('D').
+    $pdf->Output($pdfFileName, 'D');
+
+    // Terminate script execution immediately after outputting the PDF.
+    exit;
+
+
+}
+            ?>
         </div>
-        <?php else : ?>
+        <?php 
+
+
+        else : ?>
             <p>No flight details available.</p>
         <?php endif; ?>
         <h2 class="mb-4">Guest Details</h2>
-        <?php foreach ($results as $booking): ?>
+        <?php foreach ($results as $booking): 
+            //echo "<pre/>";print_r($booking); die;?>
         <div class="booking-box border p-4 rounded mb-4">
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -310,13 +451,21 @@ get_header(); ?>
                     <strong>Last Name:</strong> <?= esc_html($booking['last_name']); ?>
                 </div>
             </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Trip Type:</strong> <?= esc_html($booking['trip_type']); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>Nationality:</strong> <?= esc_html($booking['nationality']); ?>
+                </div>
+            </div>
 
             <div class="row mb-3">
                 <div class="col-md-6">
                     <strong>Email:</strong> <?= esc_html($booking['email']); ?>
                 </div>
                 <div class="col-md-6">
-                    <strong>Phone:</strong> <?= esc_html($booking['dob']); ?>
+                    <strong>Phone:</strong> <?= esc_html($booking['phone']); ?>
                 </div>
             </div>
             <div class="row mb-3">
@@ -327,7 +476,89 @@ get_header(); ?>
                     <strong>DOB:</strong> <?= esc_html($booking['dob']); ?>
                 </div>
             </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Destination From:</strong> <?= esc_html(getCityNameByAirPortCode($booking['destination_from'])); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>Destination To:</strong> <?= esc_html(getCityNameByAirPortCode($booking['destination_to'])); ?>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Departure Date:</strong> <?= esc_html($booking['departure_date']); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>Travel Class:</strong> <?= esc_html($booking['travel_class']); ?>
+                </div>
+            </div>   
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Amount:</strong> <?= esc_html($booking['amount']); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>Payment Status:</strong> <?= esc_html($booking['payment_status']); ?>
+                </div>
+            </div>  
         </div>
+
+         <?php
+                    //Customer detail//
+                    $flightCustomerDetail = $userFlightBookingDetail['TripDetailsResponse']['TripDetailsResult']['TravelItinerary']['ItineraryInfo']['CustomerInfos'][0];
+                    
+            ?>
+            <h2 class="mb-4">Customer Details</h2>
+            <?php foreach ($flightCustomerDetail as $bookingcustomer):?>
+        <div class="booking-box border p-4 rounded mb-4">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>PassengerType:</strong> <?= esc_html($bookingcustomer['PassengerType']); ?>
+                </div>  
+                <div class="col-md-6">
+                    <strong>PassportNumber:</strong> <?= esc_html($bookingcustomer['PassportNumber']); ?>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                 <div class="col-md-6">
+                    <strong>PassengerTitle:</strong> <?= esc_html($bookingcustomer['PassengerTitle']); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>PassengerName:</strong> <?= esc_html($bookingcustomer['PassengerFirstName']); ?>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>PassengerNationality:</strong> <?= esc_html(getCityNameByAirPortCode($bookingcustomer['PassengerNationality'])); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>PhoneNumber:</strong> <?= esc_html($bookingcustomer['PhoneNumber']); ?>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>EticketNumber:</strong> <?= esc_html($bookingcustomer['eTicketNumber']); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>EmailAddress:</strong> <?= esc_html($bookingcustomer['EmailAddress']); ?>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Gender:</strong> <?= esc_html($bookingcustomer['Gender']); ?>
+                </div>
+                <div class="col-md-6">
+                    <strong>DOB:</strong> <?= esc_html($bookingcustomer['DateOfBirth']); ?>
+                </div>
+            </div>
+        </div>
+
+        <?php endforeach; ?>
+
+
         <?php endforeach; ?>
     </div>
 <?php } } ?>
