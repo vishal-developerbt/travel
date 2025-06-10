@@ -42,7 +42,7 @@
                             <label class="fw-bold check-in-text-home-page">
                                 <div class="d-flex align-items-center">
                                     <span><i class="fa-solid fa-calendar-days"></i></span>
-                                    <span class="check-in-text-main-page">Check-in</span>
+                                    <span class="check-in-text-main-page">Check-In</span>
                                 </div>
                             </label>
                             <input type="text" required name="checkin" id="check-in" class="form-control check-in-passenger-text" placeholder="Check-in Date">
@@ -53,7 +53,7 @@
                             <label class="fw-bold check-out-page-home-page">
                                 <div class="d-flex align-items-center">
                                     <span><i class="fa-solid fa-calendar-days"></i></span>
-                                    <span class="check-out-text-main-page">Check-out</span>
+                                    <span class="check-out-text-main-page">Check-Out</span>
                                 </div>
                             </label>
                             <input type="text" required name="checkout" id="check-out" class="form-control check-out-passenger-text" placeholder="Check-out Date">
