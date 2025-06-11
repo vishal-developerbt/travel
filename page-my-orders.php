@@ -47,7 +47,7 @@ $results = $wpdb->get_results(
                     <div class="d-flex flex-column align-items-start">
                         <div class="d-flex gap-1 align-items-center">
                             <span class="order-booking-id w-auto">Booking ID:</span>
-                            <div> <a href="<?php echo esc_url( home_url( '/travel/order-view/?hotel_id=' . $booking['transaction_id'] ) ); ?>">
+<div> <a href="<?php echo esc_url( home_url( '/travel/order-view/?hotel_id=' . $booking['transaction_id'] ) ); ?>">
                             <span class="booking serial-number text-primary fw-bold"><?php echo esc_html(!empty($booking['referenceNum']) ? $booking['referenceNum'] : 'N/A'); ?></span></a></div>
                         </div>
                         <div class="d-flex gap-1 align-items-center">
@@ -67,10 +67,10 @@ $results = $wpdb->get_results(
 
                     <!-- Right Section -->
                     <div class="d-flex flex-column align-items-end">
-                        <div class="d-flex gap-1 align-items-center">
+                        <!-- <div class="d-flex gap-1 align-items-center">
                             <span class="order-booking-id w-auto">Bed Type:</span>
                             <div><span class="booking-type-text fw-bold">Single</span></div>
-                        </div>
+                        </div> -->
                         <div class="d-flex gap-1 align-items-center">
                             <span class="order-booking-id w-auto">Booking date:</span>
                             <div><span class="order-booking-date  fw-bold"><?php echo date('d-M-Y', strtotime($booking['checkin'])); ?></span></div>
@@ -122,8 +122,10 @@ $results = $wpdb->get_results(
                         <div class="d-flex flex-column align-items-start">
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Booking ID:</span>
-                                <div> <a href="<?php echo esc_url( home_url( '/travel/order-view/?hotel_id=' . $booking['transaction_id'] ) ); ?>">
-                                <span class="booking serial-number text-primary fw-bold"><?php echo esc_html($booking['referenceNum']); ?></span></a></div>
+<div> 
+    <a href="<?php echo esc_url( home_url( '/travel/order-view/?hotel_id=' . $booking['hotel_token_id'] ) ); ?>">
+                                <span class="booking serial-number text-primary fw-bold">
+    <?php echo esc_html($booking['referenceNum']??'N/A'); ?></span></a></div>
                             </div>
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Total amount:</span>
@@ -142,10 +144,10 @@ $results = $wpdb->get_results(
 
                         <!-- Right Section -->
                         <div class="d-flex flex-column align-items-end">
-                            <div class="d-flex gap-1 align-items-center">
+                            <!-- <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Bed Type:</span>
                                 <div><span class="booking-type-text fw-bold">Single</span></div>
-                            </div>
+                            </div> -->
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Booking date:</span>
                                 <div><span class="order-booking-date  fw-bold"><?php echo date('d-M-Y', strtotime($booking['checkin'])); ?></span></div>
@@ -188,7 +190,7 @@ $results = $wpdb->get_results(
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Booking ID:</span>
                                 <div> 
-                              <a href="<?php echo esc_url( home_url( '/travel/order-view/?flight_id=' . $booking['session_id'] ) ); ?>">
+        <a href="<?php echo esc_url( home_url( '/travel/order-view/?flight_id=' . $booking['session_id'] ) ); ?>">
                                    <span class="booking serial-number text-primary fw-bold">
                                     <?php echo esc_html(!empty($booking['booking_id']) ? $booking['booking_id'] : 'N/A'); ?>
                                     </span></a></div>

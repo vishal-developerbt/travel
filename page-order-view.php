@@ -31,28 +31,33 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
     $hotel_id = isset($_GET['hotel_id']) ? sanitize_text_field($_GET['hotel_id']) : null;
 
     // If neither is present, show error
-    if (empty($flight_id) && empty($hotel_id)) {
-        echo '<div class="alert alert-danger">Missing flight or hotel ID.</div>';
-        exit;
-    }
+         // Fetch booking data for current user only (security check)
+        $hotelresults = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM hotel_booking_details WHERE  hotel_token_id = %s",
+                $hotel_id
+            ),
+            ARRAY_A
+        );
+
+        //echo "<pre/>"; print_r($hotelresults);die;
 
     if (!empty($hotel_id)) {
-        if (!preg_match('/^[a-zA-Z0-9_]+$/', $hotel_id)) {
-            echo '<div class="alert alert-danger">Invalid hotel ID format.</div>';
-            exit;
-        }
+        // if (!preg_match('/^[a-zA-Z0-9_]+$/', $hotel_id)) {
+        //     echo '<div class="alert alert-danger">Invalid hotel ID format.</div>';
+        //     exit;
+        // }
 
         global $wpdb;
 
         // Fetch booking data for current user only (security check)
         $results = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM hotel_booking_details WHERE transaction_id = %s",
+                "SELECT * FROM hotel_booking_details WHERE hotel_token_id = %s",
                 $hotel_id
             ),
             ARRAY_A
         );
-
 
         // Handle not found
         if (!$results) {
@@ -62,16 +67,20 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
 
         <div class="container mt-5">
             <h2 class="mb-4">Hotel Booking Details</h2>
+            
+
             <?php $data = $results[0];
                 $referenceNum = $data['referenceNum'];
                 $supplierConfirmationNum = $data['supplierConfirmationNum'];
                 $transaction_id = $data['transaction_id'];
                 $payment_status = $data['payment_status'];
-                $userBookingDetail = get_booking_details_by_api($referenceNum, $supplierConfirmationNum);
-
+        $userBookingDetail = get_booking_details_by_api($referenceNum, $supplierConfirmationNum);
+        
             ?>
+
                 <!-- for common details -->
-                <?php if (!empty($userBookingDetail) && is_array($userBookingDetail)) : ?>
+                <?php if (!empty($userBookingDetail) && is_array($userBookingDetail) && isset($userBookingDetail['productId'])) : ?>
+                <div><a href="<?php echo htmlspecialchars($current_url . $separator . 'download=1'); ?>" class="button">Download PDF</a></div>
                 <div class="booking-box border p-4 rounded mb-4">
                     <!-- Top Row -->
                     <div class="row mb-3">
@@ -88,13 +97,13 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                         </div>
                         <div class="col-md-6">
                             <strong>Hotel Address:</strong><br>
-                            <?= esc_html($userBookingDetail['roomBookDetails']['address'] ?? ''); ?>
+                            <?= esc_html($userBookingDetail['roomBookDetails']['address'] ?? 'N/A'); ?>
                         </div>
                     </div>
                     <!-- Hotel Info -->
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <strong>Hotel Name:</strong> <?= esc_html($userBookingDetail['roomBookDetails']['hotelName'] ?? ''); ?>
+                            <strong>Hotel Name:</strong> <?= esc_html($userBookingDetail['roomBookDetails']['hotelName'] ?? 'N/A'); ?>
                         </div>
                         <div class="col-md-6">
                             <strong>Hotel ID:</strong> <?= esc_html($userBookingDetail['roomBookDetails']['hotelId'] ?? ''); ?>
@@ -112,10 +121,10 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                     <!-- Hotel Info -->
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <strong>City:</strong> <?= esc_html($userBookingDetail['roomBookDetails']['city'] ?? ''); ?>
+                            <strong>City:</strong> <?= esc_html($userBookingDetail['roomBookDetails']['city'] ?? 'N/A'); ?>
                         </div>
                          <div class="col-md-6">
-                            <strong>Country:</strong> <?= esc_html($userBookingDetail['roomBookDetails']['country'] ?? ''); ?>
+                            <strong>Country:</strong> <?= esc_html($userBookingDetail['roomBookDetails']['country'] ?? 'N/A'); ?>
                         </div>
                     </div>
 
@@ -159,12 +168,96 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                             <?= esc_html($userBookingDetail['roomBookDetails']['cancellationPolicy'] ?? ''); ?>
                         </div>  
                     </div>
+
+                    
                 </div>
+                
                 <?php else : ?>
-                    <p>No booking details found.</p>
+                <!-- only for if booking id not found -->
+                <?php
+                        foreach($hotelresults as $hoteldata){
+                        
+                            $hoteldataarray = array(
+                                'firstname'=>esc_html($hoteldata['firstName'] ?? ''),
+                                'guesttype'=>esc_html($hoteldata['guest_type'] ?? ''),
+                                'customermail'=>esc_html($hoteldata['customer_email'] ?? ''),
+                                'room'=>esc_html($hoteldata['rooms'] ?? ''),
+                                'location'=>esc_html($hoteldata['location'] ?? ''),
+                                'checkin'=>esc_html($hoteldata['checkin'] ?? ''),
+                                'checkout'=>esc_html($hoteldata['checkout'] ?? ''),
+                                'productid'=>esc_html($hoteldata['productid'] ?? ''),
+                                'booking_status'=>esc_html($hoteldata['booking_status'] ?? ''),
+                                'payment_status'=>esc_html($hoteldata['payment_status'] ?? ''),
+                                'phone'=>esc_html($hoteldata['phone'] ?? ''),
+                                'location'=>esc_html($hoteldata['location'] ?? ''),
+                                'paymentstatus'=>esc_html($hoteldata['payment_status'] ?? '')
+                            );
+                        }
+                         
+                ?>
+                <div class="booking-box border p-4 rounded mb-4">
+                    <!-- Top Row -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>FirstName:</strong> 
+                            <?= esc_html($hoteldataarray['firstname'] ?? 'N/A'); ?>
+                        </div>
+                        <div class="col-md-6">
+                        <strong>Guest Type:</strong> 
+                            <?= esc_html($hoteldataarray['guesttype'] ?? ''); ?>
+                        </div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Location:</strong> 
+                            <?= esc_html($hoteldataarray['location'] ?? 'N/A'); ?>
+                        </div>
+                        <div class="col-md-6">
+                        <strong>CheckIn:</strong> <?= esc_html($hoteldataarray['checkin'] ?? ''); ?>
+                        </div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>CheckOut:</strong> 
+                            <?= esc_html($hoteldataarray['checkout'] ?? 'N/A'); ?>
+                        </div>
+                        <div class="col-md-6">
+                        <strong>ProductId:</strong> <?= esc_html($hoteldataarray['productid'] ?? ''); ?>
+                        </div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Booking Status:</strong> 
+    <?= esc_html(
+    isset($hoteldataarray['booking_status']) 
+        ? ($hoteldataarray['booking_status'] == '0' ? 'No' : $hoteldataarray['booking_status']) 
+        : 'N/A'
+); ?>
+                        </div>
+                        <div class="col-md-6">
+                        <strong>Payment Status:</strong> 
+                        <?= esc_html($hoteldataarray['payment_status'] ?? ''); ?>
+                        </div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Phone:</strong> 
+                            <?= esc_html($hoteldataarray['phone'] ?? 'N/A'); ?>
+                        </div>
+                        <div class="col-md-6">
+                        <strong>Location:</strong> <?= esc_html($hoteldataarray['location'] ?? ''); ?>
+                        </div>
+                    </div>
+                     
+                </div> 
+                    
                 <?php endif; ?>
-                <h2 class="mb-4">Guest Details</h2>
-                <?php foreach ($results as $booking): ?>
+
+           <?php if (!empty($userBookingDetail) && is_array($userBookingDetail) && isset($userBookingDetail['productId'])) : ?>     
+                <h2 class="mb-4">Guest Detail</h2>
+                <?php foreach ($results as $booking): 
+                    //echo "<pre/>";print_r($booking);?>
+             
                 <div class="booking-box border p-4 rounded mb-4">
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -184,7 +277,119 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                         </div>
                     </div>
                 </div>
+                 
                 <?php endforeach; ?>
+            <?php endif; ?>    
+                <?php
+
+            //Start of download file as pdf for hotel//
+            if (isset($_GET['download']) && $_GET['download'] == '1') {
+    
+            if (ob_get_length()) {
+                ob_end_clean();
+            }
+
+            // --- Determine Filename based on current date and time ---
+
+            $currentDateTime = date('Y-m-d_H-i');
+            $pdfFileName = 'hotel_booking_details_' . $currentDateTime . '.pdf';
+
+            $departTime = esc_html($flight['DepartureAirportLocationCode'] . ' — ' . $flight['DepartureDateTime']);
+            $hotelNetPrice = esc_html($userBookingDetail['roomBookDetails']['NetPrice'] ?? 'N/A').' '.esc_html($userBookingDetail['roomBookDetails']['currency'] ?? '');
+
+            $bookingDetails = [
+                'Booking Status' => esc_html($userBookingDetail['status'] ?? 'N/A'),
+                'SupplierConfirmation Num' => esc_html($userBookingDetail['supplierConfirmationNum'] ?? 'N/A'),
+                'Booking Reference Num' => esc_html($userBookingDetail['referenceNum'] ?? 'N/A'),
+                'Hotel Address' => esc_html($userBookingDetail['roomBookDetails']['address'] ?? 'N/A'),
+                'Hotel Name' => esc_html($userBookingDetail['roomBookDetails']['hotelName'] ?? 'N/A'),
+                'Transaction ID'=>esc_html($transaction_id ?? 'N/A'),
+                'Payment Status' => esc_html($payment_status ?? 'N/A'),
+                'Check-In' => esc_html($userBookingDetail['roomBookDetails']['checkIn'] ?? 'N/A'),
+                'Check-Out' => esc_html($userBookingDetail['roomBookDetails']['checkOut'] ?? 'N/A'),
+                'Net Price' => $hotelNetPrice,
+                'Room Name' => esc_html($room['name'] ?? 'N/A'),
+
+                'City' => esc_html($userBookingDetail['roomBookDetails']['city'] ?? 'N/A'),
+                'Country' => esc_html($userBookingDetail['roomBookDetails']['country'] ?? 'N/A'),
+                'Cancellation Policy' => esc_html($userBookingDetail['roomBookDetails']['cancellationPolicy'] ?? 'N/A'),
+                'Fare Type' => esc_html($userBookingDetail['roomBookDetails']['fareType'] ?? 'N/A')
+            ];
+    
+    // Create a new FPDF instance
+    $pdf = new FPDF();
+    $pdf->AddPage();
+    $pdf->SetMargins(10, 10, 10); // Set margins for better layout
+
+    // --- Title ---
+    $pdf->SetFont('Arial', 'B', 20);
+    $pdf->Cell(0, 15, 'Flight Booking Details', 0, 1, 'C');
+    $pdf->Ln(6); // Add some space
+
+    // --- Display Booking Details ---
+    $pdf->SetFont('Arial', '', 12); // Regular font for details
+
+    foreach ($bookingDetails as $label => $value) {
+        $pdf->SetFont('Arial', 'B', 12); // Bold for label
+        $pdf->Cell(50, 8, $label . ':', 0, 0, 'R'); // Label column (fixed width)
+        $pdf->SetFont('Arial', '', 12); // Regular for value
+        $pdf->MultiCell(0, 8, $value, 0, 'L'); // Value column (multicell for wrapping, 0 width for remaining space)
+    }
+
+    // --- Title ---
+    $pdf->SetFont('Arial', 'B', 20);
+    $pdf->Cell(0, 15, 'Guest Details', 0, 1, 'C'); // Centered title, new line
+    $pdf->Ln(6); // Add some space
+
+    // --- Display Booking Details ---
+    $pdf->SetFont('Arial', '', 12); // Regular font for details
+
+     foreach ($results as $booking){
+        //echo "<pre/>"; print_r($booking);
+
+            $guestDetailsHotelData = [
+                    'firstname' => esc_html($booking['firstName']),
+                    'lastname' => esc_html($booking['lastName']),
+                    'customeremail' => esc_html($booking['customer_email']),
+                    'guestcontact' => esc_html($booking['phone'])
+                ];
+     }
+
+    //THis is for guest detail//
+    $guestHotelDetails = [
+        'First Name' => esc_html($guestDetailsHotelData['firstname'] ?? 'N/A'),
+        'Last Name' => esc_html($guestDetailsHotelData['lastname'] ?? 'N/A'),
+        'Email' => esc_html($guestDetailsHotelData['customeremail'] ?? 'N/A'),
+        'Phone' => esc_html($guestDetailsHotelData['guestcontact'] ?? 'N/A')
+    ];
+
+    foreach ($guestHotelDetails as $label => $value) {
+        $pdf->SetFont('Arial', 'B', 12); // Bold for label
+        $pdf->Cell(50, 8, $label . ':', 0, 0, 'R'); // Label column (fixed width)
+        $pdf->SetFont('Arial', '', 12); // Regular for value
+        $pdf->MultiCell(0, 8, $value, 0, 'L'); // Value column (multicell for wrapping, 0 width for remaining space)
+    }
+
+    // Add a footer or other information if needed
+    $pdf->Ln(10);   
+    $pdf->SetFont('Arial', 'I', 10);
+    $pdf->Cell(0, 10, 'Generated on ' . date('Y-m-d H:i:s'), 0, 0, 'R');
+
+     // Set the filename directly in the Content-Disposition header.
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="' . $pdfFileName . '"');
+    header('Cache-Control: private, max-age=0, must-revalidate');
+    header('Pragma: public');
+
+    // Output the PDF, forcing a download ('D').
+    $pdf->Output($pdfFileName, 'D');
+
+    // Terminate script execution immediately after outputting the PDF.
+    exit;
+
+
+}
+            ?>
         </div>
 <?php } }?>
 
@@ -219,6 +424,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
     <div class="container mt-5">
         <h2 class="mb-4">Flight Booking Details</h2>
         <div><a href="<?php echo htmlspecialchars($current_url . $separator . 'download=1'); ?>" class="button">Download PDF</a></div>
+
         <?php
 
             $data = $results[0];
@@ -230,7 +436,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
             //echo "<pre>"; print_r($userFlightBookingDetail); die;
             $flightDetail = $userFlightBookingDetail['TripDetailsResponse']['TripDetailsResult']['TravelItinerary'];
 
-            //echo "<pre/>"; print_r($flightCustomerDetail); die;
+            //echo "<pre/>"; print_r($flightDetail); die;
             
         ?>
         <!-- for common details -->
@@ -244,7 +450,10 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                 <div class="col-md-6">
                     <strong>Booking ID:</strong> <?= esc_html($flightDetail['UniqueID'] ?? ''); ?>
                 </div>
-                <div class="col-md-6">
+               
+            </div>
+            <div class="row mb-3">
+                 <div class="col-md-6">
                     <strong>Ticket Status:</strong> <?= esc_html($flightDetail['TicketStatus'] ?? ''); ?>
                 </div>
             </div>
@@ -284,7 +493,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                     </div>
                      <div class="col-md-6">
                         <strong>DepartureTime:</strong> 
-                        <?= $flight['DepartureDateTime'];?>
+                        <?= esc_html(str_replace('T', ' ', $flight['DepartureDateTime']));?>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -294,13 +503,27 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                     </div>
                     <div class="col-md-6">
                         <strong>ArrivalTime:</strong> 
-                        <?= esc_html($flight['ArrivalDateTime']);?>
+                        <?= esc_html(str_replace('T', ' ', $flight['ArrivalDateTime']));?>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>AirlinePNR:</strong> 
+                        <?= esc_html($flight['AirlinePNR']);?>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>ArrivalAirportLocationCode:</strong> 
+                        <?= esc_html(getCityNameByAirPortCode($flight['ArrivalAirportLocationCode']));?>
                     </div>
                 </div>
                 <div class="row mb-3">
                      <div class="col-md-6">
                          <div class="col-md-6">
+                             <?php 
+                    if(!empty($flight['Baggage'])){?>
                         <strong>Baggage:</strong> <?= esc_html($flight['Baggage'] ?? 'N/A'); ?>
+                    <?php }?>
+                        
                     </div>
                     </div>
                 </div>
@@ -337,23 +560,25 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
             $departTime = esc_html($flight['DepartureAirportLocationCode'] . ' — ' . $flight['DepartureDateTime']);
         
             $bookingDetails = [
-                'Booking Status' => esc_html($flightDetail['BookingStatus'] ?? ''),
-                'Booking ID' => esc_html($flightDetail['UniqueID'] ?? ''),
-                'Payment Status' => esc_html($paymentStatus ?? ''),
-                'Transaction ID' => esc_html($transactionId ?? ''),
-                'Origin'=>esc_html(getCityNameByAirPortCode($flightDetail['Origin'] ?? '')),
-                'Destination' => esc_html($flightDetail['Destination'] ?? ''),
+                'Booking Status' => esc_html($flightDetail['BookingStatus'] ?? 'N/A'),
+                'Ticket Status' => esc_html($flightDetail['TicketStatus'] ?? 'N/A'),
+                'Booking ID' => esc_html($flightDetail['UniqueID'] ?? 'N/A'),
+                'Payment Status' => esc_html($paymentStatus ?? 'N/A'),
+                'Transaction ID' => esc_html($transactionId ?? 'N/A'),
+                'Origin'=>esc_html(getCityNameByAirPortCode($flightDetail['Origin'] ?? 'N/A')),
+                'Destination' => esc_html(getCityNameByAirPortCode($flightDetail['Destination'] ?? 'N/A')),
                 'Flight Number' => esc_html($flight['MarketingAirlineCode'] . ' ' . $flight['FlightNumber']),
-                'DepartureCity' => esc_html(getCityNameByAirPortCode($flight['DepartureAirportLocationCode'])),
-                'DepartureTime' => esc_html(str_replace('T', ' ', $flight['DepartureDateTime'])),
+                'DepartureCity' => esc_html(getCityNameByAirPortCode($flight['DepartureAirportLocationCode'])?? 'N/A'),
+                'AirlinePNR' => esc_html($flight['AirlinePNR']?? 'N/A'),
+                'DepartureTime' => esc_html(str_replace('T', ' ', $flight['DepartureDateTime'])??'N/A'),
+
                 'ArrivalCity' => esc_html(getCityNameByAirPortCode($flight['ArrivalAirportLocationCode'])),
-                'ArrivalTime' => esc_html(str_replace('T', ' ', $flight['ArrivalDateTime'])),
+                'ArrivalTime' => esc_html(str_replace('T', ' ', $flight['ArrivalDateTime'])??'N/A'),
                 'Baggage' => esc_html($flight['Baggage'] ?? 'N/A'), // Added sample baggage detail
                 'Total Fare' => esc_html($fare['Amount']) . ' ' . esc_html($fare['CurrencyCode']),
-                'Fare Type' => esc_html($flightDetail['FareType'] ?? '')
+                'Fare Type' => esc_html($flightDetail['FareType'] ?? 'N/A')
             ];
-    // --- End of Flight Booking Details ---
-
+    
     // Create a new FPDF instance
     $pdf = new FPDF();
     $pdf->AddPage();
@@ -397,12 +622,12 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
 
     //THis is for guest detail//
     $guestDetails = [
-        'First Name' => esc_html($guestDetailsData['firstname'] ?? ''),
-        'Last Name' => esc_html($guestDetailsData['lastname'] ?? ''),
-        'Email' => esc_html($guestDetailsData['guestemail'] ?? ''),
-        'Phone' => esc_html($guestDetailsData['guestcontact'] ?? ''),
-        'Passenger Type'=>esc_html($guestDetailsData['passengertype'] ?? ''),
-        'DOB' => esc_html($guestDetailsData['dateofbirth'] ?? '')
+        'First Name' => esc_html($guestDetailsData['firstname'] ?? 'N/A'),
+        'Last Name' => esc_html($guestDetailsData['lastname'] ?? 'N/A'),
+        'Email' => esc_html($guestDetailsData['guestemail'] ?? 'N/A'),
+        'Phone' => esc_html($guestDetailsData['guestcontact'] ?? 'N/A'),
+        'Passenger Type'=>esc_html($guestDetailsData['passengertype'] ?? 'N/A'),
+        'DOB' => esc_html($guestDetailsData['dateofbirth'] ?? 'N/A')
     ];
 
     foreach ($guestDetails as $label => $value) {
@@ -516,7 +741,9 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                     <strong>PassengerType:</strong> <?= esc_html($bookingcustomer['PassengerType']); ?>
                 </div>  
                 <div class="col-md-6">
-                    <strong>PassportNumber:</strong> <?= esc_html($bookingcustomer['PassportNumber']); ?>
+                    <strong>PassportNumber:</strong> 
+                    <?= esc_html($bookingcustomer['PassportNumber'] ?? 'N/A');?>
+                    
                 </div>
             </div>
 
@@ -531,6 +758,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
 
             <div class="row mb-3">
                 <div class="col-md-6">
+
                     <strong>PassengerNationality:</strong> <?= esc_html(getCityNameByAirPortCode($bookingcustomer['PassengerNationality'])); ?>
                 </div>
                 <div class="col-md-6">
