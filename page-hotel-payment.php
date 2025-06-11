@@ -378,9 +378,6 @@ get_header(); ?>
     </div>
   </div>
 </div>
-<script type="text/javascript">
- 
-</script>
 <script>
 jQuery(document).ready(function ($) {
     $(".book-now-button-confirm-page").click(function (e) {
@@ -398,125 +395,138 @@ jQuery(document).ready(function ($) {
         let phone = $("#c_phone").val().trim();
         let phoneRegex = /^[0-9]{10,15}$/;
         let email = $("#email").val().trim();
-        let specialRequests = $(".requests-input").val().trim();
+
+        // Validate phone number
+        if (!phoneRegex.test(phone)) {
+            alert("Please enter a valid phone number (10 to 15 digits).");
+            return;
+        }
+
+        // Validate basic fields
+        if (!firstName || !lastName || !phone || !email) {
+            alert("Please fill in all required fields.");
+            return;
+        }
+
+        // Check if terms are accepted
         let termsAccepted = $("#terms").is(":checked");
+        if (!termsAccepted) {
+            alert("Please accept the terms to proceed.");
+            return;
+        }
+
+        // Validate price or room details
         let rateBasisId = $("input[name='rateBasisId']").val();
-        let productId = $("input[name='pid']").val();
-        let netPrice = $("input[name='netPrice']").val(); 
-        let faretype = $("input[name='faretype']").val(); 
-        
+        let netPrice = $("input[name='netPrice']").val();
+        if (!rateBasisId || !netPrice) {
+            alert("Missing price or room details.");
+            return;
+        }
 
         // Get URL params
         let urlParams = new URLSearchParams(window.location.search);
         let location = urlParams.get("location") || "";
         let checkin = urlParams.get("checkin") || "";
         let checkout = urlParams.get("checkout") || "";
-        let rooms = urlParams.get("rooms") || "";
+        let rooms = urlParams.get("rooms") || "";  // Ensure rooms is defined here
         let hotelId = urlParams.get("hotel_id") || "";
         let tokenId = urlParams.get("token_id") || "";
         let sessionId = urlParams.get("session_id") || "";
 
-         if (!phoneRegex.test(phone)) {
-            e.preventDefault();
-            alert("Please enter a valid phone number (10 to 15 digits).");
-            return; 
-        }
-
-        // Validate basic fields
-        if (!firstName || !lastName || !phone || !email) {
-            alert("Please fill in all required fieldsaa .");
-            return;
-        }
-
-        if (!termsAccepted) {
-            alert("Please accept the terms to proceed.");
-            return;
-        }
-
-        if (!rateBasisId || !netPrice) {
-            alert("Missing price or room details.");
-            return;
-        }
-
-        // Guest selection
-        let selectedGuests = [];
-        $("input[name='selected_guest[]']:checked").each(function () {
-            selectedGuests.push($(this).val());
-        });
-
-        const [room, adult, child] = rooms.split('-');
-        const guests_type = {};
-        const guests_number = {};
-        let guests_ids = [];
-        let guestCnt = 1;
-
-        selectedGuests.forEach(guest => {
-            const [type, number] = guest.split('_');
-            if (!guests_type[type]) {
-                guests_type[type] = 0;
-                guests_number[type] = [];
+        // AJAX to check if email exists
+        $.post(guestAjax.ajax_url, {
+            action: 'check_user_by_email',
+            email: email
+        }).done(function(response) {
+            if (response.exists) {
+                alert("This Email already exists, please login first.");
+                return; // Stop if email exists
             }
-            guests_type[type]++;
-            guests_number[type].push(number);
-            guests_ids.push(number);
-        });
 
-        if (guests_type.adult !== undefined) {
-            guestCnt += guests_type.adult;
-        }
-        if (guests_type.child !== undefined) {
-            guestCnt += guests_type.child;
-        }
+            // Guest selection
+            let selectedGuests = [];
+            $("input[name='selected_guest[]']:checked").each(function () {
+                selectedGuests.push($(this).val());
+            });
 
-        let roomGuest = parseInt(adult) + parseInt(child);
+            const [room, adult, child] = rooms.split('-');  // Make sure `rooms` is defined
+            const guests_type = {};
+            const guests_number = {};
+            let guests_ids = [];
+            let guestCnt = 1;
 
-        if (guestCnt != roomGuest) {
-            alert("Guest count does not match selected room capacity.");
-            return;
-        }
-
-        // Submit AJAX request
-        $.ajax({
-            url: checkoutUrl,
-            type: "POST",
-            dataType: "json",
-            data: {
-                action: "hotel_book_now",
-                title,
-                firstName,
-                lastName,
-                phone,
-                email,
-                specialRequests,
-                location,
-                checkin,
-                checkout,
-                hotelId,
-                tokenId,
-                sessionId,
-                productId,
-                rooms,
-                rateBasisId,
-                faretype,
-                netPrice,
-                guests: guests_ids,
-                paymentMethod
-            },
-            success: function (response) {
-                if (response.status === "success" && response.payment_url) {
-                    window.location.href = response.payment_url;
-                } else {
-                    alert("Booking failed: " + (response.message || "Unknown error."));
+            selectedGuests.forEach(guest => {
+                const [type, number] = guest.split('_');
+                if (!guests_type[type]) {
+                    guests_type[type] = 0;
+                    guests_number[type] = [];
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("XHR Error:", xhr.responseText);
-                alert("Something went wrong. Please try again.");
+                guests_type[type]++;
+                guests_number[type].push(number);
+                guests_ids.push(number);
+            });
+
+            if (guests_type.adult !== undefined) {
+                guestCnt += guests_type.adult;
             }
+            if (guests_type.child !== undefined) {
+                guestCnt += guests_type.child;
+            }
+
+            let roomGuest = parseInt(adult) + parseInt(child);
+
+            if (guestCnt != roomGuest) {
+                alert("Guest count does not match selected room capacity.");
+                return;
+            }
+
+            // Submit AJAX request for booking
+            $.ajax({
+                url: checkoutUrl,
+                type: "POST",
+                dataType: "json",
+                data: {
+                    action: "hotel_book_now",
+                    title,
+                    firstName,
+                    lastName,
+                    phone,
+                    email,
+                    specialRequests: $(".requests-input").val().trim(),
+                    location,
+                    checkin,
+                    checkout,
+                    hotelId,
+                    tokenId,
+                    sessionId,
+                    productId: $("input[name='pid']").val(),
+                    rooms,
+                    rateBasisId,
+                    faretype: $("input[name='faretype']").val(),
+                    netPrice,
+                    guests: guests_ids,
+                    paymentMethod
+                },
+                success: function (response) {
+                    if (response.status === "success" && response.payment_url) {
+                        window.location.href = response.payment_url;
+                    } else {
+                        alert("Booking failed: " + (response.message || "Unknown error."));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("XHR Error:", xhr.responseText);
+                    alert("Something went wrong. Please try again.");
+                }
+            });
+        }).fail(function () {
+            alert("Something went wrong with checking the email.");
         });
     });
 });
 </script>
+
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const showMoreBtn = document.querySelector('.show-more-facilities');

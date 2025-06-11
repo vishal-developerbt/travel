@@ -737,53 +737,58 @@ function enqueue_guest_ajax_script() {
     ));
 }
 add_action('wp_enqueue_scripts', 'enqueue_guest_ajax_script');
-add_action('wp_ajax_save_guest_data', 'save_guest_data_callback');
 
-function save_guest_data_callback() {
-    check_ajax_referer('guest_nonce', 'nonce');
-    global $wpdb;
-    $table = 'flight_booking_guest_details';
 
-    $g_id = isset($_POST['g_id']) && !empty($_POST['g_id']) ? intval($_POST['g_id']) : 0;
+    //For Save Flight Add Guests
+    add_action('wp_ajax_save_guest_data', 'save_guest_data_callback');
+    add_action('wp_ajax_nopriv_save_guest_data', 'save_guest_data_callback');
 
-    $data = array(
-        'parent_user_id' => intval($_POST['user_id']),
-        'guest_type'     => sanitize_text_field($_POST['guest_type']),
-        'title'          => sanitize_text_field($_POST['title']),
-        'first_name'     => sanitize_text_field($_POST['first_name']),
-        'last_name'      => sanitize_text_field($_POST['last_name']),
-        'dob'            => sanitize_text_field($_POST['dob']),
-        'nationality'    => sanitize_text_field($_POST['nationality']),
-        'guest_passport_number'    => sanitize_text_field($_POST['guest_passport_number']),
-        'guest_issue_country'    => sanitize_text_field($_POST['guest_issue_country']),
-        'guest_passport_expiry'    => sanitize_text_field($_POST['guest_passport_expiry']),
-    );
 
-    if ($g_id > 0) {
-        // Update existing guest
-        $updated = $wpdb->update(
-            $table,
-            $data,
-            array('id' => $g_id)
+    function save_guest_data_callback() {
+        check_ajax_referer('guest_nonce', 'nonce');
+        global $wpdb;
+        $table = 'flight_booking_guest_details';
+
+        $g_id = isset($_POST['g_id']) && !empty($_POST['g_id']) ? intval($_POST['g_id']) : 0;
+
+        $data = array(
+            'parent_user_id' => $_POST['user_id'],
+            'guest_type'     => sanitize_text_field($_POST['guest_type']),
+            'title'          => sanitize_text_field($_POST['title']),
+            'first_name'     => sanitize_text_field($_POST['first_name']),
+            'last_name'      => sanitize_text_field($_POST['last_name']),
+            'dob'            => sanitize_text_field($_POST['dob']),
+            'nationality'    => sanitize_text_field($_POST['nationality']),
+            'guest_passport_number'    => sanitize_text_field($_POST['guest_passport_number']),
+            'guest_issue_country'    => sanitize_text_field($_POST['guest_issue_country']),
+            'guest_passport_expiry'    => sanitize_text_field($_POST['guest_passport_expiry']),
         );
 
-        if ($updated !== false) {
-            wp_send_json_success(array_merge($data, ['id' => $g_id]));
-        } else {
-            wp_send_json_error('Update failed.');
-        }
-    } else {
-        // Insert new guest
-        $insert = $wpdb->insert($table, $data);
+        if ($g_id > 0) {
+            // Update existing guest
+            $updated = $wpdb->update(
+                $table,
+                $data,
+                array('id' => $g_id)
+            );
 
-        if ($insert) {
-            $id = $wpdb->insert_id;
-            wp_send_json_success(array_merge($data, ['id' => $id]));
+            if ($updated !== false) {
+                wp_send_json_success(array_merge($data, ['id' => $g_id]));
+            } else {
+                wp_send_json_error('Update failed.');
+            }
         } else {
-            wp_send_json_error('Insert failed.');
+            // Insert new guest
+            $insert = $wpdb->insert($table, $data);
+
+            if ($insert) {
+                $id = $wpdb->insert_id;
+                wp_send_json_success(array_merge($data, ['id' => $id]));
+            } else {
+                wp_send_json_error('Insert failed.');
+            }
         }
     }
-}
 
 add_action('wp_ajax_get_flight_booking_guests', 'get_flight_booking_guests_callback');
 
@@ -846,119 +851,127 @@ function delete_guest_callback() {
         wp_send_json_error('Failed to delete guest.');
     }
 }
+    
+    //For Flight Delete Guests
+    add_action('wp_ajax_flight_delete_guest', 'flight_delete_guest_callback');
+    add_action('wp_ajax_nopriv_flight_delete_guest', 'flight_delete_guest_callback');
 
-add_action('wp_ajax_flight_delete_guest', 'flight_delete_guest_callback');
+    function flight_delete_guest_callback() {
+        check_ajax_referer('guest_nonce', 'nonce');
 
-function flight_delete_guest_callback() {
-    check_ajax_referer('guest_nonce', 'nonce');
+        if (!isset($_POST['guest_id']) || empty($_POST['guest_id'])) {
+            wp_send_json_error('Guest ID is required.');
+        }
 
-    if (!isset($_POST['guest_id']) || empty($_POST['guest_id'])) {
-        wp_send_json_error('Guest ID is required.');
-    }
+        $guest_id = $_POST['guest_id'];
+        $user_id = get_current_user_id();
 
-    $guest_id = intval($_POST['guest_id']);
-    $user_id = get_current_user_id();
+        // if (!$user_id) {
+        //     wp_send_json_error('User not authenticated.');
+        // }
 
-    if (!$user_id) {
-        wp_send_json_error('User not authenticated.');
-    }
+        global $wpdb;
+        $table = 'flight_booking_guest_details';
 
-    global $wpdb;
-    $table = 'flight_booking_guest_details';
-
-    // Ensure the guest belongs to the current user
-    $guest = $wpdb->get_row(
-        $wpdb->prepare("SELECT id FROM $table WHERE id = %d AND parent_user_id = %d", $guest_id, $user_id)
-    );
-
-    if (!$guest) {
-        wp_send_json_error('Guest not found or access denied.');
-    }
-
-    $deleted = $wpdb->delete($table, ['id' => $guest_id]);
-
-    if ($deleted) {
-        wp_send_json_success('Guest deleted successfully.');
-    } else {
-        wp_send_json_error('Failed to delete guest.');
-    }
-}
-
-
-
-add_action('wp_ajax_get_guest_by_id', 'get_guest_by_id_callback');
-function get_guest_by_id_callback() {
-    check_ajax_referer('guest_nonce', 'nonce');
-
-    global $wpdb;
-    $guest_id = intval($_POST['guest_id']);
-
-    $guest = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM flight_booking_guest_details WHERE id = %d", $guest_id
-    ), ARRAY_A);
-
-    if ($guest) {
-        wp_send_json_success($guest);
-    } else {
-        wp_send_json_error(['message' => 'Guest not found.']);
-    }
-}
-//for hotel save guest
-
-function enqueue_hotel_guest_ajax_script() {
-    wp_enqueue_script('jquery');
-    wp_enqueue_script('hotelguest-script', get_template_directory_uri() . '/js/hotelguest-ajax.js', array('jquery'), null, true);
-    wp_localize_script('hotelguest-script', 'hotelguestAjax', array(
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('hotelguest_nonce'),
-    ));
-}
-add_action('wp_enqueue_scripts', 'enqueue_hotel_guest_ajax_script');
-add_action('wp_ajax_save_hotel_guest_data', 'save_hotel_guest_data_callback');
-add_action('wp_ajax_nopriv_save_hotel_guest_data', 'save_hotel_guest_data_callback');
-
-function save_hotel_guest_data_callback() {
-    check_ajax_referer('hotelguest_nonce', 'nonce');
-
-    global $wpdb;
-    $table = 'hotel_booking_guest_details';
-
-    $g_id = isset($_POST['g_id']) && !empty($_POST['g_id']) ? intval($_POST['g_id']) : 0;
-
-    $data = array(
-        'parent_user_id' => sanitize_text_field($_POST['user_id']),
-        'guest_type'     => sanitize_text_field($_POST['guest_type']),
-        'guest_title'     => sanitize_text_field($_POST['guest_title']),
-        'first_name'     => sanitize_text_field($_POST['first_name']),
-        'last_name'      => sanitize_text_field($_POST['last_name']),
-      
-    );
-
-    if ($g_id > 0) {
-        // Update existing guest
-        $updated = $wpdb->update(
-            $table,
-            $data,
-            array('id' => $g_id)
+        // Ensure the guest belongs to the current user
+        $guest = $wpdb->get_row(
+            $wpdb->prepare("SELECT id FROM $table WHERE id = %d AND parent_user_id = %d", $guest_id, $user_id)
         );
 
-        if ($updated !== false) {
-            wp_send_json_success(array_merge($data, ['id' => $g_id]));
-        } else {
-            wp_send_json_error('Update failed.');
+        if (!$guest) {
+            wp_send_json_error('Guest not found or access denied.');
         }
-    } else {
-        // Insert new guest
-        $insert = $wpdb->insert($table, $data);
 
-        if ($insert) {
-            $id = $wpdb->insert_id;
-            wp_send_json_success(array_merge($data, ['id' => $id]));
+        $deleted = $wpdb->delete($table, ['id' => $guest_id]);
+
+        if ($deleted) {
+            wp_send_json_success('Guest deleted successfully.');
         } else {
-            wp_send_json_error('Insert failed.');
+            wp_send_json_error('Failed to delete guest.');
         }
     }
-}
+
+
+    //For Flight Edit Guests
+    add_action('wp_ajax_get_guest_by_id', 'get_guest_by_id_callback');
+    add_action('wp_ajax_nopriv_get_guest_by_id', 'get_guest_by_id_callback');
+
+    function get_guest_by_id_callback() {
+        check_ajax_referer('guest_nonce', 'nonce');
+
+        global $wpdb;
+        $guest_id = intval($_POST['guest_id']);
+
+        $guest = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM flight_booking_guest_details WHERE id = %d", $guest_id
+        ), ARRAY_A);
+
+        if ($guest) {
+            wp_send_json_success($guest);
+        } else {
+            wp_send_json_error(['message' => 'Guest not found.']);
+        }
+    }
+
+
+    //For Hotel Save Guests Js File
+
+    function enqueue_hotel_guest_ajax_script() {
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('hotelguest-script', get_template_directory_uri() . '/js/hotelguest-ajax.js', array('jquery'), null, true);
+        wp_localize_script('hotelguest-script', 'hotelguestAjax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('hotelguest_nonce'),
+        ));
+    }
+    add_action('wp_enqueue_scripts', 'enqueue_hotel_guest_ajax_script');
+
+    //For Hotel Save Guests
+    add_action('wp_ajax_save_hotel_guest_data', 'save_hotel_guest_data_callback');
+    add_action('wp_ajax_nopriv_save_hotel_guest_data', 'save_hotel_guest_data_callback');
+
+    function save_hotel_guest_data_callback() {
+        check_ajax_referer('hotelguest_nonce', 'nonce');
+
+        global $wpdb;
+        $table = 'hotel_booking_guest_details';
+
+        $g_id = isset($_POST['g_id']) && !empty($_POST['g_id']) ? intval($_POST['g_id']) : 0;
+
+        $data = array(
+            'parent_user_id' => sanitize_text_field($_POST['user_id']),
+            'guest_type'     => sanitize_text_field($_POST['guest_type']),
+            'guest_title'     => sanitize_text_field($_POST['guest_title']),
+            'first_name'     => sanitize_text_field($_POST['first_name']),
+            'last_name'      => sanitize_text_field($_POST['last_name']),
+          
+        );
+
+        if ($g_id > 0) {
+            // Update existing guest
+            $updated = $wpdb->update(
+                $table,
+                $data,
+                array('id' => $g_id)
+            );
+
+            if ($updated !== false) {
+                wp_send_json_success(array_merge($data, ['id' => $g_id]));
+            } else {
+                wp_send_json_error('Update failed.');
+            }
+        } else {
+            // Insert new guest
+            $insert = $wpdb->insert($table, $data);
+
+            if ($insert) {
+                $id = $wpdb->insert_id;
+                wp_send_json_success(array_merge($data, ['id' => $id]));
+            } else {
+                wp_send_json_error('Insert failed.');
+            }
+        }
+    }
 
 
 add_action('wp_ajax_get_hotel_booking_guests', 'get_hotel_booking_guests_callback');
@@ -2841,6 +2854,38 @@ function get_flight_booking_details_by_api($UniqueID, ) {
         return rest_ensure_response($response);
     }
 
+     //For check user by email
+    add_action('rest_api_init', function () {
+        register_rest_route('custom/v1', '/user-by-email', [
+            'methods'  => 'GET',
+            'callback' => 'check_user_by_email',
+            'permission_callback' => '__return_true' // allow public access
+        ]);
+    });
+
+    function check_user_by_email(WP_REST_Request $request) {
+        $email = sanitize_email($request->get_param('email'));
+        
+        if (!is_email($email)) {
+            return new WP_Error('invalid_email', 'Invalid email address', array('status' => 400));
+        }
+        
+        $user = get_user_by('email', $email);
+        
+        if ($user) {
+            return array(
+                'exists' => true,
+                'user_id' => $user->ID,
+                'username' => $user->user_login,
+                'display_name' => $user->display_name
+            );
+        } else {
+            return array(
+                'exists' => false,
+                'message' => 'No user found with this email'
+            );
+        }
+    }
 
     //Customer Profile Change
     add_action('rest_api_init', function () {
@@ -4014,4 +4059,47 @@ function send_custom_flight_booking_email($user_email, $user_name, $booking_id) 
     }
     add_action('wp_enqueue_scripts', 'enqueue_country_autocomplete_script');
 
+    // Check User Email For Guest User Booking (Flight & Hotels)
+    function check_user_by_email_for_web($email) {
+        if (!is_email($email)) {
+            return new WP_Error('invalid_email', 'Invalid email address', array('status' => 400));
+        }
+
+        $user = get_user_by('email', $email);
+
+        if ($user) {
+            return array(
+                'exists' => true,
+                'user_id' => $user->ID,
+                'username' => $user->user_login,
+                'display_name' => $user->display_name
+            );
+        } else {
+            return array(
+                'exists' => false,
+                'message' => 'No user found with this email'
+            );
+        }
+    }
+
+    add_action('wp_ajax_check_user_by_email', 'ajax_check_user_by_email');
+    add_action('wp_ajax_nopriv_check_user_by_email', 'ajax_check_user_by_email');
+
+    function ajax_check_user_by_email() {
+        // Check if the email is provided in the request
+        if (!isset($_POST['email']) || empty($_POST['email'])) {
+            wp_send_json_error('Email is required');
+        }
+
+        $email = sanitize_email($_POST['email']);
+        
+        // Get the result from the check_user_by_email_for_web function
+        $result = check_user_by_email_for_web($email);
+
+        // Send the response back to the frontend
+        wp_send_json($result);
+    }
+
+    // Check User Email For Guest User Booking (Flight & Hotels) End
 ?>
+
