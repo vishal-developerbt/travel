@@ -32,20 +32,18 @@ $sort_option = isset($_GET['sort']) ? $_GET['sort'] : 'most-popular';
 if (!empty($location) && !empty($checkin) && !empty($checkout) && !empty($rooms)) {
     // If search parameters exist, fetch filtered hotels
     $booking_data = fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms);
-    if($booking_data['status']['errors']){
-        header("Location: /error.php");
-        exit;
-    }
-    $status = $booking_data['status'];
-    $hotels = $booking_data['itineraries'];
-    
-    foreach($hotels as $hotelval){
+    $status = isset($booking_data['status']) ? $booking_data['status'] : 0;
+    $hotels = isset($booking_data['itineraries']) ? $booking_data['itineraries'] : 0;
+   if(empty(!$hotels)){
+         foreach($hotels as $hotelval){
             $prices['price'][] = $hotelval['total'];
     }
     
     $prices = $prices['price'];
     $min_price = min($prices);
     $max_price = max($prices);
+   }
+   
 
 } else {
     // Otherwise, fetch all listings
