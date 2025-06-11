@@ -173,7 +173,7 @@ get_header(); ?>
                     $roomtokenId = $hotelRoomOptions['tokenId'] ?? '';
                     $roomhotelId = $hotelRoomOptions['hotelId'] ?? '';
 
-                    if ( is_user_logged_in() ) { ?>
+                  ?>
                         <button class="btn btn-primary select-room-buttons" 
                             onclick="redirectToPaymentPage(
                                 '<?php echo esc_js($roomsessionId); ?>', 
@@ -188,15 +188,7 @@ get_header(); ?>
                                 '<?php echo esc_js($roomprice); ?>',
                                 '<?php echo esc_js($location); ?>')">                
                                 <span class="select-room-text">Select Room</span>
-                        </button><?php
-                            } else {?>
-                            
-                            <a href="<?php echo get_site_url() . '/my-account/';?>">
-                                <button class="btn btn-primary" >
-                                    <span class="select-room-text">Select Room</span>
-                                </button>
-                            </a>
-                        <?php  }?>
+                        </button>
                 </div>
             <?php } ?>
         </div>
@@ -297,7 +289,7 @@ if (!empty($rooms)) {
                                 $roomtokenId = $hotelRoomOptions['tokenId'] ?? '';
                                 $roomhotelId = $hotelRoomOptions['hotelId'] ?? '';
 
-                              //  if ( is_user_logged_in() ) {  
+                           
                                 ?>
                                 <button class="btn btn-primary select-room-buttons" 
                                     onclick="redirectToPaymentPage(
@@ -314,14 +306,7 @@ if (!empty($rooms)) {
                                         '<?php echo esc_js($location); ?>'
                                     )">
                                         <span class="select-room-text">Select Room</span>
-                                    </button><?php
-                                  //  } else {?>
-                                    <!-- <a href="<?php //echo get_site_url() . '/my-account/';?>">
-                                        <button class="btn btn-primary" >
-                                            <span class="select-room-text">Select Room</span>
-                                        </button>
-                                    </a> -->
-                                  <?php//  }?>
+                                    </button>
 
                                     <input type="hidden" name="pid" value="<?php echo $room['productId']; ?>">
                                      <input type="hidden" name="rateBasisId" value="<?php echo $room['rateBasisId']; ?>">

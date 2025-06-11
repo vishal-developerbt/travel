@@ -12,7 +12,7 @@ jQuery(document).ready(function ($) {
 
   // ✅ FORM VALIDATION
   function flightPaymentValidateForm() {
-    const requiredFields = ['#guest_title', '#first_name', '#last_name', '#guest_type', '#guestDob', '#guestNationality'];
+    const requiredFields = ['#guest_title', '#guest_first_name', '#guest_last_name', '#guest_type', '#guestDob', '#guestNationality'];
     for (let selector of requiredFields) {
       if (!$(selector).val().trim()) {
         alert("Please fill all required fields.");
@@ -32,127 +32,156 @@ jQuery(document).ready(function ($) {
 // ✅ Submit Guest Form Start
 $('#flightPaymentForm').on('submit', function (e) {
 
-  e.preventDefault();
+    // Prevent form submission at the beginning
+    e.preventDefault();
 
-  if (!flightPaymentValidateForm()) return;
+    const user_id = $('#user_id').val();
+    const guest_email = $('#email').val().trim();
 
-  let guestType = $('#guest_type').val();
-  const dob = $('#guestDob').val();
-  let valid = true;
+    // for guest user check start
+    if (user_id == 0) {
+        const email = guest_email;
 
-  if (dob) {
-    const currentDate = new Date();
-    const dobDate = new Date(dob);
+        if (!email) {
+            alert('Please enter your email before submitting.');
+            return false; // Stop submission if email is empty
+        }
 
-    let years = currentDate.getFullYear() - dobDate.getFullYear();
-    let months = currentDate.getMonth() - dobDate.getMonth();
-    let days = currentDate.getDate() - dobDate.getDate();
+        $('#g_email').val(email); // set it into the hidden field
 
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
+        // AJAX check if email exists
+        $.post(guestAjax.ajax_url, {
+            action: 'check_user_by_email',
+            email: email
+        }, function (response) {
+            if (response.exists) {
+                alert("This Email already exists, please login first.");
+                return false; // Stop here if the email is already in the system
+            }
 
-    if (days < 0) {
-      months--;
-      const lastMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-      days += lastMonthDate.getDate();
-    }
-
-    // ✅ Auto-set guest type to infant if < 2 years
-    if (years < 2 || (years === 2 && months === 0 && days === 0)) {
-      $('#guest_type').val('infant');
-      guestType = 'infant';
-    }
-
-    // ❌ Infant DOB validation
-    if (
-      guestType === 'infant' &&
-      (years > 2 || (years === 2 && (months > 0 || days > 0)))
-    ) {
-      alert('Infant date of birth must not be more than 2 years ago.');
-      return;
-    }
-
-    // ❌ Child DOB validation
-    if (
-      guestType === 'child' &&
-      (years > 12 || (years === 12 && (months > 0 || days > 0)))
-    ) {
-      alert('Child date of birth must not be more than 12 years ago.');
-      return;
-    }
-  }
-
-
-   const guest_passport_required = $('#guest_passport_required').val();
-     let passportNumber = '';
-let passportExpiry = '';
-
-  if (guest_passport_required) {
-    passportNumber = $('#guest_passport_number').val();
-    passportExpiry = $('#guest_passport_expiry').val();
-    const passportNumberPattern = /^[a-zA-Z0-9]{8,9}$/;
-
-    $('#guest_passport_number, #guest_passport_expiry').removeClass('is-invalid');
-
-    if (!passportNumberPattern.test(passportNumber)) {
-      $('#guest_passport_number').addClass('is-invalid');
-      valid = false;
-    }
-
-    if (passportExpiry) {
-      const expiry = new Date(passportExpiry);
-      const today = new Date();
-      const sixMonthsFromNow = new Date();
-      sixMonthsFromNow.setMonth(today.getMonth() + 6);
-
-      if (expiry <= sixMonthsFromNow) {
-        $('#guest_passport_expiry').addClass('is-invalid');
-        valid = false;
-      }
+            // Proceed with form submission if no issues
+            processGuestForm();
+        });
     } else {
-      $('#guest_passport_expiry').addClass('is-invalid');
-      valid = false;
+        // If the user is logged in, just proceed with form submission
+        processGuestForm();
     }
-  }
-  
-  if (!valid) {
-    return;
-  }
 
-  // ✅ Proceed with AJAX submission
-  let guestData = {
-    action: 'save_guest_data',
-    nonce: guestAjax.nonce,
-    title: $('#guest_title').val(),
-    first_name: $('#first_name').val(),
-    last_name: $('#last_name').val(),
-    guest_type: guestType,
-    dob: dob,
-    nationality: $('#guestNationality').val(),
-    guest_passport_number: passportNumber,
-    //guest_issue_country: $('#guest_issue_country').val(),
-    guest_issue_country: $('#guest_issue_country_code').val(),
-    guest_passport_expiry: passportExpiry,
-    user_id: $('#user_id').val(),
-    g_id: $('#g_id').val() || ''
-  };
+    function processGuestForm() {
+        // Proceed only if the form is validated
+        if (!flightPaymentValidateForm()) return;
 
-  $.post(guestAjax.ajax_url, guestData, function (response) {
-    if (response.success) {
-      flightresetGuestForm();
-      flightPaymentCloseForm();
+        let guestType = $('#guest_type').val();
+        const dob = $('#guestDob').val();
+        let valid = true;
 
-      const li = $(`li[data-id="${response.data.id}"]`);
-      if (li.length) li.remove();
+        if (dob) {
+            const currentDate = new Date();
+            const dobDate = new Date(dob);
 
-      appendGuest(response.data);
-    } else {
-      alert(response.data || 'Error saving guest.');
+            let years = currentDate.getFullYear() - dobDate.getFullYear();
+            let months = currentDate.getMonth() - dobDate.getMonth();
+            let days = currentDate.getDate() - dobDate.getDate();
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            if (days < 0) {
+                months--;
+                const lastMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+                days += lastMonthDate.getDate();
+            }
+
+            // Auto-set guest type to infant if < 2 years
+            if (years < 2 || (years === 2 && months === 0 && days === 0)) {
+                $('#guest_type').val('infant');
+                guestType = 'infant';
+            }
+
+            // Infant DOB validation
+            if (guestType === 'infant' && (years > 2 || (years === 2 && (months > 0 || days > 0)))) {
+                alert('Infant date of birth must not be more than 2 years ago.');
+                return;
+            }
+
+            // Child DOB validation
+            if (guestType === 'child' && (years > 12 || (years === 12 && (months > 0 || days > 0)))) {
+                alert('Child date of birth must not be more than 12 years ago.');
+                return;
+            }
+        }
+
+        const guest_passport_required = $('#guest_passport_required').val();
+        let passportNumber = '';
+        let passportExpiry = '';
+
+        if (guest_passport_required) {
+            passportNumber = $('#guest_passport_number').val();
+            passportExpiry = $('#guest_passport_expiry').val();
+            const passportNumberPattern = /^[a-zA-Z0-9]{8,9}$/;
+
+            $('#guest_passport_number, #guest_passport_expiry').removeClass('is-invalid');
+
+            if (!passportNumberPattern.test(passportNumber)) {
+                $('#guest_passport_number').addClass('is-invalid');
+                valid = false;
+            }
+
+            if (passportExpiry) {
+                const expiry = new Date(passportExpiry);
+                const today = new Date();
+                const sixMonthsFromNow = new Date();
+                sixMonthsFromNow.setMonth(today.getMonth() + 6);
+
+                if (expiry <= sixMonthsFromNow) {
+                    $('#guest_passport_expiry').addClass('is-invalid');
+                    valid = false;
+                }
+            } else {
+                $('#guest_passport_expiry').addClass('is-invalid');
+                valid = false;
+            }
+        }
+
+        if (!valid) {
+            return;
+        }
+
+        // Proceed with AJAX submission after validation
+        let guestData = {
+            action: 'save_guest_data',
+            nonce: guestAjax.nonce,
+            title: $('#guest_title').val(),
+            first_name: $('#guest_first_name').val(),
+            last_name: $('#guest_last_name').val(),
+            guest_type: guestType,
+            dob: dob,
+            nationality: $('#guestNationality').val(),
+            guest_passport_number: passportNumber,
+            guest_issue_country: $('#guest_issue_country_code').val(),
+            guest_passport_expiry: passportExpiry,
+            user_id: user_id == 0 ? guest_email : user_id, // set the correct user ID
+            g_id: $('#g_id').val() || ''
+        };
+
+        $.post(guestAjax.ajax_url, guestData, function (response) {
+            if (response.success) {
+                flightresetGuestForm();
+                flightPaymentCloseForm();
+
+                const li = $(`li[data-id="${response.data.id}"]`);
+                if (li.length) li.remove();
+
+                appendGuest(response.data);
+            } else {
+                alert(response.data || 'Error saving guest.');
+            }
+        });
     }
-  });
 });
+
 
   // ✅ Submit Guest Form End
 
@@ -228,8 +257,8 @@ let passportExpiry = '';
       if (response.success) {
         const g = response.data;
         $('#guest_title').val(g.title);
-        $('#first_name').val(g.first_name);
-        $('#last_name').val(g.last_name);
+        $('#guest_first_name').val(g.first_name);
+        $('#guest_last_name').val(g.last_name);
         $('#guest_type').val(g.guest_type);
         $('#guestDob').val(g.dob);
         $('#guestNationality').val(g.nationality);

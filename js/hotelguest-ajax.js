@@ -31,58 +31,84 @@ jQuery(document).ready(function ($) {
   }
 
   // Submit form
-  $('#hotelGuestForm').on('submit', function (e) {
-    //for guest user check start
+$('#hotelGuestForm').on('submit', function (e) {
+    e.preventDefault(); // Prevent form submission by default
 
-      const user_id = $('#user_id').val();
-      const guest_email = $('#email').val().trim();
+    // Get user ID and email
+    const user_id = $('#user_id').val();
+    const guest_email = $('#email').val().trim();
 
-      if (user_id == 0) {
-          const email = $('#email').val().trim();
-           $('#g_email').val(email); // set it into the hidden field
+    // for guest user check start
+    if (user_id == 0) {
+        const email = guest_email;
 
-          if (!email) {
-            console.log('Showing alert'); // Debugging
+        // Check if the email is empty
+        if (!email) {
             alert('Please enter your email before submitting.');
-            return false; // Changed to return false to ensure form doesn't submit
-          }
-      }
+            return false; // Stop form submission if email is empty
+        }
 
-    //for guest user check end
-    e.preventDefault();
+        $('#g_email').val(email); // Set email into the hidden field
+
+        // AJAX request to check if email exists in the system
+        $.post(hotelguestAjax.ajax_url, {
+            action: 'check_user_by_email', // Same action as for flight
+            email: email // Email to check
+        }, function (response) {
+            if (response.exists) {
+                alert("This Email already exists, please login first.");
+                return false; // Stop here if the email exists in the system
+            } else {
+                submitForm(); // Continue with form submission after email check
+            }
+        });
+
+        return false; 
+    }
+    // if user is not a guest (has user_id), continue with form submission directly
+    else {
+        submitForm(); // Continue with form submission
+    }
+});
+
+// Function to handle form submission after email validation
+function submitForm() {
+    // Validate the form first
     if (!hotelGuestValidateForm()) return;
 
+    // Disable the submit button while the form is being submitted
     $('.hotel-payment-btn-submit').prop('disabled', true).text('Submitting...');
 
-
     let guestData = {
-      action: 'save_hotel_guest_data',
-      nonce: hotelguestAjax.nonce,
-      guest_type: $('#guest_type').val(),
-      guest_title: $('#guest_title').val(),
-      first_name: $('#h_guest_first_name').val(),
-      last_name: $('#h_guest_last_name').val(),
-      user_id: user_id == 0 ? guest_email : user_id, 
-      //user_id: $('#user_id').val(),
-      g_id: $('#g_id').val() || ''
+        action: 'save_hotel_guest_data',
+        nonce: hotelguestAjax.nonce, // Include nonce for form submission
+        guest_type: $('#guest_type').val(),
+        guest_title: $('#guest_title').val(),
+        first_name: $('#h_guest_first_name').val(),
+        last_name: $('#h_guest_last_name').val(),
+        user_id: $('#user_id').val() == 0 ? $('#email').val().trim() : $('#user_id').val(),
+        g_id: $('#g_id').val() || ''
     };
 
+    // Submit the form data via AJAX
     $.post(hotelguestAjax.ajax_url, guestData, function (response) {
-      $('.hotel-payment-btn-submit').prop('disabled', false).text('Submit'); // ✅ ADDED
+        // Enable the submit button once the process is complete
+        $('.hotel-payment-btn-submit').prop('disabled', false).text('Submit');
 
-      if (response.success) {
-        resetGuestForm();
-        hotelPaymentCloseForm();
+        if (response.success) {
+            resetGuestForm();
+            hotelPaymentCloseForm();
 
-        const li = $(`li[data-id="${response.data.id}"]`);
-        if (li.length) li.remove();
+            const li = $(`li[data-id="${response.data.id}"]`);
+            if (li.length) li.remove();
 
-        appendGuest(response.data);
-      } else {
-        alert(response.data || 'Error saving guest.');
-      }
+            appendGuest(response.data);
+        } else {
+            alert(response.data || 'Error saving guest.');
+        }
     });
-  });
+}
+
 
   // Add guest to list
   function appendGuest(guest) {
@@ -93,8 +119,7 @@ jQuery(document).ready(function ($) {
             <input type="checkbox" name="selected_guest[]" value="${guest.guest_type}_${guest.id}" />
              <strong class="guest-selct-sections-hotel">${guest.guest_title} ${guest.first_name} ${guest.last_name} </strong>
             <span>
-             
-              <div class="guest-section">${guest.guest_type}</div>
+            <div class="guest-section">${guest.guest_type.charAt(0).toUpperCase() + guest.guest_type.slice(1)}</div>
             </span>
           </div>
           <div>
