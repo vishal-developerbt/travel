@@ -307,7 +307,7 @@ get_header();
                 <h2 class="fs-5 fw-bold mb-3 details-fare-det-tra-offert">Traveller Details</h2>
                
                 <form id="travelerForm">
-                    <div class="row mb-3">
+                    <div class="row mb-2">
                         <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Gender<span class="star-section-red-color">*</span></label>
                             <select name="title" id="title" class="form-select hotel-payment-form-control" required>
@@ -323,18 +323,15 @@ get_header();
                             <label class="form-label small form-name-email-detail-all-th">Last Name<span class="star-section-red-color">*</span></label>
                             <input type="text" class="form-control" id="lastName" placeholder="Enter Last Name" value="<?php echo $last_name; ?>" required>
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4 mb-3 mb-md-0">
+                         <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Date of Birth<span class="star-section-red-color">*</span></label>
                             <input type="date" class="form-control" id="dob" required>
                         </div>
-
-                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Nationality<span class="star-section-red-color">*</span></label>
                             <input type="text" class="form-control" id="nationality" placeholder="e.g., Indian" required>
                         </div>
-                        <div class="col-md-4 mb-3 mb-md-0">
+                         <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Email Address<span class="star-section-red-color">*</span></label>
                             <input type="email" class="form-control" id="email" placeholder="Email is required"  value="<?php echo $email; ?>" required>
                         </div>
@@ -346,15 +343,20 @@ get_header();
                                 <option value="+93">+93</option>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3 mb-md-0">
+                          <div class="col-md-4 mb-3 mb-md-0">
                             <label class="form-label small form-name-email-detail-all-th">Phone Number<span class="star-section-red-color">*</span></label>
                             <input type="text" class="form-control" id="mobile_number" placeholder="Phone is required"  value="<?php echo $phone; ?>" required>
                         </div>
-                    </div>
-                    <?php if($isPassportMandatory){ ?>
-
-                     <div class="row mb-3">
-                        <div class="col-md-4 mb-3 mb-md-0">
+                         <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label small form-name-email-detail-all-th">Area Code<span class="star-section-red-color">*</span></label>
+                            <input type="text" class="form-control" id="area_code" placeholder="e.g., 080" required>
+                        </div>
+                          <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label small form-name-email-detail-all-th">Post Code<span class="star-section-red-color">*</span></label>
+                            <input type="text" class="form-control" id="post_code" placeholder="e.g., 560061" required>
+                        </div>
+                           <?php if($isPassportMandatory){ ?>
+                             <div class="col-md-4 mb-3 mb-md-0">
                             <label for="passport_number" class="form-label small form-name-email-detail-all-th">Passport Number<span class="star-section-red-color">*</span></label>
                             <input type="text" class="form-control" id="passport_number" placeholder="Enter passport number" required>
                             <div class="invalid-feedback">Please enter a valid passport number.</div>
@@ -373,18 +375,9 @@ get_header();
                             <input type="date" class="form-control" id="passport_expiry_date" required>
                             <div class="invalid-feedback">Please enter a valid future expiry date.</div>
                         </div>
+                           <?php   } ?>
                     </div>
-                    <?php   } ?>
-                    <div class="row mb-3">
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <label class="form-label small form-name-email-detail-all-th">Area Code<span class="star-section-red-color">*</span></label>
-                            <input type="text" class="form-control" id="area_code" placeholder="e.g., 080" required>
-                        </div>
-                         <div class="col-md-4 mb-3 mb-md-0">
-                            <label class="form-label small form-name-email-detail-all-th">Post Code<span class="star-section-red-color">*</span></label>
-                            <input type="text" class="form-control" id="post_code" placeholder="e.g., 560061" required>
-                        </div>
-                    </div>
+                   
                         <input type="hidden" name="isPassportRequired" id="isPassportRequired" value="<?php echo esc_attr($isPassportMandatory); ?>">
                         <input type="hidden" name="isRefundable" id="isRefundable" value="<?php echo esc_attr($isRefundable); ?>">
                      

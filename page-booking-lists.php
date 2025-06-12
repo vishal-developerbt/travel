@@ -302,8 +302,24 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                 $hotels_paginated = [];
                 $current_page = '';
                 $total_pages = '';
+                $isloaction = 0;
+                if (empty($location)) {
+                    $isloaction =1;
+                }
 
-                echo "<div class='alert alert-warning text-center' role='alert'>No hotels found for this location.        </div>";
+                 if (isset($status['error']) && empty($hotels)) {
+    
+                echo "<div class='alert alert-warning text-center' role='alert'>{$status['error']}</div>";
+
+                } elseif (empty($status) && empty($hotels)) {
+                    if($isloaction){
+                          echo "<div class='alert alert-info text-center' role='alert'>Search location to find hotels.</div>";
+                      }else{
+                         echo "<div class='alert alert-danger text-center' role='alert'>Server is down. Please try again later.</div>";
+                      }
+                   
+                }
+
             } else {
                 
                 $per_page = 5;

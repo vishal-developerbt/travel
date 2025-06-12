@@ -41,7 +41,23 @@ $results = $wpdb->get_results(
             </div>
             <div class="order-detail-section">
             <?php if (!empty($results)) : ?>
-                <?php foreach ($results as $booking) : ?>
+                <?php foreach ($results as $booking) :
+
+                     if(($booking['payment_status'] == 'pending') && ($booking['booking_status'] == 0) ){
+                        $bookingStatus = 'Pending';
+                    }
+                     if(($booking['payment_status'] == 'completed') && ($booking['booking_status'] == 0) ){
+                        $bookingStatus = 'Failed';
+                    }
+
+                     if(($booking['payment_status'] == 'completed') && ($booking['booking_status'] == 1) ){
+                        $bookingStatus = 'Confirmed';
+                    }
+
+                     if(($booking['payment_status'] == 'completed') && ($booking['cancelReferenceNum']) ){
+                        $bookingStatus = 'Cancelled';
+                    }
+                 ?>
                 <div class="d-flex justify-content-between order-detail-body-section mb-3">
                     <!-- Left Section -->
                     <div class="d-flex flex-column align-items-start">
@@ -56,12 +72,12 @@ $results = $wpdb->get_results(
                         </div>
                         <div class="d-flex gap-1 align-items-center">
                             <span class="order-booking-id w-auto">Booking Status:</span>
-                            <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['booking_status'] ?? '0') == '1' ? 'Confirmed' : 'Cancelled'; ?></span></div>
+                            <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($bookingStatus) ?></span></div>
                         </div>
 
                         <div class="d-flex gap-1 align-items-center">
                             <span class="order-booking-id w-auto">Payment Status:</span>
-                            <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['payment_status']); ?></span></div>
+                            <div><span class="booking serial-numbers fw-bold"><?php echo esc_html(ucfirst($booking['payment_status'])); ?></span></div>
                         </div>
                     </div>
 
@@ -116,7 +132,27 @@ $results = $wpdb->get_results(
                 );
             ?>
             <?php if (!empty($pastHotelResult)) : ?>
-                <?php foreach ($pastHotelResult as $booking) : ?>
+                <?php foreach ($pastHotelResult as $booking) : 
+
+                    if(($booking['payment_status'] == 'pending') && ($booking['booking_status'] == 0) ){
+                        $bookingStatus = 'Pending';
+                    }
+                     if(($booking['payment_status'] == 'completed') && ($booking['booking_status'] == 0) ){
+                        $bookingStatus = 'Failed';
+                    }
+
+                     if(($booking['payment_status'] == 'completed') && ($booking['booking_status'] == 1) ){
+                        $bookingStatus = 'Confirmed';
+                    }
+
+                     if(($booking['payment_status'] == 'completed') && ($booking['cancelReferenceNum']) ){
+                        $bookingStatus = 'Cancelled';
+                    }
+
+
+
+
+                    ?>
                     <div class="d-flex justify-content-between order-detail-body-section mb-3">
                         <!-- Left Section -->
                         <div class="d-flex flex-column align-items-start">
@@ -133,12 +169,16 @@ $results = $wpdb->get_results(
                             </div>
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Booking Status:</span>
-                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['booking_status'] ?? '0') == '1' ? 'Confirmed' : 'Cancelled'; ?></span></div>
+                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($bookingStatus) ?>
+
+
+
+                                    <?php //echo esc_html($booking['booking_status'] ?? '0') == '1' ? 'Confirmed' : 'Cancelled'; ?></span></div>
                             </div>
 
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Payment Status:</span>
-                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['payment_status']); ?></span></div>
+                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html(ucfirst($booking['payment_status'])); ?></span></div>
                             </div>
                         </div>
 
@@ -201,11 +241,11 @@ $results = $wpdb->get_results(
                             </div>
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Booking Status:</span>
-                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['booking_status']); ?></span></div>
+                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html(ucfirst($booking['booking_status'])); ?></span></div>
                             </div>
                             <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Payment Status:</span>
-                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['payment_status']); ?></span></div>
+                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html(ucfirst($booking['payment_status'])); ?></span></div>
                             </div>
                         </div>
 
@@ -283,11 +323,11 @@ $results = $wpdb->get_results(
                             </div>
                              <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Booking Status:</span>
-                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['booking_status']); ?></span></div>
+                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html(ucfirst($booking['booking_status'])); ?></span></div>
                             </div>
                              <div class="d-flex gap-1 align-items-center">
                                 <span class="order-booking-id w-auto">Payment Status:</span>
-                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html($booking['payment_status']); ?></span></div>
+                                <div><span class="booking serial-numbers fw-bold"><?php echo esc_html(ucfirst($booking['payment_status'])); ?></span></div>
                             </div>
                             
                         </div>

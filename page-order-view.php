@@ -193,6 +193,23 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                                 'paymentstatus'=>esc_html($hoteldata['payment_status'] ?? '')
                             );
                         }
+
+
+                         if(($hoteldataarray['payment_status'] == 'pending') && ($hoteldataarray['booking_status'] == 0) ){
+                        $bookingStatus = 'Pending';
+                    }
+                     if(($hoteldataarray['payment_status'] == 'completed') && ($hoteldataarray['booking_status'] == 0) ){
+                        $bookingStatus = 'Failed';
+                    }
+
+                     if(($hoteldataarray['payment_status'] == 'completed') && ($hoteldataarray['booking_status'] == 1) ){
+                        $bookingStatus = 'Confirmed';
+                    }
+
+                     if(($hoteldataarray['payment_status'] == 'completed') && ($hoteldataarray['cancelReferenceNum']) ){
+                        $bookingStatus = 'Cancelled';
+                    }
+
                          
                 ?>
                 <div class="booking-box border p-4 rounded mb-4">
@@ -204,7 +221,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                         </div>
                         <div class="col-md-6">
                         <strong>Guest Type:</strong> 
-                            <?= esc_html($hoteldataarray['guesttype'] ?? ''); ?>
+                            <?= esc_html(ucfirst($hoteldataarray['guesttype'] ?? '')); ?>
                         </div>
                     </div>
                      <div class="row mb-3">
@@ -228,24 +245,11 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                      <div class="row mb-3">
                         <div class="col-md-6">
                             <strong>Booking Status:</strong> 
-    <?= esc_html(
-    isset($hoteldataarray['booking_status']) 
-        ? ($hoteldataarray['booking_status'] == '0' ? 'No' : $hoteldataarray['booking_status']) 
-        : 'N/A'
-); ?>
+                        <?= esc_html($bookingStatus); ?>
                         </div>
                         <div class="col-md-6">
                         <strong>Payment Status:</strong> 
-                        <?= esc_html($hoteldataarray['payment_status'] ?? ''); ?>
-                        </div>
-                    </div>
-                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Phone:</strong> 
-                            <?= esc_html($hoteldataarray['phone'] ?? 'N/A'); ?>
-                        </div>
-                        <div class="col-md-6">
-                        <strong>Location:</strong> <?= esc_html($hoteldataarray['location'] ?? ''); ?>
+                        <?= esc_html(ucfirst($hoteldataarray['payment_status'] ?? '')); ?>
                         </div>
                     </div>
                      
@@ -461,7 +465,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
             <!-- Top Row -->
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <strong>Payment Status:</strong> <?= esc_html($paymentStatus ?? ''); ?>
+                    <strong>Payment Status:</strong> <?= esc_html(ucfirst($paymentStatus ?? '')); ?>
                 </div>
                 <div class="col-md-6">
                     <strong>Transaction ID:</strong> <?= esc_html($transactionId ?? ''); ?>
@@ -695,7 +699,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <strong>Passenger Type:</strong> <?= esc_html($booking['passenger_type']); ?>
+                    <strong>Passenger Type:</strong> <?= esc_html(ucfirst($booking['passenger_type'])); ?>
                 </div>
                 <div class="col-md-6">
                     <strong>DOB:</strong> <?= esc_html($booking['dob']); ?>
@@ -723,7 +727,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                     <strong>Amount:</strong> <?= esc_html($booking['amount']); ?>
                 </div>
                 <div class="col-md-6">
-                    <strong>Payment Status:</strong> <?= esc_html($booking['payment_status']); ?>
+                    <strong>Payment Status:</strong> <?= esc_html(ucfirst($booking['payment_status'])); ?>
                 </div>
             </div>  
         </div>
@@ -759,7 +763,7 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
             <div class="row mb-3">
                 <div class="col-md-6">
 
-                    <strong>PassengerNationality:</strong> <?= esc_html(getCityNameByAirPortCode($bookingcustomer['PassengerNationality'])); ?>
+                    <strong>PassengerNationality:</strong> <?= esc_html(($bookingcustomer['PassengerNationality'])); ?>
                 </div>
                 <div class="col-md-6">
                     <strong>PhoneNumber:</strong> <?= esc_html($bookingcustomer['PhoneNumber']); ?>
@@ -775,9 +779,6 @@ $separator = (strpos($current_url, '?') !== false) ? '&' : '?';
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-md-6">
-                    <strong>Gender:</strong> <?= esc_html($bookingcustomer['Gender']); ?>
-                </div>
                 <div class="col-md-6">
                     <strong>DOB:</strong> <?= esc_html($bookingcustomer['DateOfBirth']); ?>
                 </div>
