@@ -14,7 +14,11 @@ body {
   font-family: Arial, sans-serif;
   font-family: "Inter", sans-serif;
 }
-
+select.form-select.hotel-payment-form-control {
+    appearance: auto !important;
+    /* -webkit-appearance: auto; */
+    -moz-appearance: auto !important;
+}
 #roomSelector1_roomsCount,
 
 #roomSelector1_adultsCount,
@@ -1461,7 +1465,7 @@ input[type=number] {
     margin-left: 9px;
 }
 .hotel-payment-form-control {
-        height: 35px;
+  
             background: white;
   width: 100%;
   padding: 3px 10px;
@@ -2590,10 +2594,7 @@ h6.adult-text {
         height: 141px;
         padding: 15px;
     }*/
-.hero {
-  padding: 100px 0px;
-  height: auto;
-}
+
 
 .hotels-section-booking {
   padding: 9px;
@@ -4404,16 +4405,7 @@ div#search-flights select.select-section-home-page {
   color: #000000 !important;
 }
 
-.hero {
-  background: url("background.jpg") no-repeat center;
-  background-size: cover;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: black;
-  position: relative;
-}
+
 
 .why-choose-card img {
   width: 50px;
@@ -4515,7 +4507,12 @@ div#search-flights select.select-section-home-page {
 }
 
 @media (max-width: 768px) {
-
+div#registerFormContainer .ur-frontend-form .ur-form-row {
+    display: grid !important;
+    gap: 4px !important;
+    grid-template-columns: repeat(2, 2fr) !important;
+    margin: 0px !important;
+}
     section.flight-middle-section .flight-name-sections {
     position: absolute;
     right: 9px;
@@ -4565,12 +4562,7 @@ div#registerFormContainer input#user_confirm_password {
 div#loginFormContainer ul.user-registration-error {
     font-size: 12px;
 }
-    div#registerFormContainer .ur-frontend-form .ur-form-row .ur-form-grid {
-        width: 100% !important;
-        display: grid !important;
-        gap: 4px!important;
-        grid-template-columns: repeat(2, 2fr) !important;
-    }
+ 
 div#registerFormContainer label.ur-label {
     font-size: 12px !important;
 }div#registerFormContainer label#first_name-error, label#user_email-error, label#user_pass-error, label#last_name-error, label#user_login-error, label#phone-error, label#user_confirm_password-error {
@@ -7814,6 +7806,7 @@ margin-bottom: 20px;
       height: auto !important;
         padding: 42px 0px !important;
         padding-bottom: 472px !important;
+            background-size: cover !important;
     }
 
   .special-offer-flex-section {
@@ -7844,9 +7837,7 @@ margin-bottom: 20px;
     /* Further reduce height for mobile */
   }
 
-  .hero {
-    background-size: cover !important;
-  }
+ 
 
   .home-page-banner {
     height: 300px !important;
@@ -10552,8 +10543,11 @@ section.hotel-detail-paragraph-section {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-div#registerFormContainer .ur-frontend-form .ur-form-row .ur-form-grid .ur-field-item {
-    margin-bottom: 0px !important;
+.modal-dialog.travel-login-user-form-section {
+    transform: translateY(73px) ! IMPORTANT;
+}
+div#registerFormContainer div#user_confirm_password_field {
+    margin-top: 26px ! IMPORTANT;
 }
   .search-button-home-page-banner {
     margin-top: 17px;

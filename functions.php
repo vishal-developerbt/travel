@@ -436,7 +436,9 @@ function get_city_suggestions() {
 
     // Search cities in the wp_cities table
     $cities = $wpdb->get_results(
-        $wpdb->prepare("SELECT city_name, country_name FROM wp_cities WHERE city_name LIKE %s LIMIT 10", '%' . $wpdb->esc_like($search_term) . '%'),
+ 
+        $wpdb->prepare("SELECT city_name, country_name FROM wp_cities WHERE city_name LIKE %s LIMIT 10", $wpdb->esc_like($search_term) . '%'),
+
         ARRAY_A
     );
 
@@ -477,7 +479,7 @@ function get_city_suggestions_for_api() {
 
     // Search cities in the wp_cities table
     $cities = $wpdb->get_results(
-        $wpdb->prepare("SELECT city_name, country_name FROM wp_cities WHERE city_name LIKE %s LIMIT 10", '%' . $wpdb->esc_like($search_term) . '%'),
+       $wpdb->prepare("SELECT city_name, country_name FROM wp_cities WHERE city_name LIKE %s LIMIT 10", $wpdb->esc_like($search_term) . '%'),
         ARRAY_A
     );
 
@@ -4101,5 +4103,6 @@ function send_custom_flight_booking_email($user_email, $user_name, $booking_id) 
     }
 
     // Check User Email For Guest User Booking (Flight & Hotels) End
+
 ?>
 

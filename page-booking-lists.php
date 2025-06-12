@@ -32,20 +32,18 @@ $sort_option = isset($_GET['sort']) ? $_GET['sort'] : 'most-popular';
 if (!empty($location) && !empty($checkin) && !empty($checkout) && !empty($rooms)) {
     // If search parameters exist, fetch filtered hotels
     $booking_data = fetch_homeHotel_booking_listings($location, $checkin, $checkout, $rooms);
-    if($booking_data['status']['errors']){
-        header("Location: /error.php");
-        exit;
-    }
-    $status = $booking_data['status'];
-    $hotels = $booking_data['itineraries'];
-    
-    foreach($hotels as $hotelval){
+    $status = isset($booking_data['status']) ? $booking_data['status'] : 0;
+    $hotels = isset($booking_data['itineraries']) ? $booking_data['itineraries'] : 0;
+   if(empty(!$hotels)){
+         foreach($hotels as $hotelval){
             $prices['price'][] = $hotelval['total'];
     }
     
     $prices = $prices['price'];
     $min_price = min($prices);
     $max_price = max($prices);
+   }
+   
 
 } else {
     // Otherwise, fetch all listings
@@ -304,8 +302,24 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
                 $hotels_paginated = [];
                 $current_page = '';
                 $total_pages = '';
+                $isloaction = 0;
+                if (empty($location)) {
+                    $isloaction =1;
+                }
 
-                echo "<div class='alert alert-warning text-center' role='alert'>No hotels found for this location.        </div>";
+                 if (isset($status['error']) && empty($hotels)) {
+    
+                echo "<div class='alert alert-warning text-center' role='alert'>{$status['error']}</div>";
+
+                } elseif (empty($status) && empty($hotels)) {
+                    if($isloaction){
+                          echo "<div class='alert alert-info text-center' role='alert'>Search location to find hotels.</div>";
+                      }else{
+                         echo "<div class='alert alert-danger text-center' role='alert'>Server is down. Please try again later.</div>";
+                      }
+                   
+                }
+
             } else {
                 
                 $per_page = 5;
