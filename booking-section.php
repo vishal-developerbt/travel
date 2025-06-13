@@ -25,7 +25,9 @@
                 </div>
             </div>
             <!-- Hotels Tab Content -->
-            <form action="<?php echo site_url('/booking-lists/'); ?>" method="GET" onsubmit="formatRoomsInput()">
+            <!-- <form  id="searchForm"  action="<?php //echo site_url('/booking-lists/'); ?>" method="GET" onsubmit="formatRoomsInput()"> -->
+                <form id="searchForm" action="<?php echo site_url('/booking-lists/'); ?>" method="GET" onsubmit="return handleFormSubmit(event);">
+
                 <div id="search-hotels" class="tab-content active">
                     <div class="row g-3 search-container-booking flight-section-search-sections">
                         <!-- Location Input -->
@@ -125,6 +127,8 @@
                     </div>
                 </div>
             </form>
+           
+
          <!-- Flights Tab Content -->
         <div id="search-flights" class="tab-content d-none">
             <div class="row g-3 search-container-booking">
@@ -264,6 +268,7 @@
             </div>
         </div>
    </div>
+    <div class="loader home-loader-travel-1" style="display: none;"></div>
 </div>
 </section>
 <div class="shape-text-image">
@@ -528,6 +533,9 @@
 
             e.preventDefault();
             console.log("✈️ Flight search triggered!");
+
+            const loader = document.querySelector(".loader");
+            if (loader) loader.style.display = "flex";
             // Trip type
             const tripType = document.querySelector('input[name="tripType"]:checked')?.id === 'oneWay' ? 'OneWay' : 'Return';
 
@@ -559,6 +567,7 @@
             // Validate
             if (!origin || !destination || !departureDate) {
                 alert("Please fill in all required fields.");
+                if (loader) loader.style.display = "none"; 
                 return;
             }
 
@@ -591,4 +600,27 @@
     }
 
 </script>
+<script>
+function handleFormSubmit(e) {
+    e.preventDefault(); // Prevent default submission
+
+    formatRoomsInput(); // Run your existing room formatting logic
+
+    // Show loader
+    const loader = document.querySelector('.loader');
+    if (loader) {
+        loader.style.display = 'block';
+    }
+
+    // Let browser render loader before redirecting
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            document.getElementById('searchForm').submit(); // Resume form submission
+        }, 50); // Small delay to let loader display
+    });
+
+    return false; // Prevent default for now
+}
+</script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />

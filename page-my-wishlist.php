@@ -113,6 +113,11 @@ $hotels = $booking_data['itineraries'];
 });
 
 </script>
+<style >
+    .page-template-page-my-wishlist-php .user-registration-MyAccount-content {
+    display: none;
+}
+</style>
     <?php get_footer(); ?>
 
    

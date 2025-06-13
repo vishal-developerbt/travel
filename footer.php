@@ -383,11 +383,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Initialize the correct "See All" link on page load
-    document.getElementById("view-all-link").href = "<?php echo get_post_type_archive_link('special_offers'); ?>";
+    // document.getElementById("view-all-link").href = "<?php echo get_post_type_archive_link('special_offers'); ?>";
 });
 </script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<form action="checkout.php" method="POST">
-    <button type="submit">Book Now</button>
-</form> -->
+
 <?php wp_footer(); ?>

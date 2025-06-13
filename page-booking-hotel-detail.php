@@ -233,6 +233,8 @@ if (!empty($rooms)) {
     ?>
     
     <div id="room-list">
+        <div class="loader" style="display: none;"></div>
+
         <?php 
         foreach ($rooms as $index => $room) {
             $roomType = isset($room['roomType']) ? esc_html($room['roomType']) : 'Unknown Room Type';
@@ -550,71 +552,14 @@ if (!empty($rooms)) {
         });
     });
 </script>
-<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
-<script>
-$(document).ready(function () {
-    $(".book-now-button-detail-page").click(function () {
-        let baseUrl = window.location.origin; // Automatically gets the domain
-        let checkoutUrl = baseUrl + "/checkout.php";
-
-        // Get values from the clicked room's container
-        let roomContainer = $(this).closest(".hotel-container");
-        let rateBasisId = roomContainer.find("input[name='rateBasisId']").val();
-        let netPrice = roomContainer.find("input[name='netPrice']").val();
-         let pid = roomContainer.find("input[name='pid']").val();
-        
-        // Get values from URL
-        let urlParams = new URLSearchParams(window.location.search);
-        let location = urlParams.get("location") || "";
-        let checkin = urlParams.get("checkin") || "";
-        let checkout = urlParams.get("checkout") || "";
-        let rooms = urlParams.get("rooms") || "";
-        let hotelId = urlParams.get("hotelId") || "";
-        let tokenId = urlParams.get("tokenId") || "";
-        let sessionId = urlParams.get("sessionId") || "";
-      
-        // Ensure required values are not empty
-        if (!rateBasisId || !netPrice) {
-            alert("Error: Missing room details. Please try again.");
-            return;
-        }
-
-        $.ajax({
-            url: checkoutUrl,
-            type: "POST",
-            data: { 
-                action: "book_now",
-                location: location,
-                checkin: checkin,
-                checkout: checkout,
-                hotelId: hotelId,
-                tokenId: tokenId,
-                sessionId: sessionId,
-                productId: pid,
-                rooms: rooms,
-                rateBasisId: rateBasisId, 
-                netPrice: netPrice 
-            },
-            dataType: "json",
-            success: function (response) {
-                if (response.status === "success") {
-                    window.location.href = response.payment_url; // Redirect to Stripe
-                } else {
-                    alert("Booking failed: " + response.message);
-                }
-            },
-            error: function () {
-                alert("Something went wrong!");
-            }
-        });
-    });
-});
-
-</script>
 <script type="text/javascript">
   function redirectToPaymentPage(roomSessionId, roomTokenId, roomHotelId, roomProductId, checkin, checkout, roomforPayment,rateBasisId,fareType, roomprice,location) {
     let baseUrl = "<?php echo site_url(); ?>"; // Get the domain
     let paymentPageUrl = baseUrl + "/hotel-payment/";
+
+    // Show the loader
+    const loader = document.querySelector(".loader");
+    if (loader) loader.style.display = "block";
 
     // Build query string with parameters
     let params = new URLSearchParams({
@@ -632,7 +577,9 @@ $(document).ready(function () {
     });
 '<?php echo esc_js($fareType); ?>',
     // Redirect to payment page with parameters
-    window.location.href = paymentPageUrl + "?" + params.toString();
+    setTimeout(() => {
+        window.location.href = paymentPageUrl + "?" + params.toString();
+    }, 100);
   }
 </script>
 

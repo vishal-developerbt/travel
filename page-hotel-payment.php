@@ -80,7 +80,7 @@ get_header(); ?>
     </div>
     <div class="content-wrapper row g-4">
       <!-- Left Column -->
-      <div class="main-column col-md-8">
+      <div class="main-column col-md-12 col-lg-8">
       <!-- Tour Card -->
         <div class="tour-card card mb-4">
           <div class="tour-card-body card-body d-flex gap-4">
@@ -231,6 +231,7 @@ get_header(); ?>
                   <input type="hidden" name="rateBasisId" value="<?php echo $rateBasisId; ?>">
                   <input type="hidden" name="netPrice" value="<?php echo $roomPrice; ?>">
                   <input type="hidden" name="faretype" value="<?php echo $fareType; ?>">
+                  <input type="hidden" id="customer_user_id" value="<?php echo esc_attr(get_current_user_id()); ?>">
                </form>
 
                <!-- Guest Form start -->
@@ -288,6 +289,9 @@ get_header(); ?>
                 </div>
               </div>
             </div>
+            <div class="hotel-confirm-booking-loader">
+            <div class="loader" style="display: none;"></div>
+
                   <!-- Guest Form End -->
                   <div class="d-flex justify-content-center mt-4">
                     <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto submit-payment-btn-more-mon book-now-button-confirm-page"
@@ -322,6 +326,7 @@ get_header(); ?>
                       ?>
                   </div>
             </div>
+          </div>
         </div>
       </div>
     </div>
@@ -383,6 +388,9 @@ jQuery(document).ready(function ($) {
     $(".book-now-button-confirm-page").click(function (e) {
         e.preventDefault();
 
+        // Show loader (optional, if you want it early)
+        $(".loader").show();
+
         // Payment method from the clicked button
         let paymentMethod = $(this).val();
         let baseUrl = window.location.origin;
@@ -395,15 +403,18 @@ jQuery(document).ready(function ($) {
         let phone = $("#c_phone").val().trim();
         let phoneRegex = /^[0-9]{10,15}$/;
         let email = $("#email").val().trim();
+        let customer_user_id = $("#customer_user_id").val();
 
         // Validate phone number
         if (!phoneRegex.test(phone)) {
+            $(".loader").hide();
             alert("Please enter a valid phone number (10 to 15 digits).");
             return;
         }
 
         // Validate basic fields
         if (!firstName || !lastName || !phone || !email) {
+            $(".loader").hide();
             alert("Please fill in all required fields.");
             return;
         }
@@ -411,6 +422,7 @@ jQuery(document).ready(function ($) {
         // Check if terms are accepted
         let termsAccepted = $("#terms").is(":checked");
         if (!termsAccepted) {
+            $(".loader").hide();
             alert("Please accept the terms to proceed.");
             return;
         }
@@ -419,6 +431,7 @@ jQuery(document).ready(function ($) {
         let rateBasisId = $("input[name='rateBasisId']").val();
         let netPrice = $("input[name='netPrice']").val();
         if (!rateBasisId || !netPrice) {
+            $(".loader").hide();
             alert("Missing price or room details.");
             return;
         }
@@ -428,28 +441,19 @@ jQuery(document).ready(function ($) {
         let location = urlParams.get("location") || "";
         let checkin = urlParams.get("checkin") || "";
         let checkout = urlParams.get("checkout") || "";
-        let rooms = urlParams.get("rooms") || "";  // Ensure rooms is defined here
+        let rooms = urlParams.get("rooms") || "";
         let hotelId = urlParams.get("hotel_id") || "";
         let tokenId = urlParams.get("token_id") || "";
         let sessionId = urlParams.get("session_id") || "";
 
-        // AJAX to check if email exists
-        $.post(guestAjax.ajax_url, {
-            action: 'check_user_by_email',
-            email: email
-        }).done(function(response) {
-            if (response.exists) {
-                alert("This Email already exists, please login first.");
-                return; // Stop if email exists
-            }
-
-            // Guest selection
+        // ⬇️ Function to continue booking (shared for guest/logged-in)
+        function continueBooking() {
             let selectedGuests = [];
             $("input[name='selected_guest[]']:checked").each(function () {
                 selectedGuests.push($(this).val());
             });
 
-            const [room, adult, child] = rooms.split('-');  // Make sure `rooms` is defined
+            const [room, adult, child] = rooms.split('-');
             const guests_type = {};
             const guests_number = {};
             let guests_ids = [];
@@ -476,11 +480,12 @@ jQuery(document).ready(function ($) {
             let roomGuest = parseInt(adult) + parseInt(child);
 
             if (guestCnt != roomGuest) {
+                $(".loader").hide();
                 alert("Guest count does not match selected room capacity.");
                 return;
             }
 
-            // Submit AJAX request for booking
+            // Final booking request
             $.ajax({
                 url: checkoutUrl,
                 type: "POST",
@@ -508,6 +513,7 @@ jQuery(document).ready(function ($) {
                     paymentMethod
                 },
                 success: function (response) {
+                    $(".loader").hide();
                     if (response.status === "success" && response.payment_url) {
                         window.location.href = response.payment_url;
                     } else {
@@ -515,17 +521,37 @@ jQuery(document).ready(function ($) {
                     }
                 },
                 error: function (xhr, status, error) {
+                    $(".loader").hide();
                     console.error("XHR Error:", xhr.responseText);
                     alert("Something went wrong. Please try again.");
                 }
             });
-        }).fail(function () {
-            alert("Something went wrong with checking the email.");
-        });
+        }
+
+        // ✅ Check login status via customer_user_id
+        if (customer_user_id !== "0") {
+            // Logged-in user — skip email check
+            continueBooking();
+        } else {
+            // Guest — check if email exists
+            $.post(guestAjax.ajax_url, {
+                action: 'check_user_by_email',
+                email: email
+            }).done(function (response) {
+                if (response.exists) {
+                    $(".loader").hide();
+                    alert("This Email already exists, please login first.");
+                    return;
+                }
+                continueBooking();
+            }).fail(function () {
+                $(".loader").hide();
+                alert("Something went wrong with checking the email.");
+            });
+        }
     });
 });
 </script>
-
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
