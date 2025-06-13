@@ -4104,5 +4104,14 @@ function send_custom_flight_booking_email($user_email, $user_name, $booking_id) 
 
     // Check User Email For Guest User Booking (Flight & Hotels) End
 
+    
+    add_filter( 'site_transient_update_plugins', 'disable_plugin_update_user_registration' );
+
+    function disable_plugin_update_user_registration( $value ) {
+        if ( isset( $value->response['user-registration/user-registration.php'] ) ) {
+            unset( $value->response['user-registration/user-registration.php'] );
+        }
+        return $value;
+    }
 ?>
 

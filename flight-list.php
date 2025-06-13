@@ -200,7 +200,14 @@ get_header(); ?>
 
                     // Get the home URL of the site (to construct the full URL for flight results)
                     const homeUrl = "<?php echo esc_url(site_url()); ?>";
+                    // Show loader
+                    const loader = document.querySelector('.loader');
+                    if (loader) loader.style.display = 'flex';
 
+                    // Redirect after a slight delay to ensure loader is visible
+                    setTimeout(() => {
+                        window.location.href = `${homeUrl}/flight-list/?${queryParams.toString()}`;
+                    }, 100); // delay in ms
                     // Redirect to the flight results page with the query parameters
                     window.location.href = `${homeUrl}/flight-list/?${queryParams.toString()}`;
                 });
@@ -287,6 +294,7 @@ get_header(); ?>
             <!-- Right Side - Flight Results -->
             <div class="col-md-9">
                 <div id="flights-container"> 
+                    <div class="loader" style="display: none;"></div>
                     <?php
                         $fareList = $flights['AirSearchResponse']['AirSearchResult']['FareItineraries'] ?? [];
                         if (!empty($fareList)) {
@@ -652,11 +660,15 @@ if($counttotalstop==1){echo esc_html($totalTime);}else{echo esc_html($totalTime)
                                 ?>
                                 
                                 
-                                <a href="<?php echo esc_url($paymentUrl); ?>">
+                              <!--   <a href="<?php //echo esc_url($paymentUrl); ?>">
                                     <button class="btn btn-primary book-now-btn mb-2 book-now-button">
                                         <span class="book-now-button-detail">Book Now</span>
                                     </button>
-                                </a>
+                                </a> -->
+                                <button class="btn btn-primary book-now-btn mb-2 book-now-button" 
+                                        data-url="<?php echo esc_url($paymentUrl); ?>">
+                                    <span class="book-now-button-detail">Book Now</span>
+                                </button>
                                     <button class="flight-detail btn btn-link">
                                         Flight Details <i class="arrow-down"></i>
                                     </button>
@@ -688,6 +700,8 @@ if($counttotalstop==1){echo esc_html($totalTime);}else{echo esc_html($totalTime)
         </div>
     </div>
 </div>
+
+
 <?php
         global $wpdb;
        $results = $wpdb->get_results("SELECT airport_code, city FROM airport_list",ARRAY_A);
@@ -1415,6 +1429,24 @@ function resetFilters() {
     const noFlightsMessage = document.getElementById('no-flights-message');
     if (noFlightsMessage) noFlightsMessage.style.display = 'none';
 }
+</script>
+<script>
+jQuery(document).ready(function ($) {
+    $(".book-now-button").on("click", function (e) {
+        e.preventDefault();
+        
+        const url = $(this).data("url");
+
+        // Optional: Disable button to prevent double-clicks
+        $(this).prop("disabled", true);
+        $(".loader").show(); // Show loader
+
+        // Add small delay to let loader show before navigating
+        setTimeout(() => {
+            window.location.href = url;
+        }, 300); // Adjust delay as needed
+    });
+});
 </script>
 
 

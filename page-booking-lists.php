@@ -56,7 +56,9 @@ $totalHotels = isset($status['totalResults']) ? $status['totalResults'] : 0;
 <!-- Navbar and Search Bar -->
 <div class="flight-select-section mt-4">
     <div class="container">
-        <form method="GET" action="/travel/booking-lists/" onsubmit="formatRoomsInput()">
+        <!-- <form method="GET" action="/travel/booking-lists/" onsubmit="formatRoomsInput()"> -->
+            <form method="GET" action="/travel/booking-lists/" onsubmit="return showLoaderAndSubmit();">
+
             <div class="row g-2 align-items-center">
                 <!-- City, Property Name -->
                 <div class="col-md-3 text-start">
@@ -502,4 +504,18 @@ flatpickr("#check-in, #check-out", {
 }
 
 </script>
+<script>
+function showLoaderAndSubmit() {
+    applyRoomSelection(); // Ensures the hidden rooms input is updated
+
+    // Show your loader
+    const loader = document.querySelector('.loader');
+    if (loader) {
+        loader.style.display = 'flex'; // or 'block', depending on your styling
+    }
+
+    return true; // Proceed with form submission
+}
+</script>
+
 <?php get_footer(); ?>

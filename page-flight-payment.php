@@ -385,6 +385,7 @@ get_header();
                         <input type="hidden" name="tripArgsEncoded" id="tripArgsEncoded" value="<?php echo esc_attr(base64_encode(json_encode($tripArgs))); ?>">
                         <input type="hidden" name="netPrice" id="netPrice" value="<?php echo esc_attr($totalFare); ?>">
                         <input type="hidden" name="fareType" id="fareType" value="<?php echo esc_attr($fareType); ?>">
+                         <input type="hidden" id="customer_user_id" value="<?php echo esc_attr(get_current_user_id()); ?>">
                 </form>
 
                 <div class="impo-ticket-sms-text-secondary">
@@ -470,8 +471,13 @@ get_header();
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <div class="hotel-payment-form-group">
-                                            <label>Passport Issue Country<span class="star-section-red-color">*</span></label>
-                                            <input type="text" id="guest_issue_country" placeholder="Enter issue country (e.g., IN" class="hotel-payment-form-control" required />
+                                            <label>Passport Issue Country<span class="star-section-red-color">*</span>
+                                            </label>
+                                            <input type="text" id="guest_issue_country" placeholder="Enter issue country (e.g., IN)" class="hotel-payment-form-control" required autocomplete="off" />
+                                            <input type="hidden" id="guest_issue_country_code">
+                                            <div class="invalid-feedback" style="display: none;">
+                                                Please select a valid country from the suggestions.
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -498,6 +504,8 @@ get_header();
                 </div>
                  <!-- Traveller Guest Details End-->
             </div>
+            <div class="booking-sections-container">
+             <div class="loader" style="display: none;"></div>
             <!-- Confirm Button -->
             <div class="d-flex justify-content-center mt-4">
                 <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto book-now-button-confirm-page submit-payment-btn-more-mon" style="max-width: 500px;"  name="payment_method" value="stripe" id="confirmBtn">Pay with Stripe</button>
@@ -505,6 +513,7 @@ get_header();
                 <button class="btn btn-primary btn-lg py-3 px-4 w-100 w-md-auto book-now-button-confirm-page submit-payment-btn-more-mon" style="max-width: 500px;" name="payment_method" value="crypto" id="confirmBtn">Pay with Crypto</button>
             </div>
         </div>
+    </div>
 
         <!-- Right Column (4 cols) Price Summary start-->
         <div class="col-md-4 redfund-section">
@@ -580,51 +589,44 @@ jQuery(document).ready(function ($) {
     $(".book-now-button-confirm-page").on("click", function (e) {
         e.preventDefault();
 
-        let valid = true; // Declare and initialize the validation flag
+        $(".loader").show(); // Show loader
+
+        let valid = true;
 
         const countrycode = $("#country_code_s").val();
-        let baseUrl = "<?php echo site_url(); ?>";
-        let checkoutUrl = baseUrl + "/flightcheckout.php";
-        let paymentMethod = $(this).val();
+        const baseUrl = "<?php echo site_url(); ?>";
+        const checkoutUrl = baseUrl + "/flightcheckout.php";
+        const paymentMethod = $(this).val();
 
-        // Get user inputs
-        let title = $("#title").val();
-        let firstName = $("#firstName").val().trim();
-        let lastName = $("#lastName").val().trim();
-        let email = $("#email").val().trim();
+        const title = $("#title").val();
+        const firstName = $("#firstName").val().trim();
+        const lastName = $("#lastName").val().trim();
+        const email = $("#email").val().trim();
+        const customer_user_id = $("#customer_user_id").val();
 
-        // AJAX check if email exists start
-        $.post(guestAjax.ajax_url, {
-            action: 'check_user_by_email',
-            email: email
-        }).done(function(response) {
-            if (response.exists) {
-                alert("This Email already exists, please login first.");
-                return; // Stop form submission if email exists
-            }
-
-            // Continue with form validation only if email is not taken
-            let dob = $("#dob").val().trim();
-            let nationality = $("#nationality").val().trim();
-            let isPassportRequired = $("#isPassportRequired").val().trim();
-            let isRefundable = $("#isRefundable").val().trim();
-            let postCode = $("#post_code").val();
-            let areaCode = $("#area_code").val();
-            let phone = $("#mobile_number").val();
+        // Define function for actual booking
+        function continueBooking() {
+            const dob = $("#dob").val().trim();
+            const nationality = $("#nationality").val().trim();
+            const isPassportRequired = $("#isPassportRequired").val().trim();
+            const isRefundable = $("#isRefundable").val().trim();
+            const postCode = $("#post_code").val();
+            const areaCode = $("#area_code").val();
+            const phone = $("#mobile_number").val();
 
             // Passport required validations
             if (isPassportRequired === "1") {
-                let passportNumber = $("#passport_number").val().trim();
-                let passportIssueCountry = $("#passport_issue_country_code").val().trim();
-                let passportExpiryDate = $("#passport_expiry_date").val().trim();
+                const passportNumber = $("#passport_number").val().trim();
+                const passportIssueCountry = $("#passport_issue_country_code").val().trim();
+                const passportExpiryDate = $("#passport_expiry_date").val().trim();
 
-                if (!title || !firstName || !lastName || !dob || !nationality || 
+                if (!title || !firstName || !lastName || !dob || !nationality ||
                     !passportNumber || !passportIssueCountry || !passportExpiryDate || !postCode || !areaCode || !phone) {
+                    $(".loader").hide();
                     alert("Please fill in all required fields.");
                     return;
                 }
 
-                // Validate passport number
                 const passportPattern = /^[a-zA-Z0-9]{8,9}$/;
                 if (!passportPattern.test(passportNumber)) {
                     $("#passport_number").addClass('is-invalid');
@@ -633,38 +635,37 @@ jQuery(document).ready(function ($) {
                     $("#passport_number").removeClass('is-invalid');
                 }
 
-                // Validate passport expiry date
-                if (passportExpiryDate) {
-                    const expiry = new Date(passportExpiryDate);
-                    const today = new Date();
-                    const sixMonthsLater = new Date();
-                    sixMonthsLater.setMonth(today.getMonth() + 6);
+                const expiry = new Date(passportExpiryDate);
+                const today = new Date();
+                const sixMonthsLater = new Date();
+                sixMonthsLater.setMonth(today.getMonth() + 6);
 
-                    if (expiry <= sixMonthsLater) {
-                        $("#passport_expiry_date").addClass('is-invalid');
-                        valid = false;
-                    } else {
-                        $("#passport_expiry_date").removeClass('is-invalid');
-                    }
+                if (expiry <= sixMonthsLater) {
+                    $("#passport_expiry_date").addClass('is-invalid');
+                    valid = false;
+                } else {
+                    $("#passport_expiry_date").removeClass('is-invalid');
                 }
 
             } else {
                 if (!title || !firstName || !lastName || !dob || !nationality || !postCode || !areaCode || !phone) {
+                    $(".loader").hide();
                     alert("Please fill in all required fields.");
                     return;
                 }
             }
 
             if (!valid) {
+                $(".loader").hide();
                 alert("Please correct the errors before continuing.");
                 return;
             }
 
-            // Validate DOB: must be more than 12 years ago
-            let enteredDOB = new Date(dob);
-            let today = new Date();
+            const enteredDOB = new Date(dob);
+            const today = new Date();
 
             if (isNaN(enteredDOB.getTime())) {
+                $(".loader").hide();
                 alert("Please enter a valid date of birth.");
                 return;
             }
@@ -672,17 +673,16 @@ jQuery(document).ready(function ($) {
             let age = today.getFullYear() - enteredDOB.getFullYear();
             let m = today.getMonth() - enteredDOB.getMonth();
             let d = today.getDate() - enteredDOB.getDate();
-
             if (m < 0 || (m === 0 && d < 0)) {
                 age--;
             }
 
             if (age < 12) {
+                $(".loader").hide();
                 alert("You must be older than 12 years.");
                 return;
             }
 
-            // Extract expected guest numbers from URL
             const urlParams = new URLSearchParams(window.location.search);
             const expectedAdults = parseInt(urlParams.get("adults") || "0");
             const expectedChildren = parseInt(urlParams.get("children") || "0");
@@ -695,23 +695,19 @@ jQuery(document).ready(function ($) {
                 const guestId = $(this).val();
                 const guestInfo = $(this).closest('label').find('span').text().toLowerCase();
 
-                if (guestInfo.includes("adult")) {
-                    guests_type.adult++;
-                } else if (guestInfo.includes("child")) {
-                    guests_type.child++;
-                } else if (guestInfo.includes("infant")) {
-                    guests_type.infant++;
-                }
+                if (guestInfo.includes("adult")) guests_type.adult++;
+                else if (guestInfo.includes("child")) guests_type.child++;
+                else if (guestInfo.includes("infant")) guests_type.infant++;
 
                 selectedGuests.push(guestId);
             });
 
-            // Validate guest type counts
             if (
-                guests_type.adult !== expectedAdults || 
-                guests_type.child !== expectedChildren || 
+                guests_type.adult !== expectedAdults ||
+                guests_type.child !== expectedChildren ||
                 guests_type.infant !== expectedInfants
             ) {
+                $(".loader").hide();
                 alert(
                     "Selected guests do not match the flight booking requirements.\n" +
                     `Expected: ${expectedAdults} adults, ${expectedChildren} children, ${expectedInfants} infants\n` +
@@ -720,20 +716,20 @@ jQuery(document).ready(function ($) {
                 return;
             }
 
-            // Hidden fields
-            let tripArgs = $("#tripArgsEncoded").val();
-            let netPrice = $("#netPrice").val();
-            let fareType = $("#fareType").val();
+            const tripArgs = $("#tripArgsEncoded").val();
+            const netPrice = $("#netPrice").val();
+            const fareType = $("#fareType").val();
 
-            let requestData = {
+            const requestData = {
                 action: "confirm_flight_booking",
+                customer_user_id: customer_user_id,
                 first_name: firstName,
                 last_name: lastName,
                 email: email,
                 title: title,
                 dob: dob,
-                countryCode:countrycode,
-                phone:phone,
+                countryCode: countrycode,
+                phone: phone,
                 nationality: nationality,
                 tripArgsEncoded: tripArgs,
                 netPrice: netPrice,
@@ -751,14 +747,13 @@ jQuery(document).ready(function ($) {
                 requestData.passport_expiry_date = $("#passport_expiry_date").val().trim();
             }
 
-            // Send data to server
             $.ajax({
                 url: checkoutUrl,
                 type: "POST",
                 dataType: "json",
                 data: requestData,
                 success: function (response) {
-                    console.log(response);
+                    $(".loader").hide();
                     if (response.status === "success") {
                         window.location.href = response.redirect_url;
                     } else {
@@ -766,13 +761,32 @@ jQuery(document).ready(function ($) {
                     }
                 },
                 error: function () {
+                    $(".loader").hide();
                     alert("Something went wrong. Please try again.");
                 }
             });
-        }).fail(function () {
-            alert("Something went wrong with checking the email.");
-        });
+        }
 
+        // Check if user is logged in
+        if (customer_user_id !== "0") {
+            continueBooking();
+        } else {
+            // Guest user: validate email
+            $.post(guestAjax.ajax_url, {
+                action: 'check_user_by_email',
+                email: email
+            }).done(function (response) {
+                if (response.exists) {
+                    $(".loader").hide();
+                    alert("This Email already exists, please login first.");
+                    return;
+                }
+                continueBooking();
+            }).fail(function () {
+                $(".loader").hide();
+                alert("Something went wrong with checking the email.");
+            });
+        }
     });
 });
 </script>
